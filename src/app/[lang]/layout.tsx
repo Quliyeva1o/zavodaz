@@ -1,10 +1,16 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, locales } from "@/i18n/config";
 import { inter } from "@/lib/fonts";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FigmaOverlay } from "@/components/dev/figma-overlay";
+import { siteUrl } from "@/lib/seo";
 import "../globals.css";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+};
 
 // Cache Components: params must be known at build time, otherwise the layout becomes request-time data.
 export function generateStaticParams() {
