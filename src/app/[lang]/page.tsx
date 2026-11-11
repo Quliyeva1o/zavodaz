@@ -1,3 +1,3 @@
 export default function HomePage() {
-  return <main>Zavod.az</main>;
+  return <main className="container-site min-h-[400px]" />;
 }

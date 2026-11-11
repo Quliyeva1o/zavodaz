@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { hasLocale, locales } from "@/i18n/config";
 import { inter } from "@/lib/fonts";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { FigmaOverlay } from "@/components/dev/figma-overlay";
 import "../globals.css";
 
 // Cache Components: params must be known at build time, otherwise the layout becomes request-time data.
@@ -13,7 +16,12 @@ export default async function SiteLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   return (
     <html lang={lang} className={inter.variable}>
-      <body className="min-h-dvh">{children}</body>
+      <body className="flex min-h-dvh flex-col">
+        <Header lang={lang} />
+        <div className="flex-1">{children}</div>
+        <Footer lang={lang} />
+        {process.env.NODE_ENV === "development" && <FigmaOverlay />}
+      </body>
     </html>
   );
 }
