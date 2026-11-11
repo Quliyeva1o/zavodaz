@@ -8,3 +8,7 @@ private/
 test-results/
 *.tsbuildinfo
 .superpowers/
+design/.cache/
+.next/
+next-env.d.ts
+playwright-report/
