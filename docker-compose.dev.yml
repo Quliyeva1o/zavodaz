@@ -1,6 +1,6 @@
 # Local services: docker compose -f docker-compose.dev.yml up -d
-#   Postgres 13 (same major version as the hosting) on localhost:5441
-#   Mailpit SMTP localhost:1026, inbox http://localhost:8026
+#   Postgres 13 (same major version as the hosting) on localhost:5442
+#   Mailpit SMTP localhost:1027, inbox http://localhost:8027
 services:
   db:
     image: postgres:13-alpine
@@ -9,13 +9,13 @@ services:
       POSTGRES_PASSWORD: zavod
       POSTGRES_DB: zavod
     ports:
-      - "5441:5432"
+      - "5442:5432"
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
   mailpit:
     image: axllent/mailpit:v1.27
     ports:
-      - "1026:1025"
-      - "8026:8025"
+      - "1027:1025"
+      - "8027:8025"
 volumes:
   pgdata-dev:
