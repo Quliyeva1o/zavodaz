@@ -1,1 +1,27 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-white font-sans text-brand-950 antialiased;
+  }
+}
+
+/* Page width from Figma: 1440 frame, 60px side padding (desktop) / 320 frame, 16px (mobile). */
+@utility container-site {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1440px;
+  padding-inline: 16px;
+  @media (width >= 1024px) {
+    padding-inline: 60px;
+  }
+}
