@@ -1,0 +1,14 @@
+[
+  { "name": "header", "bp": "desktop", "node": "143:1693", "path": "/", "selector": "[data-figma=header]" },
+  { "name": "header", "bp": "mobile", "node": "685:20711", "path": "/", "selector": "[data-figma=header]" },
+  { "name": "footer", "bp": "desktop", "node": "143:2121", "path": "/", "selector": "[data-figma=footer]" },
+  { "name": "footer", "bp": "mobile", "node": "685:21139", "path": "/", "selector": "[data-figma=footer]" },
+  {
+    "name": "mobile-menu",
+    "bp": "mobile",
+    "node": "682:20679",
+    "path": "/",
+    "selector": "[data-figma=mobile-menu]",
+    "open": "[data-figma=header] button[aria-haspopup=dialog]"
+  }
+]
