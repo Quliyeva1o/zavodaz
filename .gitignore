@@ -7,3 +7,4 @@ uploads/
 private/
 test-results/
 *.tsbuildinfo
+.superpowers/
