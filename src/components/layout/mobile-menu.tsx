@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { locales, type Locale } from "@/i18n/config";
 import { switchLocalePath } from "@/i18n/routes";
 import { Icon } from "@/components/ui/icon";
@@ -21,7 +21,17 @@ export function MobileMenu({ lang, links, languageLabels, labels, phone, whatsap
   const dialog = useRef<HTMLDialogElement>(null);
   const [hrefs, setHrefs] = useState<Record<Locale, string> | null>(null);
 
+  // The dialog sits inside an lg:hidden wrapper: close it when the viewport grows to desktop,
+  // otherwise it stays modal (page inert) under a display:none ancestor.
+  useEffect(() => {
+    const mq = matchMedia("(min-width: 1024px)");
+    const onChange = () => mq.matches && dialog.current?.close();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   const open = () => {
+    if (matchMedia("(min-width: 1024px)").matches) return;
     setHrefs(Object.fromEntries(locales.map((l) => [l, switchLocalePath(location.pathname, l)])) as Record<Locale, string>);
     dialog.current?.showModal();
   };

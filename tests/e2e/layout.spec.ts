@@ -49,6 +49,18 @@ test.describe("mobile", () => {
     expect(overflow).toBe(0);
   });
 
+  test("open menu closes when the viewport grows past 1024px", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Menyunu aç" }).click();
+    const menu = page.getByRole("dialog");
+    await expect(menu).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(menu).toBeHidden();
+    const nav = page.getByRole("navigation", { name: "Əsas menyu" });
+    await nav.getByRole("link", { name: "Kataloq" }).click();
+    await expect(page).toHaveURL(/\/kataloq$/);
+  });
+
   test("menu switches language", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Menyunu aç" }).click();
