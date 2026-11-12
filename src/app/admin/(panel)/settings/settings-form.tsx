@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { locales } from "@/i18n/config";
-import { SOCIALS, type SiteSettings } from "@/features/settings/schema";
+import { SOCIALS } from "@/features/settings/links";
+import type { SiteSettings } from "@/features/settings/schema";
 import { saveSettings } from "./actions";
 
 const input = "h-10 w-full rounded-[4px] border border-gray-200 bg-white px-3 text-body-md focus:border-brand-700 focus:outline-none";

@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Site pages only: skip admin, API, Next internals and any file with an extension.
-  matcher: ["/((?!admin|api|_next|.*\\..*).*)"],
+  matcher: ["/((?!(?:admin|api)(?:/|$)|_next/|.*\\..*).*)"],
 };

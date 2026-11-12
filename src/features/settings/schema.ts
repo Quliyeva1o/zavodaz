@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { locales, type Localized } from "@/i18n/config";
+import { SOCIALS, type SocialKey } from "./links";
 
-export { telHref, whatsappHref } from "./links";
+export { SOCIALS, telHref, whatsappHref, type SocialKey } from "./links";
 
 const localized = (max: number) =>
   z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max)])) as Record<keyof Localized, z.ZodString>);
 const urlOrEmpty = z.union([z.literal(""), z.url({ protocol: /^https?$/ })]);
 
-export const SOCIALS = ["facebook", "instagram", "linkedin", "x", "youtube", "tiktok"] as const;
-export type SocialKey = (typeof SOCIALS)[number];
 
 export const siteSettingsSchema = z.object({
   phone: z.string().trim().min(5).max(30),
@@ -61,7 +60,11 @@ export function mergeSettings(stored: unknown): SiteSettings {
     socials: { ...defaultSiteSettings.socials, ...s.socials },
   };
   const parsed = siteSettingsSchema.safeParse(candidate);
-  return parsed.success ? parsed.data : defaultSiteSettings;
+  if (!parsed.success) {
+    console.error("Sayt ayarları yanlışdır, standart dəyərlər istifadə olunur:", parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+    return defaultSiteSettings;
+  }
+  return parsed.data;
 }
 
 /** Admin form (field names like `address.az`, `socials.x`) → validated settings. */
