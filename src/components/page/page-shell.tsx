@@ -1,0 +1,28 @@
+import type { ReactNode } from "react";
+import type { Locale } from "@/i18n/config";
+import { dict } from "@/i18n/dictionaries";
+import { href } from "@/i18n/routes";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/structured-data";
+import { Breadcrumb } from "./breadcrumb";
+
+type Props = { lang: Locale; title: string; currentPath: string; figma: string; children: ReactNode };
+
+/**
+ * Breadcrumb + page title (H2 style, h1 element) + content, as the Figma content frames
+ * (143:4005 desktop: header→breadcrumb 30, breadcrumb→title 32, title→content 32;
+ * mobile 685:20709: 20 / 32 / 24).
+ */
+export function PageShell({ lang, title, currentPath, figma, children }: Props) {
+  const t = dict(lang);
+  const crumbs = [{ label: t.nav.home, href: href("home", lang) }, { label: title }];
+  return (
+    <main data-figma={figma} className="container-site flex flex-col gap-6 pt-5 lg:gap-8 lg:pt-[30px]">
+      <JsonLd data={breadcrumbJsonLd([{ name: t.nav.home, url: href("home", lang) }, { name: title, url: currentPath }])} />
+      <div className="flex flex-col gap-8">
+        <Breadcrumb items={crumbs} label={t.breadcrumb} />
+        <h1 className="text-mob-h2 text-brand-950 lg:text-h2">{title}</h1>
+      </div>
+      {children}
+    </main>
+  );
+}

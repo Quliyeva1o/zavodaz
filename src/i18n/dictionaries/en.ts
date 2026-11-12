@@ -27,5 +27,8 @@ export const en: Dictionary = {
     privacy: "Privacy policy",
   },
   notFound: { title: "Page not found", back: "Back to home" },
+  breadcrumb: "Breadcrumb",
+  legalNav: "Legal pages",
+  pages: { terms: "Terms of use", privacy: "Privacy policy", help: "Help", tariffs: "Pricing", contact: "Contact" },
   languages: { az: "Az", en: "En", ru: "Ru" },
 };

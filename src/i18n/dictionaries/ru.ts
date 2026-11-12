@@ -27,5 +27,8 @@ export const ru: Dictionary = {
     privacy: "Политика конфиденциальности",
   },
   notFound: { title: "Страница не найдена", back: "На главную" },
+  breadcrumb: "Навигация",
+  legalNav: "Правовые страницы",
+  pages: { terms: "Правила использования", privacy: "Политика конфиденциальности", help: "Помощь", tariffs: "Тарифы", contact: "Контакты" },
   languages: { az: "Az", en: "En", ru: "Ru" },
 };

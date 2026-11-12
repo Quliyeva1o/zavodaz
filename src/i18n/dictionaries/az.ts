@@ -25,6 +25,9 @@ export const az = {
     privacy: "Məxfilik siyasəti",
   },
   notFound: { title: "Səhifə tapılmadı", back: "Ana səhifəyə qayıt" },
+  breadcrumb: "Naviqasiya",
+  legalNav: "Hüquqi səhifələr",
+  pages: { terms: "İstifadəçi qaydaları", privacy: "Məxfilik siyasəti", help: "Yardım", tariffs: "Tariflər", contact: "Əlaqə" },
   languages: { az: "Az", en: "En", ru: "Ru" },
 };
 
