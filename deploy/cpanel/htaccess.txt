@@ -1,0 +1,13 @@
+# Rules for the .htaccess in the document root (~/zavod-public).
+# Put them ABOVE the block "Setup Node.js App" writes there
+# ("# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN"), and keep that block as is.
+#
+# Canonical address: https://zavod.az (no www, always HTTPS); the test copy uses new.zavod.az (replace the host below).
+# Certificate checks (/.well-known/…) stay reachable over plain HTTP for AutoSSL.
+
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^ https://zavod.az%{REQUEST_URI} [R=301,L]
+
