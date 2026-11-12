@@ -33,3 +33,8 @@ export async function invalidateTags(tags: Iterable<string>, mode: "action" | "r
 
 /** Header / footer contacts and socials (admin → Sayt ayarları). */
 export const SETTINGS_TAG = "settings";
+
+export const pageTag = (key: string) => `page:${key}`;
+export const FAQ_TAG = "faq";
+export const TARIFFS_TAG = "tariffs";
+export const CONTACT_TAG = "contact";

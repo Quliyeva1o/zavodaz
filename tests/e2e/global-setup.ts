@@ -8,6 +8,7 @@ export default async function globalSetup() {
   }
   execFileSync("npm", ["run", "db:migrate"], { stdio: "inherit", shell: true });
   execFileSync("npm", ["run", "db:seed-admin"], { stdio: "inherit", shell: true });
+  execFileSync("npm", ["run", "db:seed-content"], { stdio: "inherit", shell: true });
   const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
   await sql`delete from rate_limits`;
   await sql`delete from sessions`;

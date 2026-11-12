@@ -1,4 +1,6 @@
 import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import type { Localized } from "@/i18n/config";
+import type { RichDoc } from "@/features/pages/types";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -58,3 +60,56 @@ export const rateLimits = pgTable("rate_limits", {
   windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
   count: integer("count").notNull(),
 });
+
+// ---------- Static pages (title, short intro, rich body, SEO) ----------
+export const pages = pgTable("pages", {
+  key: text("key").primaryKey(), // terms | privacy | help | tariffs | contact
+  title: jsonb("title").$type<Localized>().notNull(),
+  intro: jsonb("intro").$type<Localized>().notNull(),
+  body: jsonb("body").$type<Localized<RichDoc | null>>().notNull(),
+  seo: jsonb("seo").$type<{ title: Localized; description: Localized }>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const faqItems = pgTable("faq_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  question: jsonb("question").$type<Localized>().notNull(),
+  answer: jsonb("answer").$type<Localized>().notNull(),
+  sort: integer("sort").notNull().default(0),
+  published: boolean("published").notNull().default(true),
+  ...timestamps,
+});
+
+export const tariffPlans = pgTable("tariff_plans", {
+  code: text("code").primaryKey(), // standart | premium | vip
+  icon: text("icon").notNull(), // asterisk | diamonds-four | crown-simple
+  name: jsonb("name").$type<Localized>().notNull(),
+  /** Prices in qəpik (1 ₼ = 100). 0 = free. */
+  priceMonthQ: integer("price_month_q").notNull(),
+  priceYearQ: integer("price_year_q"),
+  features: jsonb("features").$type<Localized<string[]>>().notNull(),
+  /** null = unlimited; enforced in step 9. */
+  limits: jsonb("limits").$type<{ products: number | null; vacancies: number | null }>().notNull(),
+  sort: integer("sort").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const contactMessages = pgTable(
+  "contact_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull(),
+    topicId: text("topic_id").notNull(),
+    /** Topic label (AZ) at the time of sending — topics can be renamed later. */
+    topicLabel: text("topic_label").notNull(),
+    message: text("message").notNull(),
+    lang: text("lang").notNull(),
+    ipHash: text("ip_hash").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("contact_messages_created_idx").on(t.createdAt)],
+);
