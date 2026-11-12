@@ -16,7 +16,7 @@ export function FaqList({ items }: { items: Item[] }) {
             <Icon name="caret-down-brand" size={20} className="shrink-0 group-open:hidden" />
             <Icon name="caret-up" size={20} className="hidden shrink-0 group-open:block" />
           </summary>
-          <p className="rounded-[6px] bg-gray-50 px-4 py-3 text-body-sm-flat text-gray-700">{q.answer}</p>
+          <p className="whitespace-pre-line rounded-[6px] bg-gray-50 px-4 py-3 text-body-sm-flat text-gray-700">{q.answer}</p>
         </details>
       ))}
     </div>

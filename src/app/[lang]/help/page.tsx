@@ -19,7 +19,7 @@ export default async function HelpPage({ params }: PageProps<"/[lang]/help">) {
   const items = faq.map((q) => ({ id: q.id, question: pick(q.question, lang), answer: pick(q.answer, lang) }));
   return (
     <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("help", lang)} figma="help">
-      <JsonLd data={faqJsonLd(items)} />
+      {items.length > 0 && <JsonLd data={faqJsonLd(items)} />}
       <div className="flex flex-col gap-[60px] lg:flex-row">
         <div className="lg:w-[880px] lg:shrink-0">
           <FaqList items={items} />
