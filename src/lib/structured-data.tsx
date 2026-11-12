@@ -1,11 +1,6 @@
 import { siteUrl } from "@/lib/seo";
 
-/** JSON-LD in a script tag; `<` is escaped so content can never close the tag. */
-export function JsonLd({ data }: { data: object }) {
-  return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\u003c") }} />
-  );
-}
+export { JsonLd } from "./json-ld";
 
 export const breadcrumbJsonLd = (items: { name: string; url: string }[]) => ({
   "@context": "https://schema.org",

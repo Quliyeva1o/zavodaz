@@ -11,10 +11,10 @@ export function Breadcrumb({ items, label }: { items: Crumb[]; label: string }) 
   return (
     <nav aria-label={label} className="flex min-h-[21px] flex-wrap items-center gap-2.5 text-body-sm">
       {items.map((c, i) => (
-        <span key={c.label} className={`flex items-center gap-2.5${i === 0 ? " max-lg:sr-only" : ""}`}>
+        <span key={i} className={`flex items-center gap-2.5${i === 0 ? " max-lg:sr-only" : ""}`}>
           {i > 0 && <Icon name="caret-right" size={18} />}
           {c.href ? (
-            <Link href={c.href} className="relative text-gray-500 before:absolute before:inset-x-0 before:-inset-y-[11px]">
+            <Link href={c.href} className="relative text-gray-500 before:absolute before:inset-x-0 before:-inset-y-3">
               {c.label}
             </Link>
           ) : (

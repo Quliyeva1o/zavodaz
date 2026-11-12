@@ -37,3 +37,48 @@ test("unknown nodes and raw HTML are dropped / escaped", () => {
 test("null doc renders nothing", () => {
   assert.equal(html(null), "");
 });
+
+const p = (content: unknown[]) => ({ type: "doc", content: [{ type: "paragraph", content }] });
+const link = (href: string, text = "t") => p([{ type: "text", text, marks: [{ type: "link", attrs: { href } }] }]);
+
+test("unsafe link schemes are dropped but text is kept", () => {
+  for (const h of ["JaVaScRiPt:alert(1)", " javascript:alert(1)", "data:text/html,x"]) {
+    const out = html(link(h));
+    assert.doesNotMatch(out, /href|javascript|data:/i, h);
+    assert.match(out, />t</);
+  }
+});
+
+test("mailto accepted; HTTPS in caps is external", () => {
+  const m = html(link("mailto:a@b.az"));
+  assert.match(m, /href="mailto:a@b.az"/);
+  assert.doesNotMatch(m, /target=/);
+  const up = html(link("HTTPS://x.az"));
+  assert.match(up, /target="_blank"/);
+  assert.match(up, /rel="noopener"/);
+});
+
+test("unknown mark dropped, italic, nested marks", () => {
+  assert.match(html(p([{ type: "text", text: "u", marks: [{ type: "underline" }] }])), /<p[^>]*>u<\/p>/);
+  assert.match(html(p([{ type: "text", text: "i", marks: [{ type: "italic" }] }])), /<em>i<\/em>/);
+  const n = html(p([{ type: "text", text: "n", marks: [{ type: "bold" }, { type: "link", attrs: { href: "https://x.az" } }] }]));
+  assert.match(n, /<a [^>]*><strong>n<\/strong><\/a>/);
+});
+
+test("orderedList, h3, heading level 1 -> h2, hardBreak, empty content", () => {
+  const out = html({
+    type: "doc",
+    content: [
+      { type: "heading", attrs: { level: 3 }, content: [{ type: "text", text: "H3" }] },
+      { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "H1" }] },
+      { type: "orderedList", content: [{ type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "o" }] }] }] },
+      { type: "paragraph", content: [{ type: "text", text: "a" }, { type: "hardBreak" }, { type: "text", text: "b" }] },
+    ],
+  });
+  assert.match(out, /<h3[^>]*>H3<\/h3>/);
+  assert.match(out, /<h2[^>]*>H1<\/h2>/);
+  assert.doesNotMatch(out, /<h1/);
+  assert.match(out, /<ol[^>]*><li[^>]*><p[^>]*>o<\/p><\/li><\/ol>/);
+  assert.match(out, /a<br\/>b/);
+  assert.equal(html({ type: "doc", content: [] }), "");
+});

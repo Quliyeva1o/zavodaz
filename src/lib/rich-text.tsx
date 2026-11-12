@@ -13,7 +13,7 @@ function withMarks(text: string, marks: RichMark[] = [], key: number): ReactNode
       case "link": {
         const href = String(mark.attrs?.href ?? "");
         if (!SAFE_HREF.test(href)) return child;
-        const external = href.startsWith("http");
+        const external = /^https?:/i.test(href);
         return (
           <a href={href} className="underline" {...(external ? { target: "_blank", rel: "noopener" } : {})}>
             {child}
