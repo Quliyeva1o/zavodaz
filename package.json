@@ -20,7 +20,9 @@
     "figma:assets": "node --env-file-if-exists=.env.local --import tsx scripts/figma/export-assets.mts",
     "figma:references": "node --env-file-if-exists=.env.local --import tsx scripts/figma/export-references.mts",
     "visual:capture": "node tests/visual/capture.mjs",
-    "visual:compare": "node tests/visual/compare.mjs"
+    "visual:geometry": "node --env-file-if-exists=.env.local --import tsx tests/visual/geometry.mjs",
+    "visual:compare": "node tests/visual/compare.mjs",
+    "visual:check": "npm run visual:capture && npm run visual:geometry && npm run visual:compare"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
