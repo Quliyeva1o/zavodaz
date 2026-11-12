@@ -11,3 +11,4 @@ test-results/
 design/.cache/
 next-env.d.ts
 playwright-report/
+design/manual-export/
