@@ -60,6 +60,11 @@ export async function getFile(): Promise<FigmaFile> {
   return file;
 }
 
+/** Local copy of the whole file regardless of age (fallback when the API is rate-limited). */
+export async function loadCachedFile(): Promise<FigmaFile> {
+  return JSON.parse(await readFile(CACHE, "utf8")) as FigmaFile;
+}
+
 export async function getNodes(ids: string[]) {
   const res = await figma<{ nodes: Record<string, { document: FigmaNode } | null> }>(
     `/files/${FILE_KEY}/nodes?ids=${encodeURIComponent(ids.join(","))}`,

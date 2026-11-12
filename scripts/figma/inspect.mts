@@ -1,7 +1,7 @@
 // Prints a Figma node tree with exact layout values: position relative to the root, size,
 // auto-layout (gap, padding, alignment), radius, fills, strokes, effects and text styles.
 //   npm run figma:inspect -- 143:1693 [depth=6]
-import { getNodes, type FigmaColor, type FigmaNode } from "./api.mts";
+import { findNode, getNodes, loadCachedFile, type FigmaColor, type FigmaNode } from "./api.mts";
 
 const [id, depthArg] = process.argv.slice(2);
 if (!id) throw new Error("Usage: npm run figma:inspect -- <node-id> [depth]");
@@ -38,8 +38,18 @@ function line(n: FigmaNode, depth: number, ox: number, oy: number): string {
   return parts.join(" ");
 }
 
-const nodes = await getNodes([id]);
-const root = nodes[id].document;
+let root: FigmaNode;
+try {
+  root = (await getNodes([id]))[id].document;
+  console.log("source: Figma API");
+} catch (err) {
+  console.warn(`Figma API failed: ${(err as Error).message.split("\n")[0].slice(0, 120)}`);
+  const file = await loadCachedFile();
+  const hit = findNode(file.document, id);
+  if (!hit) throw new Error(`Node ${id} not found in the local copy`);
+  root = hit;
+  console.log(`source: local copy ${file.lastModified}`);
+}
 const box = root.absoluteBoundingBox ?? { x: 0, y: 0 };
 const out: string[] = [];
 (function visit(n: FigmaNode, depth: number) {
