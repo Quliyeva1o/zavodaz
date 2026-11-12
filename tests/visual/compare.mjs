@@ -21,10 +21,11 @@ for (const t of targets) {
   const diff = new PNG({ width: figma.width, height: figma.height });
   // includeAA: false — anti-aliased text edges (Figma vs Chrome rasteriser) are not counted.
   const n = pixelmatch(figma.data, site.data, diff.data, figma.width, figma.height, { threshold: 0.1, includeAA: false });
-  const percent = +((n / (figma.width * figma.height)) * 100).toFixed(2);
+  const raw = (n / (figma.width * figma.height)) * 100;
+  const percent = +raw.toFixed(2);
   await mkdir("test-results/visual/diff", { recursive: true });
   await writeFile(`test-results/visual/diff/${t.bp}-${t.name}.png`, PNG.sync.write(diff));
-  const ok = percent <= MAX_DIFF_PERCENT;
+  const ok = raw <= MAX_DIFF_PERCENT;
   if (!ok) failed = true;
   rows.push({ ...row, diff: `${percent}%`, ok });
 }

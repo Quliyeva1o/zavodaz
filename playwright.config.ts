@@ -5,6 +5,7 @@ try {
 } catch {}
 
 // Run against a production build: `npm run build` first; the server starts automatically.
+// The build must be made with SITE_NOINDEX=1 (it is baked at build time, not read at start).
 export default defineConfig({
   testDir: "./tests/e2e",
   globalSetup: "./tests/e2e/global-setup.ts",
@@ -16,7 +17,6 @@ export default defineConfig({
     command: "npx next start -p 3100",
     url: "http://localhost:3100",
     reuseExistingServer: true,
-    env: { SITE_NOINDEX: "1" },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: "chrome" } }],
 });

@@ -25,7 +25,7 @@ test("unknown page answers 404 with the site layout", async ({ page }) => {
 
 test("test copy is closed to search engines", async ({ request }) => {
   const robots = await request.get("/robots.txt");
-  expect(await robots.text()).toContain("Disallow: /");
+  expect(await robots.text()).toMatch(/^Disallow: \/$/m);
   const home = await request.get("/");
   expect(home.headers()["x-robots-tag"]).toBe("noindex, nofollow");
 });
