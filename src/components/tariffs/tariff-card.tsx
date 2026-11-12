@@ -2,7 +2,7 @@ import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { formatPrice } from "@/features/tariffs/format";
 import type { TariffPlan } from "@/features/tariffs/queries";
-import { ButtonLink } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 
 /**
@@ -28,9 +28,9 @@ export function TariffCard({ plan, lang, joinHref }: { plan: TariffPlan; lang: L
           </div>
         </div>
         {free ? null : (
-          <ButtonLink href={joinHref} rel="nofollow" size="responsive" className="w-full">
+          <a href={joinHref} rel="nofollow" className={buttonClass("primary", "responsive", "w-full")}>
             {t.join}
-          </ButtonLink>
+          </a>
         )}
       </div>
       <ul className="flex flex-col gap-4 lg:px-4">
