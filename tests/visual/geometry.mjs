@@ -5,7 +5,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import { findNode, getNodes } from "../../scripts/figma/api.mts";
-import { isMultiParagraph, minTextsError, normalizeText, resolveText } from "./geometry-lib.mjs";
+import { WS_SOURCE, findBlocks, isMultiParagraph, minTextsError, normalizeText, resolveText } from "./geometry-lib.mjs";
 
 const TOLERANCE = 1;
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
@@ -48,13 +48,14 @@ function figmaTexts(root) {
  * inline links, text centred in a taller button) it is the text's line box: x of the first glyph,
  * y/height of the line(s) computed from the glyph rect and the line-height.
  */
-function siteTexts(selector) {
+function siteTexts([selector, wsSource]) {
+  const ws = new RegExp(wsSource, "g");
   const root = document.querySelector(selector);
   const o = root.getBoundingClientRect();
   const out = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const text = node.data.replace(/\s+/g, " ").trim();
+    const text = node.data.replace(ws, " ").trim();
     const el = node.parentElement;
     if (!text || !el.checkVisibility()) continue;
     const cs = getComputedStyle(el);
@@ -79,29 +80,6 @@ function siteTexts(selector) {
   return { texts: out, width: o.width, height: o.height, top: o.top, left: o.left };
 }
 
-/**
- * Multi-paragraph texts: the deepest element inside the target whose whitespace-collapsed
- * innerText equals the (normalised) Figma text; box relative to the target. Map text -> box.
- */
-function siteBlocks([selector, wanted]) {
-  const root = document.querySelector(selector);
-  const o = root.getBoundingClientRect();
-  const norm = (s) => s.replace(/s+/g, " ").trim();
-  const out = {};
-  for (const text of wanted) {
-    let best = null;
-    for (const el of root.querySelectorAll("*")) {
-      if (!el.checkVisibility() || norm(el.innerText) !== text) continue;
-      if (!best || best.contains(el)) best = el;
-    }
-    if (best) {
-      const b = best.getBoundingClientRect();
-      out[text] = { x: b.left - o.left, y: b.top - o.top, h: b.height };
-    }
-  }
-  return out;
-}
-
 // Same rounding as the reference PNG (Figma export) and the element screenshot.
 const figmaPx = (v) => Math.ceil(v - 1e-3);
 const sitePx = (start, size) => Math.ceil(start + size - 1e-3) - Math.floor(start + 1e-3);
@@ -119,11 +97,11 @@ for (const t of targets) {
   if (t.open) await page.click(t.open);
   if (t.waitFor) await page.locator(t.waitFor).first().waitFor({ state: "visible" });
   await page.locator(t.selector).first().waitFor({ state: "visible" });
-  const site = await page.evaluate(siteTexts, t.selector);
+  const site = await page.evaluate(siteTexts, [t.selector, WS_SOURCE]);
   const fTexts = figmaTexts(root);
   const aliases = t.aliases ?? {};
   const multi = fTexts.filter((f) => isMultiParagraph(f.raw)).map((f) => resolveText(f.raw, aliases).text);
-  const blocks = multi.length ? await page.evaluate(siteBlocks, [t.selector, multi]) : {};
+  const blocks = multi.length ? await page.evaluate(findBlocks, [t.selector, multi, WS_SOURCE]) : {};
   await page.close();
 
   const size = {

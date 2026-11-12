@@ -22,3 +22,9 @@ test("minTextsError: default 1, 0 açıq yazıla bilər", () => {
   assert.equal(minTextsError(5, 3), null);
   assert.match(minTextsError(2, 3) ?? "", /≥ 3.*got 2/);
 });
+
+test("Figma yumşaq sətir keçidləri (U+2028/U+2029) çoxparaqraf sayılır və boşluq kimi normallaşır", () => {
+  assert.equal(isMultiParagraph("bir iki"), true);
+  assert.equal(isMultiParagraph("bir iki"), true);
+  assert.equal(normalizeText("bir iki  üç"), "bir iki üç");
+});
