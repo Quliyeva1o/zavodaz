@@ -34,6 +34,13 @@ async function figma<T>(path: string): Promise<T> {
     const res = await fetch(`https://api.figma.com/v1${path}`, { headers: { "X-Figma-Token": TOKEN } });
     if (res.status === 429 && attempt < 5) {
       const wait = Number(res.headers.get("retry-after")) || 2 ** attempt * 5;
+      if (wait > 120) {
+        const hours = Math.ceil(wait / 3600);
+        const type = res.headers.get("x-figma-rate-limit-type") ?? "?";
+        throw new Error(
+          `Figma API rate limit: retry after ~${hours} h (x-figma-rate-limit-type: ${type}). Use a token from a higher-tier Figma seat or wait.`,
+        );
+      }
       console.warn(`Figma rate limit — waiting ${wait}s`);
       await new Promise((r) => setTimeout(r, wait * 1000));
       continue;
