@@ -12,7 +12,7 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
 ```
 
 ## A. İlk quraşdırma
-1. **Resurs yoxlaması:** Terminal → `bash ~/zavod-src/deploy/cpanel/check-server.sh` (3-cü addımdan sonra). Nəticəni developer-ə göndər.
+1. **Resurs yoxlaması:** `DATABASE_URL` hələ olmadığı üçün 4-cü addımdan sonra et (aşağıya bax).
 2. **PostgreSQL:** PostgreSQL Database Wizard → baza `zavod`, istifadəçi `zavodapp` (adlar fərqli olmalıdır), ALL PRIVILEGES. Parolu yalnız `shared/.env`-ə yaz.
 3. **Kod:** deploy key (yalnız oxuma) ilə private repo-nu klonla:
    ```
@@ -28,13 +28,14 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    cp ~/zavod-src/deploy/cpanel/env.example ~/zavod-app/shared/.env && chmod 600 ~/zavod-app/shared/.env
    ```
    `.env`-i File Manager-də doldur (DATABASE_URL, IP_HASH_SALT, ADMIN_EMAIL, ADMIN_PASSWORD). `SITE_URL` və `SITE_NOINDEX` build zamanı oxunur.
+   **Resurs yoxlaması** (`.env` doldurulandan sonra): Terminal → `DATABASE_URL="$(grep -E '^DATABASE_URL=' ~/zavod-app/shared/.env | cut -d= -f2- | tr -d "'\"")" bash ~/zavod-src/deploy/cpanel/check-server.sh` — nəticəni developer-ə göndər.
 5. **İlk build:** `bash ~/zavod-src/deploy/cpanel/deploy.sh`, sonra
    `cd ~/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH npm run db:seed-admin`
 6. **Domen:** Domains → Create A New Domain → `new.zavod.az`, document root `zavod-public` (AutoSSL sertifikatı verir).
 7. **Node app:** Setup Node.js App → Create: Node 22.x, Production, root `zavod-app`, URL `new.zavod.az`, startup `app.js`,
    env `NODE_OPTIONS=--max-old-space-size=768 --v8-pool-size=2` → Create → Start. ("Run NPM Install" basma.)
 8. **.htaccess:** `~/zavod-public/.htaccess`-in ən yuxarısına `htaccess.txt`-dəki qaydalar (`zavod.az` əvəzinə `new.zavod.az`).
-9. **Backup cron:** `45 3 * * * bash $HOME/zavod-src/deploy/cpanel/backup.sh >/dev/null 2>&1`
+9. **Backup cron:** `45 3 * * * bash $HOME/zavod-src/deploy/cpanel/backup.sh >> $HOME/backups/zavod/backup.log 2>&1`
 10. **Yoxla:** https://new.zavod.az — header/footer, dillər, /admin girişi, robots.txt `Disallow: /`.
 
 ## B. Yeniləmə

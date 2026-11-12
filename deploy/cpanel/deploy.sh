@@ -94,7 +94,7 @@ main() {
   mkdir -p "$APP/releases" "$APP/tmp"
   cp -a .next/standalone "$REL"
   cp -a .next/static "$REL/.next/static"
-  cp -a public "$REL/public"
+  if [ -d public ]; then cp -a public "$REL/public"; fi
 
   # Atomic switch, then restart the app.
   ln -sfn "$REL" "$APP/current.next"
