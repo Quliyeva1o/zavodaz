@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 import { alternates, type RouteKey } from "@/i18n/routes";
+import { siteUrl } from "@/lib/env";
 
-export const siteUrl = (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+export { siteUrl };
 /** Test copy (new.zavod.az): closed to search engines (robots.txt + X-Robots-Tag in next.config). */
 export const siteNoindex = process.env.SITE_NOINDEX === "1";
 export const siteName = "Zavod.az";

@@ -1,5 +1,9 @@
 /** Runs once when a server process starts. */
 export async function register() {
+  // Production: refuse to start with a missing/invalid environment (SITE_URL, DATABASE_URL, IP_HASH_SALT).
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NODE_ENV === "production") {
+    await import("./lib/env");
+  }
   // Only the long-running production server needs it (several processes, idle restarts) —
   // not `next build`'s prerender workers, and not `next dev` (one process; touching Next's
   // tag state there makes the dev overlay refresh the page over and over).

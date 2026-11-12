@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { ipHashSalt as salt } from "@/lib/env";
 
 /**
  * Visitor IP, hashed (never stored raw). The LAST X-Forwarded-For entry is the one our own
@@ -8,10 +9,6 @@ import { headers } from "next/headers";
  * not trusted. Set CLIENT_IP_FROM=first-forwarded only behind a proxy that overwrites the header.
  */
 export async function clientIpHash(): Promise<string> {
-  const salt = process.env.IP_HASH_SALT ?? "";
-  if (process.env.NODE_ENV === "production" && !salt) {
-    throw new Error("IP_HASH_SALT is required in production");
-  }
   const h = await headers();
   const forwarded = (h.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const ip =
