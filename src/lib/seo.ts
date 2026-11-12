@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { getPage } from "@/features/pages/queries";
+import type { PageKey } from "@/features/pages/types";
+import { defaultLocale, locales, pick, type Locale } from "@/i18n/config";
 import { alternates, type RouteKey } from "@/i18n/routes";
 import { siteUrl } from "@/lib/env";
 
@@ -30,4 +32,12 @@ export function pageMetadata(opts: { route: RouteKey; lang: Locale; title: strin
       alternateLocale: locales.filter((l) => l !== opts.lang).map((l) => ogLocale[l]),
     },
   };
+}
+
+/** Metadata of a DB-backed static page: admin SEO fields, falling back to "<title> | Zavod.az". */
+export async function staticPageMetadata(key: PageKey, lang: Locale): Promise<Metadata> {
+  const p = await getPage(key);
+  const title = pick(p.seo.title, lang) || `${pick(p.title, lang)} | ${siteName}`;
+  const description = pick(p.seo.description, lang) || undefined;
+  return pageMetadata({ route: key, lang, title, description });
 }

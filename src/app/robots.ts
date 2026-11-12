@@ -15,5 +15,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ["/admin", "/api", ...locales.flatMap((l) => closed.map((r) => href(r, l)))],
     },
     host: siteUrl,
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }
