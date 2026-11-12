@@ -10,12 +10,33 @@ import { WhatsAppLink } from "@/components/ui/whatsapp-link";
 import { LangSwitcher } from "./lang-switcher";
 import { MobileMenu } from "./mobile-menu";
 
-export const NAV: RouteKey[] = ["home", "news", "catalog", "tariffs", "vacancies", "contact"];
+export const NAV = ["home", "news", "catalog", "tariffs", "vacancies", "contact"] as const satisfies RouteKey[];
+
+/**
+ * Menu text boxes as drawn in Figma (desktop 143:1693 "Frame 7", mobile menu 682:20679): the items
+ * are 22.363 high, except "Tariflər" and "Əlaqə", which hug their text; four AZ boxes have hand-set
+ * widths and the two hugging ones are rounded to whole pixels — so the gaps between the words are
+ * not uniform. Kept 1:1 for the Azerbaijani labels (spec 1.1); other languages hug their text at the
+ * common 22.363 height.
+ */
+const NAV_ITEM_HEIGHT = 22.363;
+const AZ_NAV_BOX: Record<(typeof NAV)[number], { width: number; height?: number }> = {
+  home: { width: 87.644, height: NAV_ITEM_HEIGHT },
+  news: { width: 73.424, height: NAV_ITEM_HEIGHT },
+  catalog: { width: 65.39, height: NAV_ITEM_HEIGHT },
+  tariffs: { width: 59 },
+  vacancies: { width: 107.599, height: NAV_ITEM_HEIGHT },
+  contact: { width: 49 },
+};
 
 export async function Header({ lang }: { lang: Locale }) {
   const s = await getSiteSettings();
   const t = dict(lang);
-  const links = NAV.map((k) => ({ href: href(k, lang), label: t.nav[k as keyof typeof t.nav] }));
+  const links = NAV.map((k) => ({
+    href: href(k, lang),
+    label: t.nav[k],
+    box: lang === "az" ? AZ_NAV_BOX[k] : { height: NAV_ITEM_HEIGHT },
+  }));
 
   return (
     <header data-figma="header" className="bg-white lg:border-b lg:border-gray-200">
@@ -30,7 +51,7 @@ export async function Header({ lang }: { lang: Locale }) {
               <Icon name="phone" size={20} />
               {s.phone}
             </a>
-            <WhatsAppLink number={s.whatsapp} label={t.header.whatsapp} className="w-[240px]" />
+            <WhatsAppLink number={s.whatsapp} label={t.header.whatsapp} className="w-[240px] px-[9px]" />
             <LangSwitcher lang={lang} labels={t.languages} languageLabel={t.header.language} />
             <Link
               href={href("login", lang)}
@@ -42,7 +63,12 @@ export async function Header({ lang }: { lang: Locale }) {
           </div>
           <nav aria-label={t.header.mainMenu} className="flex h-6 items-center gap-10">
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className="text-subtitle-3-medium text-brand-950">
+              <Link
+                key={l.href}
+                href={l.href}
+                style={l.box}
+                className="whitespace-nowrap text-subtitle-3-medium text-brand-950"
+              >
                 {l.label}
               </Link>
             ))}

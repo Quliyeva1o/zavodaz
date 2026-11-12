@@ -9,7 +9,7 @@ import { telHref } from "@/features/settings/links";
 
 type Props = {
   lang: Locale;
-  links: { href: string; label: string }[];
+  links: { href: string; label: string; box: { height?: number } }[];
   languageLabels: Record<Locale, string>;
   labels: { open: string; close: string; whatsapp: string; language: string };
   phone: string;
@@ -64,7 +64,7 @@ export function MobileMenu({ lang, links, languageLabels, labels, phone, whatsap
             </button>
             <nav className="flex w-full flex-col gap-6">
               {links.map((l) => (
-                <a key={l.href} href={l.href} className="text-subtitle-2-medium text-brand-950">
+                <a key={l.href} href={l.href} style={{ height: l.box.height }} className="text-subtitle-2-medium text-brand-950">
                   {l.label}
                 </a>
               ))}
@@ -83,13 +83,14 @@ export function MobileMenu({ lang, links, languageLabels, labels, phone, whatsap
               </a>
             ))}
           </div>
-          <hr className="border-gray-200" />
+          {/* Figma line is 0 high and draws its 1px stroke above its position */}
+          <hr className="-mt-px border-gray-200" />
           <div className="flex flex-col gap-3.5">
             <a href={telHref(phone)} className="flex h-6 items-center gap-1.5 text-body-md text-brand-950">
               <Icon name="phone" size={20} />
               {phone}
             </a>
-            <WhatsAppLink number={whatsapp} label={labels.whatsapp} className="w-full px-6" />
+            <WhatsAppLink number={whatsapp} label={labels.whatsapp} className="w-full px-[23px]" />
           </div>
         </div>
       </dialog>

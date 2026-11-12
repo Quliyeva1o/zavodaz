@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
@@ -54,18 +55,18 @@ export async function Footer({ lang }: { lang: Locale }) {
             {mobileColumns.map((col, i) => (
               <div key={i} className="flex flex-col gap-4">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="text-mob-subtitle-2">
+                  <Link key={l.label} href={l.href} className="h-5 text-mob-subtitle-2">
                     {l.label}
                   </Link>
                 ))}
               </div>
             ))}
           </nav>
-          <nav className="hidden h-[113px] items-center gap-[60px] lg:flex">
+          <nav className="hidden items-center gap-[60px] lg:flex lg:self-stretch">
             {columns.map((col, i) => (
               <div key={i} className="flex flex-col gap-6">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="text-subtitle-3">
+                  <Link key={l.label} href={l.href} className="h-6 text-subtitle-3">
                     {l.label}
                   </Link>
                 ))}
@@ -74,7 +75,8 @@ export async function Footer({ lang }: { lang: Locale }) {
           </nav>
         </div>
 
-        <hr className="border-gray-700" />
+        {/* Figma line is 0 high and draws its 1px stroke above its position */}
+        <hr className="-mt-px border-gray-700" />
 
         <div className="flex flex-col gap-6 px-4 lg:gap-[25px] lg:px-[60px]">
           <div className="flex flex-col gap-8 lg:h-[74px] lg:flex-row lg:items-center lg:justify-between">
@@ -90,11 +92,11 @@ export async function Footer({ lang }: { lang: Locale }) {
             </div>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-[60px]">
               <div className="flex flex-col gap-2.5 lg:w-[254px] lg:gap-[18px]">
-                <p className="text-subtitle-2s-semibold">{t.footer.address}</p>
+                <p className="h-[21px] text-subtitle-2s-semibold">{t.footer.address}</p>
                 <p className="text-body-md-flat">{s.address[lang]}</p>
               </div>
               <div className="flex flex-col gap-2.5 lg:gap-[18px]">
-                <p className="text-subtitle-2s-semibold">{t.footer.phone}</p>
+                <p className="h-[21px] text-subtitle-2s-semibold">{t.footer.phone}</p>
                 <p className="flex items-center gap-2.5 text-body-md-flat">
                   <a href={telHref(s.phone)}>{s.phone}</a>
                   {s.phone2 && (
@@ -108,14 +110,17 @@ export async function Footer({ lang }: { lang: Locale }) {
             </div>
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <ul className="flex items-center justify-between gap-4 lg:justify-start lg:gap-[13px]">
+            {/* Figma: links and 0-wide separator lines are siblings — mobile space-between, desktop gap 13 */}
+            <ul className="flex min-h-[17px] flex-wrap items-center justify-between gap-x-2 gap-y-1 text-caption-tight text-gray-100 lg:justify-start lg:gap-[13px] lg:text-body-sm">
               {legal.map((l, i) => (
-                <li key={l.label} className="flex items-center gap-4 lg:gap-[13px]">
-                  {i > 0 && <span aria-hidden className="h-[9px] w-px bg-white lg:h-3" />}
-                  <Link href={l.href} className="text-caption-tight text-gray-100 lg:text-body-sm">
-                    {l.label}
-                  </Link>
-                </li>
+                <Fragment key={l.label}>
+                  {i > 0 && <li aria-hidden className="-mr-px h-[9px] w-px bg-white lg:h-[11.659px]" />}
+                  <li>
+                    <Link href={l.href} className="whitespace-nowrap">
+                      {l.label}
+                    </Link>
+                  </li>
+                </Fragment>
               ))}
             </ul>
             <p className="text-body-sm text-gray-500">{s.copyright[lang]}</p>
