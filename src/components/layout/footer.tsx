@@ -55,7 +55,7 @@ export async function Footer({ lang }: { lang: Locale }) {
             {mobileColumns.map((col, i) => (
               <div key={i} className="flex flex-col gap-4">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="h-5 text-mob-subtitle-2">
+                  <Link key={l.label} href={l.href} className="min-h-5 text-mob-subtitle-2 leading-5">
                     {l.label}
                   </Link>
                 ))}
@@ -66,7 +66,7 @@ export async function Footer({ lang }: { lang: Locale }) {
             {columns.map((col, i) => (
               <div key={i} className="flex flex-col gap-6">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="h-6 text-subtitle-3">
+                  <Link key={l.label} href={l.href} className="min-h-6 text-subtitle-3 leading-6">
                     {l.label}
                   </Link>
                 ))}
@@ -92,11 +92,11 @@ export async function Footer({ lang }: { lang: Locale }) {
             </div>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-[60px]">
               <div className="flex flex-col gap-2.5 lg:w-[254px] lg:gap-[18px]">
-                <p className="h-[21px] text-subtitle-2s-semibold">{t.footer.address}</p>
+                <p className="min-h-[21px] text-subtitle-2s-semibold leading-[21px]">{t.footer.address}</p>
                 <p className="text-body-md-flat">{s.address[lang]}</p>
               </div>
               <div className="flex flex-col gap-2.5 lg:gap-[18px]">
-                <p className="h-[21px] text-subtitle-2s-semibold">{t.footer.phone}</p>
+                <p className="min-h-[21px] text-subtitle-2s-semibold leading-[21px]">{t.footer.phone}</p>
                 <p className="flex items-center gap-2.5 text-body-md-flat">
                   <a href={telHref(s.phone)}>{s.phone}</a>
                   {s.phone2 && (

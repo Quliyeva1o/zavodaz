@@ -64,7 +64,13 @@ export function MobileMenu({ lang, links, languageLabels, labels, phone, whatsap
             </button>
             <nav className="flex w-full flex-col gap-6">
               {links.map((l) => (
-                <a key={l.href} href={l.href} style={{ height: l.box.height }} className="text-subtitle-2-medium text-brand-950">
+                // ::before widens the tap area to ≥ 44px without moving anything
+                <a
+                  key={l.href}
+                  href={l.href}
+                  style={{ height: l.box.height }}
+                  className="relative before:absolute before:inset-x-0 before:-inset-y-[11px] text-subtitle-2-medium text-brand-950"
+                >
                   {l.label}
                 </a>
               ))}

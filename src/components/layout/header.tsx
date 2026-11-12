@@ -67,7 +67,8 @@ export async function Header({ lang }: { lang: Locale }) {
                 key={l.href}
                 href={l.href}
                 style={l.box}
-                className="whitespace-nowrap text-subtitle-3-medium text-brand-950"
+                // ::before widens the tap area to ≥ 44px without moving anything
+                className="relative before:absolute before:inset-x-0 before:-inset-y-[11px] shrink-0 whitespace-nowrap text-subtitle-3-medium text-brand-950"
               >
                 {l.label}
               </Link>
