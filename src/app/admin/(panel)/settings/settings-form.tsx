@@ -21,28 +21,29 @@ function Field({ label, name, value, error }: { label: string; name: string; val
 export function SettingsForm({ settings }: { settings: SiteSettings }) {
   const [state, action, pending] = useActionState(saveSettings, undefined);
   const e = state?.errors ?? {};
+  const v = state?.values ?? settings;
   return (
     <form action={action} className="flex max-w-3xl flex-col gap-8">
       <section className="grid grid-cols-2 gap-4 rounded-[10px] bg-white p-6">
         <h2 className="col-span-2 text-subtitle-2s-semibold">Əlaqə</h2>
-        <Field label="Telefon" name="phone" value={settings.phone} error={e.phone} />
-        <Field label="İkinci telefon (footer)" name="phone2" value={settings.phone2} error={e.phone2} />
-        <Field label="WhatsApp nömrəsi" name="whatsapp" value={settings.whatsapp} error={e.whatsapp} />
-        <Field label="E-mail" name="email" value={settings.email} error={e.email} />
+        <Field label="Telefon" name="phone" value={v.phone} error={e.phone} />
+        <Field label="İkinci telefon (footer)" name="phone2" value={v.phone2} error={e.phone2} />
+        <Field label="WhatsApp nömrəsi" name="whatsapp" value={v.whatsapp} error={e.whatsapp} />
+        <Field label="E-mail" name="email" value={v.email} error={e.email} />
       </section>
       <section className="grid grid-cols-3 gap-4 rounded-[10px] bg-white p-6">
         <h2 className="col-span-3 text-subtitle-2s-semibold">Ünvan və © mətni</h2>
         {locales.map((l) => (
-          <Field key={`a-${l}`} label={`Ünvan (${LANG_LABEL[l]})`} name={`address.${l}`} value={settings.address[l]} error={e[`address.${l}`]} />
+          <Field key={`a-${l}`} label={`Ünvan (${LANG_LABEL[l]})`} name={`address.${l}`} value={v.address[l]} error={e[`address.${l}`]} />
         ))}
         {locales.map((l) => (
-          <Field key={`c-${l}`} label={`© mətni (${LANG_LABEL[l]})`} name={`copyright.${l}`} value={settings.copyright[l]} error={e[`copyright.${l}`]} />
+          <Field key={`c-${l}`} label={`© mətni (${LANG_LABEL[l]})`} name={`copyright.${l}`} value={v.copyright[l]} error={e[`copyright.${l}`]} />
         ))}
       </section>
       <section className="grid grid-cols-2 gap-4 rounded-[10px] bg-white p-6">
         <h2 className="col-span-2 text-subtitle-2s-semibold">Sosial şəbəkələr (boş qalan footer-də görünmür)</h2>
         {SOCIALS.map((s) => (
-          <Field key={s} label={s} name={`socials.${s}`} value={settings.socials[s]} error={e[`socials.${s}`]} />
+          <Field key={s} label={s} name={`socials.${s}`} value={v.socials[s]} error={e[`socials.${s}`]} />
         ))}
       </section>
       <div className="flex items-center gap-4">
