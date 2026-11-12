@@ -5,6 +5,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import { findNode, getNodes } from "../../scripts/figma/api.mts";
+import { isMultiParagraph, minTextsError, normalizeText, resolveText } from "./geometry-lib.mjs";
 
 const TOLERANCE = 1;
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
@@ -33,7 +34,7 @@ function figmaTexts(root) {
     if (n.visible === false) return;
     if (n.type === "TEXT") {
       const b = n.absoluteBoundingBox;
-      out.push({ text: n.characters.replace(/\s+/g, " ").trim(), x: b.x - o.x, y: b.y - o.y, h: b.height });
+      out.push({ raw: n.characters, text: normalizeText(n.characters), x: b.x - o.x, y: b.y - o.y, h: b.height });
     }
     for (const c of n.children ?? []) visit(c);
   })(root);
@@ -78,6 +79,29 @@ function siteTexts(selector) {
   return { texts: out, width: o.width, height: o.height, top: o.top, left: o.left };
 }
 
+/**
+ * Multi-paragraph texts: the deepest element inside the target whose whitespace-collapsed
+ * innerText equals the (normalised) Figma text; box relative to the target. Map text -> box.
+ */
+function siteBlocks([selector, wanted]) {
+  const root = document.querySelector(selector);
+  const o = root.getBoundingClientRect();
+  const norm = (s) => s.replace(/s+/g, " ").trim();
+  const out = {};
+  for (const text of wanted) {
+    let best = null;
+    for (const el of root.querySelectorAll("*")) {
+      if (!el.checkVisibility() || norm(el.innerText) !== text) continue;
+      if (!best || best.contains(el)) best = el;
+    }
+    if (best) {
+      const b = best.getBoundingClientRect();
+      out[text] = { x: b.left - o.left, y: b.top - o.top, h: b.height };
+    }
+  }
+  return out;
+}
+
 // Same rounding as the reference PNG (Figma export) and the element screenshot.
 const figmaPx = (v) => Math.ceil(v - 1e-3);
 const sitePx = (start, size) => Math.ceil(start + size - 1e-3) - Math.floor(start + 1e-3);
@@ -93,8 +117,13 @@ for (const t of targets) {
   await page.goto(base + t.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   if (t.open) await page.click(t.open);
+  if (t.waitFor) await page.locator(t.waitFor).first().waitFor({ state: "visible" });
   await page.locator(t.selector).first().waitFor({ state: "visible" });
   const site = await page.evaluate(siteTexts, t.selector);
+  const fTexts = figmaTexts(root);
+  const aliases = t.aliases ?? {};
+  const multi = fTexts.filter((f) => isMultiParagraph(f.raw)).map((f) => resolveText(f.raw, aliases).text);
+  const blocks = multi.length ? await page.evaluate(siteBlocks, [t.selector, multi]) : {};
   await page.close();
 
   const size = {
@@ -104,25 +133,35 @@ for (const t of targets) {
   size.ok = size.figma === size.site;
 
   const used = new Set();
-  const rows = figmaTexts(root).map((f) => {
-    const i = site.texts.findIndex((s, k) => !used.has(k) && s.text === f.text);
-    if (i < 0) return { text: f.text, figma: `${r2(f.x)}/${r2(f.y)}/${r2(f.h)}`, site: "—", delta: "unmatched", ok: false };
-    used.add(i);
-    const s = site.texts[i];
+  const rows = fTexts.map((f) => {
+    const { text: want, aliased } = resolveText(f.raw, aliases);
+    const label = (aliased ? "(alias) " : "") + f.text.slice(0, 32);
+    let s;
+    if (isMultiParagraph(f.raw)) {
+      s = blocks[want];
+    } else {
+      const i = site.texts.findIndex((q, k) => !used.has(k) && q.text === want);
+      if (i >= 0) used.add(i);
+      s = site.texts[i];
+    }
+    if (!s) return { text: label, figma: `${r2(f.x)}/${r2(f.y)}/${r2(f.h)}`, site: "—", delta: "unmatched", ok: false };
     const d = [s.x - f.x, s.y - f.y, s.h - f.h];
     return {
-      text: f.text.slice(0, 32),
+      text: label,
       figma: `${r2(f.x)}/${r2(f.y)}/${r2(f.h)}`,
       site: `${r2(s.x)}/${r2(s.y)}/${r2(s.h)}`,
       delta: d.map(r2).join("/"),
       ok: d.every((v) => Math.abs(v) <= TOLERANCE),
     };
   });
-  const ok = size.ok && rows.every((r) => r.ok);
+  const countError = minTextsError(fTexts.length, t.minTexts);
+  const ok = size.ok && !countError && rows.every((r) => r.ok);
   if (!ok) failed = true;
   console.log(`${t.bp}/${t.name} — size figma ${size.figma}, site ${size.site} ${size.ok ? "ok" : "FAIL"} — ${ok ? "OK" : "FAIL"}`);
+  if (countError) console.log(`  FAIL: ${countError}`);
+  for (const [from, to] of Object.entries(aliases)) console.log(`  alias: "${from}" -> "${to}"${t.aliasReason ? ` (${t.aliasReason})` : ""}`);
   console.table(rows, ["text", "figma", "site", "delta", "ok"]);
-  report.targets.push({ target: `${t.bp}/${t.name}`, node: t.node, ok, size, texts: rows });
+  report.targets.push({ target: `${t.bp}/${t.name}`, node: t.node, ok, size, countError, aliases, texts: rows });
 }
 await browser.close();
 

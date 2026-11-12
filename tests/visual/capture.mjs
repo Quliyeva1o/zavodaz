@@ -13,6 +13,7 @@ for (const t of targets) {
   await page.goto(base + t.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   if (t.open) await page.click(t.open);
+  if (t.waitFor) await page.locator(t.waitFor).first().waitFor({ state: "visible" });
   const el = page.locator(t.selector).first();
   await el.waitFor({ state: "visible" });
   await mkdir(`test-results/visual/${t.bp}`, { recursive: true });
