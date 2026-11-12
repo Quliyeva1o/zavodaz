@@ -30,5 +30,6 @@ export const ru: Dictionary = {
   breadcrumb: "Навигация",
   legalNav: "Правовые страницы",
   pages: { terms: "Правила использования", privacy: "Политика конфиденциальности", help: "Помощь", tariffs: "Тарифы", contact: "Контакты" },
+  tariffs: { perMonth: "/Мес", free: "Бесплатно", join: "Подключить" },
   languages: { az: "Az", en: "En", ru: "Ru" },
 };

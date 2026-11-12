@@ -29,6 +29,13 @@ export function href(route: RouteKey, locale: Locale, ...rest: string[]): string
   return "/" + parts.join("/");
 }
 
+const CABINET_SECTIONS = { tariffs: { az: "tarifler", en: "pricing", ru: "tarify" } } as const satisfies Record<string, Localized>;
+
+/** Cabinet sub-page URL (pages themselves arrive in step 7). */
+export function cabinetPath(section: keyof typeof CABINET_SECTIONS, lang: Locale): string {
+  return href("cabinet", lang, CABINET_SECTIONS[section][lang]);
+}
+
 /** One page in every language — for hreflang. */
 export function alternates(route: RouteKey): Localized {
   return Object.fromEntries(locales.map((l) => [l, href(route, l)])) as Localized;
