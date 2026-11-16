@@ -45,3 +45,34 @@ Build 1 CPU-da bir neçə dəqiqə çəkir — yeniləmələri axşam/gecə et.
 ## Bilmək lazım olanlar
 - Yaddaş limiti 768 MB-dır (marketinq 1024): hesabda 4 GB RAM 3+ Node tətbiqi arasında bölünür.
 - Thread limiti 150-dir: `deploy.sh` thread hovuzlarını kiçildir; `check-server.sh` cari istifadəni göstərir.
+
+## Sıxılma (brotli / gzip)
+JS/CSS ötürmə ölçüsünə ən çox təsir edən budur (brotli gzip-dən ~17 KB az, R13 ölçməsi).
+- **Yoxla:** `curl -sI -H 'Accept-Encoding: br, gzip' https://new.zavod.az/_next/static/chunks/<fayl>.js | grep -i content-encoding`
+  (fayl adını səhifə mənbəyindən götür) və eyni yoxlamanı `/` üçün et. `br` və ya `gzip` görünməlidir.
+- Next.js özü gzip edir (`compress` default `true`, `next.config.ts`-də söndürülməyib), amma brotli vermir və 1 CPU-da hər
+  sorğuda sıxmaq yük yaradır. Hostinq (LiteSpeed/Apache) sıxırsa, ikiqat iş olmasın deyə `compress: false` etmək olar —
+  yalnız yuxarıdakı yoxlama hostinqin özünün sıxdığını göstərəndən sonra.
+- **LiteSpeed / Apache:** cPanel → Software → “Optimize Website” → “Compress All Content” (domen üçün `.htaccess`-ə DEFLATE yazır;
+  LiteSpeed brotli-ni server səviyyəsində verə bilər — yoxlama göstərəcək). Və ya əl ilə `~/zavod-public/.htaccess`-ə
+  (Passenger blokundan yuxarı):
+  ```
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json image/svg+xml text/xml application/xml
+  </IfModule>
+  <IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript text/javascript application/json image/svg+xml text/xml application/xml
+  </IfModule>
+  ```
+  Dəyişiklikdən sonra yoxlamanı təkrarla.
+
+## Buraxılışdan əvvəl (zavod.az-a keçməzdən öncə)
+- [ ] Seed-dəki lorem/Figma mətnlərini real məzmunla əvəz et (admin): FAQ sualları, İstifadəçi qaydaları və Məxfilik siyasəti mətni,
+      Tariflər səhifəsinin giriş mətni və SEO təsviri; hər səhifədə EN və RU sahələrini doldur (boş qalan AZ-a düşür).
+- [ ] `contact_messages` (şəxsi məlumat: ad, e-mail, telefon) üçün saxlama müddəti qərarlaşdır (məs. 12 ay) və köhnələrini silən
+      cron qur; `rate_limits` cədvəlindən vaxtı keçmiş sətirləri təmizləyən cron əlavə et (məs. gündə bir dəfə
+      `delete from rate_limits where window_start < now() - interval '1 day'`).
+- [ ] Əlaqə formu limiti IP başına saatda 5 mesajdır: mobil operatorların CGNAT-ı arxasında çox istifadəçi bir IP paylaşır —
+      ilk həftələrdə `rate_limits`-də limitə çatan `contact:%` açarlarını izlə, lazım olsa limiti artır.
+- [ ] `shared/.env`-də `SITE_NOINDEX`-i sil (və ya `0` et), `SITE_URL=https://zavod.az` yaz, sonra `deploy.sh` ilə yenidən build et
+      (hər ikisi build zamanı oxunur); robots.txt-də `Disallow: /` və cavablarda `X-Robots-Tag: noindex` başlığı olmadığını yoxla.
