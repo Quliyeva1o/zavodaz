@@ -29,8 +29,8 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    ```
    `.env`-i File Manager-də doldur (DATABASE_URL, IP_HASH_SALT, ADMIN_EMAIL, ADMIN_PASSWORD). `SITE_URL` və `SITE_NOINDEX` build zamanı oxunur.
    **Resurs yoxlaması** (`.env` doldurulandan sonra): Terminal → `DATABASE_URL="$(grep -E '^DATABASE_URL=' ~/zavod-app/shared/.env | cut -d= -f2- | tr -d "'\"")" bash ~/zavod-src/deploy/cpanel/check-server.sh` — nəticəni developer-ə göndər.
-5. **İlk build:** `bash ~/zavod-src/deploy/cpanel/deploy.sh`, sonra
-   `cd ~/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH npm run db:seed-admin && npm run db:seed-content`
+5. **İlk build:** `bash ~/zavod-src/deploy/cpanel/deploy.sh` (ilkin məzmunu — `db:seed-content` — build-dən əvvəl özü yazır), sonra admin:
+   `cd ~/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH npm run db:seed-admin`
 6. **Domen:** Domains → Create A New Domain → `new.zavod.az`, document root `zavod-public` (AutoSSL sertifikatı verir).
 7. **Node app:** Setup Node.js App → Create: Node 22.x, Production, root `zavod-app`, URL `new.zavod.az`, startup `app.js`,
    env `NODE_OPTIONS=--max-old-space-size=768 --v8-pool-size=2` → Create → Start. ("Run NPM Install" basma.)

@@ -1,8 +1,9 @@
 import "server-only";
 import { revalidateTag, updateTag } from "next/cache";
-import { sql } from "drizzle-orm";
 import { db } from "@/db";
-import { cacheTags } from "@/db/schema";
+import { recordTagInvalidations } from "./tag-store";
+
+export { CONTACT_TAG, FAQ_TAG, pageTag, SETTINGS_TAG, TARIFFS_TAG } from "./tag-store";
 
 /**
  * Invalidates cache tags in this process (Next.js) and records them in the database, so
@@ -19,22 +20,10 @@ export async function invalidateTags(tags: Iterable<string>, mode: "action" | "r
     if (mode === "action") updateTag(tag);
     else revalidateTag(tag, "max");
   }
-  const now = Date.now();
   try {
-    await db
-      .insert(cacheTags)
-      .values(list.map((tag) => ({ tag, expiredAt: now })))
-      .onConflictDoUpdate({ target: cacheTags.tag, set: { expiredAt: sql`excluded.expired_at` } });
+    await recordTagInvalidations(db, list);
   } catch (error) {
     // The local invalidation already happened; other processes catch up on their next restart.
     console.error("cache tags: could not record invalidation", error);
   }
 }
-
-/** Header / footer contacts and socials (admin → Sayt ayarları). */
-export const SETTINGS_TAG = "settings";
-
-export const pageTag = (key: string) => `page:${key}`;
-export const FAQ_TAG = "faq";
-export const TARIFFS_TAG = "tariffs";
-export const CONTACT_TAG = "contact";

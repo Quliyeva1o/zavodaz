@@ -73,6 +73,12 @@ main() {
   echo "→ database migrations"
   npm run --silent db:migrate
 
+  # Before the build: it prerenders pages from this database and caches them for good
+  # (cacheLife "max"), so on a fresh database the pages must exist first. Idempotent —
+  # existing rows (admin edits) are never touched; what it inserts is invalidated in cache_tags.
+  echo "→ initial content"
+  npm run --silent db:seed-content
+
   echo "→ building (one CPU — takes a few minutes)"
   # Always from scratch: a reused .next (Turbopack cache) once shipped new HTML pointing at the
   # previous build's CSS file — the site rendered with stale styles.
