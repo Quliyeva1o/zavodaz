@@ -26,18 +26,23 @@ type Props = {
  * 1px brand-200 / brand-950 stroke, check brand-500.
  * A11y: WAI-ARIA "select-only combobox" — focus stays on the combobox, the highlighted option is
  * aria-activedescendant; ↑ ↓ Home End open/move, Enter/Space choose, Escape closes, leaving the field closes.
+ * An option highlighted from the keyboard also gets an inset brand-500 ring (the Figma hover fill alone is
+ * too faint to see); pointer hover keeps the plain Figma look. A click on the label focuses the combobox.
  */
 export function SelectField({ name, label, options, placeholder, error, defaultValue = "", required, requiredMark }: Props) {
   const id = `f-${name}`;
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  /** The highlight was moved with the keyboard (→ visible focus ring), not by the pointer. */
+  const [keyboard, setKeyboard] = useState(false);
   const selected = options.find((o) => o.value === value);
   const current = Math.max(0, options.findIndex((o) => o.value === value));
   const clamp = (i: number) => Math.max(0, Math.min(options.length - 1, i));
 
-  function show(at: number) {
+  function show(at: number, byKeyboard: boolean) {
     setActive(clamp(at));
+    setKeyboard(byKeyboard);
     setOpen(true);
   }
   function choose(i: number) {
@@ -51,7 +56,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
       const at: Record<string, number> = { ArrowDown: current, ArrowUp: current, Enter: current, " ": current, Home: 0, End: last };
       if (e.key in at) {
         e.preventDefault();
-        show(at[e.key]);
+        show(at[e.key], true);
       }
       return;
     }
@@ -59,6 +64,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
     if (e.key in moves) {
       e.preventDefault();
       setActive(clamp(moves[e.key]));
+      setKeyboard(true);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       choose(active);
@@ -87,8 +93,13 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
           aria-required={required || undefined}
           aria-invalid={!!error || undefined}
           aria-describedby={error ? `${id}-err` : undefined}
-          // Mouse clicks only (keyboard-made clicks have detail 0 and are handled in onKey).
-          onClick={(e) => e.detail > 0 && (open ? setOpen(false) : show(current))}
+          // Mouse clicks toggle the list. Clicks with detail 0 come from the keyboard (handled in onKey) or
+          // from the <label>: those only focus the combobox, like a native <select>.
+          onClick={(e) => {
+            if (e.detail === 0) e.currentTarget.focus();
+            else if (open) setOpen(false);
+            else show(current, false);
+          }}
           onKeyDown={onKey}
           onBlur={() => setOpen(false)}
           className={`flex h-10 items-center justify-between gap-1.5 text-left text-subtitle-2s ${fieldBox}`}
@@ -113,11 +124,14 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
                   id={`${id}-opt-${i}`}
                   role="option"
                   aria-selected={isSelected}
-                  onPointerMove={() => setActive(i)}
+                  onPointerMove={() => {
+                    setActive(i);
+                    setKeyboard(false);
+                  }}
                   onClick={() => choose(i)}
                   className={`flex h-10 cursor-pointer items-center justify-between gap-1 rounded-[4px] px-3 text-subtitle-2s ${
                     isSelected ? "text-brand-950" : "text-gray-700"
-                  } ${i === active ? "bg-gray-50" : "bg-white"}`}
+                  } ${i === active ? "bg-gray-50" : "bg-white"} ${i === active && keyboard ? "ring-2 ring-inset ring-brand-500" : ""}`}
                 >
                   <span className="truncate">{o.label}</span>
                   <span className="flex size-5 shrink-0 items-center justify-center" aria-hidden>

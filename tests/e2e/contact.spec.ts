@@ -204,3 +204,37 @@ test("after a successful send the timer starts over for the next message", async
   await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
   expect(await sql`select 1 from contact_messages where email = ${second}`).toHaveLength(0);
 });
+
+test("topic dropdown: the keyboard highlight has a visible ring, the pointer hover keeps the Figma look", async ({ page }) => {
+  await page.goto("/elaqe");
+  const trigger = page.getByRole("combobox", { name: "Mövzu" });
+  const ring = (name: string) => page.getByRole("option", { name }).evaluate((el) => getComputedStyle(el).boxShadow);
+  await trigger.focus();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown"); // Paket ödənişləri
+  expect(await ring("Paket ödənişləri")).not.toBe("none");
+  expect(await ring("Əməkdaşlıq")).toBe("none");
+  await page.getByRole("option", { name: "Reklam" }).hover();
+  expect(await ring("Reklam")).toBe("none");
+  expect(await ring("Paket ödənişləri")).toBe("none");
+  await expect(page.getByRole("option", { name: "Reklam" })).toHaveCSS("background-color", "rgb(247, 247, 248)"); // gray-50, Figma hover
+});
+
+test("a click on the Mövzu label works like a click on the dropdown", async ({ page }) => {
+  await page.goto("/elaqe");
+  // Chrome forwards the mouse click (detail 1) to the labelled button: it gets focus and the list opens.
+  // A forwarded click with detail 0 (other browsers) only focuses it (select-field.tsx).
+  await page.locator("label", { hasText: "Mövzu" }).click();
+  const trigger = page.getByRole("combobox", { name: "Mövzu" });
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("listbox")).toBeHidden();
+  await expect(trigger).toContainText("Paket ödənişləri");
+  // A synthetic label click with detail 0 focuses without opening.
+  await page.locator("h1").click();
+  await page.locator("label", { hasText: "Mövzu" }).evaluate((el) => (el as HTMLLabelElement).click());
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+});
