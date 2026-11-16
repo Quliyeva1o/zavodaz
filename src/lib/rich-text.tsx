@@ -79,5 +79,5 @@ function node(n: RichNode, i: number, depth = 0): ReactNode {
  */
 export function RichText({ doc, className }: { doc: RichDoc | null; className?: string }) {
   if (!doc || !Array.isArray(doc.content) || !doc.content.length) return null;
-  return <div className={`text-body-md text-gray-700${className ? ` ${className}` : ""}`}>{doc.content.map((n, i) => node(n, i))}</div>;
+  return <div className={`text-body-md break-words text-gray-700${className ? ` ${className}` : ""}`}>{doc.content.map((n, i) => node(n, i))}</div>;
 }
