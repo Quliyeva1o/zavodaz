@@ -5,7 +5,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import { findNode, getNodes } from "../../scripts/figma/api.mts";
-import { WS_SOURCE, findBlocks, isMultiParagraph, minTextsError, normalizeText, resolveText } from "./geometry-lib.mjs";
+import { WS_SOURCE, findBlocks, isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveText } from "./geometry-lib.mjs";
 
 const TOLERANCE = 1;
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
@@ -98,7 +98,9 @@ for (const t of targets) {
   if (t.waitFor) await page.locator(t.waitFor).first().waitFor({ state: "visible" });
   await page.locator(t.selector).first().waitFor({ state: "visible" });
   const site = await page.evaluate(siteTexts, [t.selector, WS_SOURCE]);
-  const fTexts = figmaTexts(root);
+  const allTexts = figmaTexts(root);
+  const fTexts = allTexts.filter((f) => !isIgnored(f.raw, t.ignore));
+  const ignored = allTexts.length - fTexts.length;
   const aliases = t.aliases ?? {};
   const multi = fTexts.filter((f) => isMultiParagraph(f.raw)).map((f) => resolveText(f.raw, aliases).text);
   const blocks = multi.length ? await page.evaluate(findBlocks, [t.selector, multi, WS_SOURCE]) : {};
@@ -118,7 +120,7 @@ for (const t of targets) {
     if (isMultiParagraph(f.raw)) {
       s = blocks[want];
     } else {
-      const i = site.texts.findIndex((q, k) => !used.has(k) && q.text === want);
+      const i = pickMatch(f, site.texts, used, want);
       if (i >= 0) used.add(i);
       s = site.texts[i];
     }
@@ -132,14 +134,16 @@ for (const t of targets) {
       ok: d.every((v) => Math.abs(v) <= TOLERANCE),
     };
   });
+  const maxDelta = Math.max(0, ...rows.filter((r) => r.delta !== "unmatched").flatMap((r) => r.delta.split("/").map((v) => Math.abs(+v))));
   const countError = minTextsError(fTexts.length, t.minTexts);
   const ok = size.ok && !countError && rows.every((r) => r.ok);
   if (!ok) failed = true;
-  console.log(`${t.bp}/${t.name} — size figma ${size.figma}, site ${size.site} ${size.ok ? "ok" : "FAIL"} — ${ok ? "OK" : "FAIL"}`);
+  console.log(`${t.bp}/${t.name} — size figma ${size.figma}, site ${size.site} ${size.ok ? "ok" : "FAIL"}, max |Δ| ${r2(maxDelta)}px — ${ok ? "OK" : "FAIL"}`);
   if (countError) console.log(`  FAIL: ${countError}`);
   for (const [from, to] of Object.entries(aliases)) console.log(`  alias: "${from}" -> "${to}"${t.aliasReason ? ` (${t.aliasReason})` : ""}`);
+  if (ignored) console.log(`  ignored ${ignored} Figma text(s): ${t.ignore.map((s) => `"${s}"`).join(", ")}${t.ignoreReason ? ` (${t.ignoreReason})` : ""}`);
   console.table(rows, ["text", "figma", "site", "delta", "ok"]);
-  report.targets.push({ target: `${t.bp}/${t.name}`, node: t.node, ok, size, countError, aliases, texts: rows });
+  report.targets.push({ target: `${t.bp}/${t.name}`, node: t.node, ok, size, maxDelta, countError, aliases, ignored: t.ignore ?? [], texts: rows });
 }
 await browser.close();
 

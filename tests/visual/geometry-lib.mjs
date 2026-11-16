@@ -20,6 +20,31 @@ export function resolveText(figmaText, aliases = {}) {
   return { text: alias ?? key, aliased: alias !== null };
 }
 
+/**
+ * Figma texts the site draws without a DOM text node (input placeholders live in ::placeholder, R11):
+ * `ignore` is a list of Figma texts; matched after whitespace normalisation. Every ignore needs `ignoreReason`.
+ */
+export function isIgnored(figmaText, ignore = []) {
+  const key = normalizeText(figmaText);
+  return ignore.some((t) => normalizeText(t) === key);
+}
+
+/**
+ * Index of the site text box for a Figma text: among the not yet used site texts with the wanted text,
+ * the nearest one (|Δx| + |Δy|). Figma tree order and DOM order differ when the layout reorders blocks
+ * (e.g. Əlaqə: "E-mail" in the info column and in the form). -1 when none.
+ */
+export function pickMatch(f, siteTexts, used, want) {
+  let best = -1;
+  let bestD = Infinity;
+  siteTexts.forEach((q, k) => {
+    if (used.has(k) || q.text !== want) return;
+    const d = Math.abs(q.x - f.x) + Math.abs(q.y - f.y);
+    if (d < bestD) [best, bestD] = [k, d];
+  });
+  return best;
+}
+
 /** Error text when the target has fewer Figma texts than `minTexts` (default 1); else null. */
 export function minTextsError(count, minTexts) {
   const min = minTexts ?? 1;

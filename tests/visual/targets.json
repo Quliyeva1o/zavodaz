@@ -1,8 +1,33 @@
 [
-  { "name": "header", "bp": "desktop", "node": "143:1693", "path": "/", "selector": "[data-figma=header]" },
-  { "name": "header", "bp": "mobile", "node": "685:20711", "path": "/", "selector": "[data-figma=header]", "minTexts": 0 },
-  { "name": "footer", "bp": "desktop", "node": "143:2121", "path": "/", "selector": "[data-figma=footer]" },
-  { "name": "footer", "bp": "mobile", "node": "685:21139", "path": "/", "selector": "[data-figma=footer]" },
+  {
+    "name": "header",
+    "bp": "desktop",
+    "node": "143:1693",
+    "path": "/",
+    "selector": "[data-figma=header]"
+  },
+  {
+    "name": "header",
+    "bp": "mobile",
+    "node": "685:20711",
+    "path": "/",
+    "selector": "[data-figma=header]",
+    "minTexts": 0
+  },
+  {
+    "name": "footer",
+    "bp": "desktop",
+    "node": "143:2121",
+    "path": "/",
+    "selector": "[data-figma=footer]"
+  },
+  {
+    "name": "footer",
+    "bp": "mobile",
+    "node": "685:21139",
+    "path": "/",
+    "selector": "[data-figma=footer]"
+  },
   {
     "name": "mobile-menu",
     "bp": "mobile",
@@ -10,5 +35,197 @@
     "path": "/",
     "selector": "[data-figma=mobile-menu]",
     "open": "[data-figma=header] button[aria-haspopup=dialog]"
+  },
+  {
+    "name": "terms",
+    "bp": "desktop",
+    "node": "143:4005",
+    "path": "/istifadeci-qaydalari",
+    "selector": "[data-figma=terms]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "terms-crumbs",
+    "bp": "mobile",
+    "node": "685:21532",
+    "path": "/istifadeci-qaydalari",
+    "selector": "[data-figma=terms-crumbs]"
+  },
+  {
+    "name": "terms-body",
+    "bp": "mobile",
+    "node": "685:20860",
+    "path": "/istifadeci-qaydalari",
+    "selector": "[data-figma=terms-body]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "terms-nav",
+    "bp": "mobile",
+    "node": "685:21541",
+    "path": "/istifadeci-qaydalari",
+    "selector": "[data-figma=terms-nav]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "privacy",
+    "bp": "desktop",
+    "node": "153:4077",
+    "path": "/mexfilik-siyaseti",
+    "selector": "[data-figma=privacy]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "privacy-crumbs",
+    "bp": "mobile",
+    "node": "685:21568",
+    "path": "/mexfilik-siyaseti",
+    "selector": "[data-figma=privacy-crumbs]"
+  },
+  {
+    "name": "privacy-body",
+    "bp": "mobile",
+    "node": "685:21571",
+    "path": "/mexfilik-siyaseti",
+    "selector": "[data-figma=privacy-body]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "privacy-nav",
+    "bp": "mobile",
+    "node": "685:21575",
+    "path": "/mexfilik-siyaseti",
+    "selector": "[data-figma=privacy-nav]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "help",
+    "bp": "desktop",
+    "node": "153:4182",
+    "path": "/yardim",
+    "selector": "[data-figma=help]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "help-crumbs",
+    "bp": "mobile",
+    "node": "685:21660",
+    "path": "/yardim",
+    "selector": "[data-figma=help-crumbs]"
+  },
+  {
+    "name": "help-body",
+    "bp": "mobile",
+    "node": "685:21663",
+    "path": "/yardim",
+    "selector": "[data-figma=help-body]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "help-nav",
+    "bp": "mobile",
+    "node": "685:21667",
+    "path": "/yardim",
+    "selector": "[data-figma=help-nav]",
+    "aliases": {
+      "Istifadəçi qaydaları": "İstifadəçi qaydaları"
+    },
+    "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\""
+  },
+  {
+    "name": "tariffs",
+    "bp": "desktop",
+    "node": "157:2109",
+    "path": "/tarifler",
+    "selector": "[data-figma=tariffs]"
+  },
+  {
+    "name": "tariffs-crumbs",
+    "bp": "mobile",
+    "node": "696:19465",
+    "path": "/tarifler",
+    "selector": "[data-figma=tariffs-crumbs]"
+  },
+  {
+    "name": "tariffs-body",
+    "bp": "mobile",
+    "node": "696:19468",
+    "path": "/tarifler",
+    "selector": "[data-figma=tariffs-body]",
+    "aliases": {
+      "VIP": "VİP"
+    },
+    "aliasReason": "mobil Figma-da \"VIP\" (nöqtəsiz İ), desktop Figma-da və seed-də \"VİP\""
+  },
+  {
+    "name": "contact",
+    "bp": "desktop",
+    "node": "153:4374",
+    "path": "/elaqe",
+    "selector": "[data-figma=contact]",
+    "aliases": {
+      "Movzu": "Mövzu",
+      "Mesajınızı bizə göndərin və Zavod.az administratoru sizə tezliklə geri dönüş edəcək. Fabrik.az ilə telefon, e-mail və ya sosial media ilə də əlaqə saxlaya bilərsiz.": "Mesajınızı bizə göndərin və Zavod.az administratoru sizə tezliklə geri dönüş edəcək. Zavod.az ilə telefon, e-mail və ya sosial media ilə də əlaqə saxlaya bilərsiz.",
+      "+994 00 000 00 00": "+994 000 00 00"
+    },
+    "aliasReason": "\"Movzu\" Figma etiketində yazı xətası → \"Mövzu\"; intro-da \"Fabrik.az\" səhv sayılır → \"Zavod.az\" (controller qərarı); telefon placeholder-i header-dəkindən fərqlidir, sayt hər yerdə sayt ayarlarındakı bir telefonu göstərir",
+    "ignore": [
+      "Type here...",
+      "Mesajınızı daxil edin",
+      "0/200",
+      "Müraciət et"
+    ],
+    "ignoreReason": "\"Type here...\", \"Mesajınızı daxil edin\": input/textarea placeholder-i ::placeholder-dədir, DOM mətni deyil (R11). \"0/200\", \"Müraciət et\": Figma JSON-da instance daxili həndəsəsi köhnədir (komponent eni 303 ilə hesablanıb: mobil Dropdown/Textarea Frame 8 288-lik instance içində 303 en; Button 153:4674/692:19345 cross=CENTER olduğu halda mətn sol padding-dədir) — real 605/288 en üçün hesablanan yer saytdakı ilə eynidir (sayğac mobil 225 vs 225.64; düymə 1035 vs 1035.59); vizual referansla yoxlanılacaq"
+  },
+  {
+    "name": "contact-crumbs",
+    "bp": "mobile",
+    "node": "692:19224",
+    "path": "/elaqe",
+    "selector": "[data-figma=contact-crumbs]"
+  },
+  {
+    "name": "contact-body",
+    "bp": "mobile",
+    "node": "692:19331",
+    "path": "/elaqe",
+    "selector": "[data-figma=contact-body]",
+    "aliases": {
+      "Movzu": "Mövzu",
+      "Mesajınızı bizə göndərin və Zavod.az administratoru sizə tezliklə geri dönüş edəcək. Fabrik.az ilə telefon, e-mail və ya sosial media ilə də əlaqə saxlaya bilərsiz.": "Mesajınızı bizə göndərin və Zavod.az administratoru sizə tezliklə geri dönüş edəcək. Zavod.az ilə telefon, e-mail və ya sosial media ilə də əlaqə saxlaya bilərsiz.",
+      "+994 00 000 00 00": "+994 000 00 00"
+    },
+    "aliasReason": "\"Movzu\" Figma etiketində yazı xətası → \"Mövzu\"; intro-da \"Fabrik.az\" səhv sayılır → \"Zavod.az\" (controller qərarı); telefon placeholder-i header-dəkindən fərqlidir, sayt hər yerdə sayt ayarlarındakı bir telefonu göstərir",
+    "ignore": [
+      "Type here...",
+      "Mesajınızı daxil edin",
+      "0/200",
+      "Müraciət et"
+    ],
+    "ignoreReason": "\"Type here...\", \"Mesajınızı daxil edin\": input/textarea placeholder-i ::placeholder-dədir, DOM mətni deyil (R11). \"0/200\", \"Müraciət et\": Figma JSON-da instance daxili həndəsəsi köhnədir (komponent eni 303 ilə hesablanıb: mobil Dropdown/Textarea Frame 8 288-lik instance içində 303 en; Button 153:4674/692:19345 cross=CENTER olduğu halda mətn sol padding-dədir) — real 605/288 en üçün hesablanan yer saytdakı ilə eynidir (sayğac mobil 225 vs 225.64; düymə 1035 vs 1035.59); vizual referansla yoxlanılacaq"
   }
 ]
