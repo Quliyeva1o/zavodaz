@@ -46,7 +46,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 6.2,
     "maxDiffReason": "Uzun lorem mətni: Figma və Chrome hərfləri fərqli rasterizə edir (subpiksel qlif mövqeyi), mətn yerləri visual:geometry ilə ±1px yoxlanılır; ikon/rəng/boşluq fərqi yoxdur"
   },
   {
@@ -66,7 +66,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 6.7,
     "maxDiffReason": "Uzun lorem mətni: Figma və Chrome hərfləri fərqli rasterizə edir (subpiksel qlif mövqeyi), mətn yerləri visual:geometry ilə ±1px yoxlanılır; ikon/rəng/boşluq fərqi yoxdur"
   },
   {
@@ -90,7 +90,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 6.4,
     "maxDiffReason": "Uzun lorem mətni: Figma və Chrome hərfləri fərqli rasterizə edir (subpiksel qlif mövqeyi), mətn yerləri visual:geometry ilə ±1px yoxlanılır; ikon/rəng/boşluq fərqi yoxdur"
   },
   {
@@ -112,7 +112,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 6.8,
     "maxDiffReason": "Uzun lorem mətni: Figma və Chrome hərfləri fərqli rasterizə edir (subpiksel qlif mövqeyi), mətn yerləri visual:geometry ilə ±1px yoxlanılır; ikon/rəng/boşluq fərqi yoxdur"
   },
   {
@@ -154,7 +154,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 3.5,
     "maxDiffReason": "Uzun lorem mətni: Figma və Chrome hərfləri fərqli rasterizə edir (subpiksel qlif mövqeyi), mətn yerləri visual:geometry ilə ±1px yoxlanılır; ikon/rəng/boşluq fərqi yoxdur"
   },
   {
@@ -167,7 +167,7 @@
       "Istifadəçi qaydaları": "İstifadəçi qaydaları"
     },
     "aliasReason": "Figma-da \"Istifadəçi\" nöqtəsiz I ilə yazılıb (yazı xətası); saytda düzgün \"İstifadəçi qaydaları\"",
-    "maxDiff": 7,
+    "maxDiff": 3.4,
     "maxDiffReason": "Mətn rasterizasiyası (Figma vs Chrome); Figma-da \"Istifadəçi\" yazı xətası saytda düzəldilib (alias); ikonlar eynidir"
   },
   {
@@ -241,7 +241,7 @@
       "Müraciət et"
     ],
     "ignoreReason": "\"Type here...\", \"Mesajınızı daxil edin\": input/textarea placeholder-i ::placeholder-dədir, DOM mətni deyil (R11). \"0/200\", \"Müraciət et\": Figma JSON-da instance daxili həndəsəsi köhnədir (komponent eni 303 ilə hesablanıb: mobil Dropdown/Textarea Frame 8 288-lik instance içində 303 en; Button 153:4674/692:19345 cross=CENTER olduğu halda mətn sol padding-dədir) — real 605/288 en üçün hesablanan yer saytdakı ilə eynidir (sayğac mobil 225 vs 225.64; düymə 1035 vs 1035.59); vizual referansla yoxlanılacaq",
-    "maxDiff": 7,
+    "maxDiff": 3.0,
     "maxDiffReason": "Figma placeholder-ləri \"Type here...\" saytda real placeholder-lərdir (R11), \"Movzu\"→\"Mövzu\" alias; qalanı mətn rasterizasiyası"
   }
 ]

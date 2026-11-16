@@ -7,6 +7,7 @@ import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 
 const MAX_DIFF_PERCENT = 2.5; // spec 1.1 item 6b
+const MAX_EXCEPTION_PERCENT = 7; // ceiling for a per-target maxDiff (spec 1.1 item 6b)
 
 /** Composites the image onto white, as it is seen on the page (Figma leaves the rounded-up
  * last row of a fractional-height frame transparent; pixelmatch would count it as different). */
@@ -24,6 +25,16 @@ const rows = [];
 const pending = [];
 let failed = false;
 const exists = (f) => access(f).then(() => true, () => false);
+
+// Per-target exception (approved 2026-11-16) only for dense text or a deliberate content
+// difference; it must state why and stays at the measured value + ~0.5, never above 7%.
+for (const t of targets) {
+  if (t.maxDiff === undefined) continue;
+  if (!t.maxDiffReason) throw new Error(`${t.bp}/${t.name}: maxDiff requires maxDiffReason`);
+  if (!(typeof t.maxDiff === "number" && t.maxDiff > 0 && t.maxDiff <= MAX_EXCEPTION_PERCENT)) {
+    throw new Error(`${t.bp}/${t.name}: maxDiff must be a number in (0, ${MAX_EXCEPTION_PERCENT}], got ${t.maxDiff}`);
+  }
+}
 
 for (const t of targets) {
   const ref = `design/reference/${t.bp}/${t.name}.png`;
@@ -48,9 +59,6 @@ for (const t of targets) {
   const percent = +raw.toFixed(2);
   await mkdir("test-results/visual/diff", { recursive: true });
   await writeFile(`test-results/visual/diff/${t.bp}-${t.name}.png`, PNG.sync.write(diff));
-  // Per-target exception (approved 2026-11-16) only for text-dense targets, where glyph
-  // rasterisation differs between Figma and Chrome; it must state why. Geometry stays ±1px.
-  if (t.maxDiff !== undefined && !t.maxDiffReason) throw new Error(`${t.bp}/${t.name}: maxDiff requires maxDiffReason`);
   const limit = t.maxDiff ?? MAX_DIFF_PERCENT;
   const ok = raw <= limit;
   if (!ok) failed = true;
