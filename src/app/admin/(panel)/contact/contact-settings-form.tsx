@@ -14,6 +14,12 @@ const LANG: Record<string, string> = { az: "AZ", en: "EN", ru: "RU" };
 export function ContactSettingsForm({ initial }: { initial: Initial }) {
   const [state, action, pending] = useActionState(saveContactSettings, undefined);
   const [topics, setTopics] = useState<Topic[]>(initial.topics);
+  // After a successful save, adopt the server result so generated ids stay stable (derived state, no effect).
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) {
+    setSeen(state);
+    if (state?.ok && state.values) setTopics(state.values.topics);
+  }
   const e = state?.errors ?? {};
   const emails = state?.values?.notifyEmails ?? initial.notifyEmails;
 

@@ -6,6 +6,7 @@ export type TopicRaw = { id: string; label: Localized };
 export type ContactRaw = { topics: TopicRaw[]; notifyEmails: string };
 
 const TR: Record<string, string> = { ə: "e", ı: "i", ö: "o", ü: "u", ç: "c", ş: "s", ğ: "g" };
+export const MAX_TOPICS = 20;
 const ID_RULE = /^[a-z0-9-]{1,40}$/;
 
 /** "Paket ödənişləri" → "paket-odenisleri" (AZ transliteration; fits the id rule in mergeContactSettings). */
@@ -63,6 +64,8 @@ export function parseContactSettings(raw: ContactRaw): { ok: true; data: Contact
     }
     return { id, label };
   });
+  if (topics.length > MAX_TOPICS) errors.topics = `Ən çox ${MAX_TOPICS} mövzu`;
+  if (new Set(topics.map((t) => t.id)).size !== topics.length) errors.topics = "Mövzu id-ləri təkrarlanır";
   const notifyEmails = splitEmails(raw.notifyEmails);
   const bad = notifyEmails.find((e) => !emailSchema.safeParse(e).success);
   if (bad) errors.notifyEmails = `E-mail düzgün deyil: ${bad}`;

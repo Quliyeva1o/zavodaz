@@ -40,6 +40,7 @@ test("an invalid price keeps the typed values and shows the error", async ({ pag
 test("notify email gets the contact message (Mailpit) and admin sees it unread", async ({ page, request }) => {
   await loginAsAdmin(page);
   await page.goto("/admin/contact");
+  const originalEmails = await page.getByLabel("Bildiriş e-mailləri").inputValue();
   await page.getByLabel("Bildiriş e-mailləri").fill("admin@zavod.test");
   try {
     await page.getByRole("button", { name: "Yadda saxla" }).click();
@@ -81,9 +82,43 @@ test("notify email gets the contact message (Mailpit) and admin sees it unread",
     await expect(page.getByRole("row", { name: new RegExp(email) })).toHaveCount(0);
   } finally {
     await page.goto("/admin/contact");
-    await page.getByLabel("Bildiriş e-mailləri").fill("");
+    await page.getByLabel("Bildiriş e-mailləri").fill(originalEmails);
     await page.getByRole("button", { name: "Yadda saxla" }).click();
     await expect(page.getByText("Yadda saxlanıldı")).toBeVisible();
+  }
+});
+
+test("a new topic keeps its generated id when renamed and saved again", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/contact");
+  const n = Number(await page.locator('input[name="topics.count"]').inputValue()) + 1;
+  const storedIds = async () =>
+    (await sql`select value->'topics' as t from site_settings where key = 'contact'`)[0].t.map((x: { id: string }) => x.id) as string[];
+  const save = async () => {
+    await page.getByRole("button", { name: "Yadda saxla" }).click();
+    await expect(page.getByText("Yadda saxlanıldı")).toBeVisible();
+  };
+  try {
+    await page.getByRole("button", { name: "Mövzu əlavə et" }).click();
+    await page.getByLabel(`Mövzu ${n} (AZ)`).fill("Sınaq mövzusu");
+    await save();
+    expect(await storedIds()).toContain("sinaq-movzusu");
+    await page.getByLabel(`Mövzu ${n} (AZ)`).fill("Başqa ad");
+    await page.getByRole("button", { name: "Yadda saxla" }).click();
+    await expect.poll(async () => (await storedIds()).length).toBe(n);
+    await expect
+      .poll(async () => (await sql`select value->'topics' as t from site_settings where key = 'contact'`)[0].t[n - 1].label.az)
+      .toBe("Başqa ad");
+    const ids = await storedIds();
+    expect(ids[n - 1]).toBe("sinaq-movzusu"); // renamed, id unchanged
+    expect(new Set(ids).size).toBe(ids.length);
+  } finally {
+    await page.goto("/admin/contact");
+    if (Number(await page.locator('input[name="topics.count"]').inputValue()) >= n) {
+      await page.getByRole("button", { name: `Mövzu ${n} — sil` }).click();
+      await page.getByRole("button", { name: "Yadda saxla" }).click();
+      await expect(page.getByText("Yadda saxlanıldı")).toBeVisible();
+    }
   }
 });
 

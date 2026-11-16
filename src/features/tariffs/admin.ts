@@ -94,7 +94,12 @@ export function parseTariff(raw: TariffRaw): { ok: true; data: TariffInput } | {
   });
   if (!r.success) {
     const errors: Record<string, string> = {};
-    for (const i of r.error.issues) errors[i.path.join(".")] ??= i.message;
+    for (const i of r.error.issues) {
+      // features.az.3 → the textarea "features.az", with the (1-based) line number in the message.
+      if (i.path[0] === "features" && i.path.length > 2) {
+        errors[i.path.slice(0, 2).join(".")] ??= `${Number(i.path[2]) + 1}-ci sətir: ${i.message}`;
+      } else errors[i.path.join(".")] ??= i.message;
+    }
     return { ok: false, errors };
   }
   const d = r.data;

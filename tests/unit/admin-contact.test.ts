@@ -31,6 +31,21 @@ test("tariff: rejects bad price, limit and empty AZ name", () => {
   assert.equal(parseTariff({ ...raw, priceMonth: "0" }).ok, true);
 });
 
+test("tariff: a too long feature line is reported on its textarea with the line number", () => {
+  const raw = tariffToRaw(base);
+  const r = parseTariff({ ...raw, "features.az": "ok\nok\nok\n" + "x".repeat(121) });
+  assert.ok(!r.ok);
+  assert.match(r.errors["features.az"], /^4-ci sətir/);
+});
+
+test("contact: duplicate topic ids and more than 20 topics are rejected", () => {
+  const t = (id: string, az: string) => ({ id, label: { az, en: "", ru: "" } });
+  const dup = parseContactSettings({ topics: [t("a", "A"), t("a", "B")], notifyEmails: "" });
+  assert.ok(!dup.ok && dup.errors.topics);
+  const many = parseContactSettings({ topics: Array.from({ length: 21 }, (_, i) => t("", "T" + i)), notifyEmails: "" });
+  assert.ok(!many.ok && many.errors.topics);
+});
+
 test("contact: slug transliterates AZ letters", () => {
   assert.equal(slugify("Paket ödənişləri"), "paket-odenisleri");
   assert.equal(slugify("İşçi axtarışı!"), "isci-axtarisi");
