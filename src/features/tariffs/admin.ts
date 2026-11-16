@@ -49,11 +49,13 @@ const featureList = z
   .transform(lines)
   .pipe(z.array(z.string().max(120, "Sətir 120 simvoldan uzun ola bilməz")).max(12, "Ən çox 12 xüsusiyyət"));
 
+const NAME_MAX = "Ən çox 60 simvol";
+
 const schema = z.object({
   name: z.object({
-    az: z.string().trim().min(1, "Ad məcburidir").max(60),
-    en: z.string().trim().max(60),
-    ru: z.string().trim().max(60),
+    az: z.string().trim().min(1, "Ad məcburidir").max(60, NAME_MAX),
+    en: z.string().trim().max(60, NAME_MAX),
+    ru: z.string().trim().max(60, NAME_MAX),
   }),
   priceMonth: price,
   priceYear: optionalPrice,

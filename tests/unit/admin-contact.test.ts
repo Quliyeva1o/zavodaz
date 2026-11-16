@@ -62,3 +62,11 @@ test("contact: new topics get unique ids, emails are validated", () => {
   assert.ok(!parseContactSettings({ topics: [t("", "X")], notifyEmails: "yanlis" }).ok);
   assert.deepEqual(splitEmails(""), []);
 });
+
+test("tariff: too long names are reported in Azerbaijani in every language", () => {
+  const raw = tariffToRaw(base);
+  const long = "x".repeat(61);
+  const r = parseTariff({ ...raw, "name.az": long, "name.en": long, "name.ru": long });
+  assert.ok(!r.ok);
+  for (const l of ["az", "en", "ru"]) assert.equal(r.errors[`name.${l}`], "Ən çox 60 simvol");
+});

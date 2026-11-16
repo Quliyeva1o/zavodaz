@@ -4,14 +4,16 @@ import { SOCIALS, type SocialKey } from "./links";
 
 export { SOCIALS, telHref, whatsappHref, type SocialKey } from "./links";
 
+const tooLong = (max: number) => `Ən çox ${max} simvol`;
 const localized = (max: number) =>
-  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max)])) as Record<keyof Localized, z.ZodString>);
-const urlOrEmpty = z.union([z.literal(""), z.url({ protocol: /^https?$/ })]);
+  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max, tooLong(max))])) as Record<keyof Localized, z.ZodString>);
+const URL_ERROR = "Link http:// və ya https:// ilə başlamalıdır";
+const urlOrEmpty = z.union([z.literal(""), z.url({ protocol: /^https?$/, error: URL_ERROR })], { error: URL_ERROR });
 
 
 export const siteSettingsSchema = z.object({
-  phone: z.string().trim().min(5).max(30),
-  phone2: z.string().trim().max(30),
+  phone: z.string().trim().min(5, "Ən azı 5 simvol").max(30, tooLong(30)),
+  phone2: z.string().trim().max(30, tooLong(30)),
   whatsapp: z
     .string()
     .transform((v) => v.replace(/[\s()-]/g, ""))

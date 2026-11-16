@@ -12,7 +12,7 @@ import { PAGE_KEYS, type PageKey, type RichDoc } from "@/features/pages/types";
 export type PageSaveState = { ok?: boolean; error?: string } | undefined;
 
 const loc = (max: number) =>
-  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max)])) as Record<"az" | "en" | "ru", z.ZodString>);
+  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max, `Ən çox ${max} simvol`)])) as Record<"az" | "en" | "ru", z.ZodString>);
 const BODY_KEYS = new Set<string>(["terms", "privacy"]);
 const MAX_DOC_LENGTH = 200_000;
 

@@ -11,7 +11,7 @@ import { FAQ_TAG, invalidateTags } from "@/lib/cache/tags";
 export type FaqSaveState = { ok?: boolean; error?: string } | undefined;
 
 const loc = (max: number) =>
-  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max)])) as Record<"az" | "en" | "ru", z.ZodString>);
+  z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max, `Ən çox ${max} simvol`)])) as Record<"az" | "en" | "ru", z.ZodString>);
 const faqSchema = z.object({ id: z.uuid().optional(), question: loc(300), answer: loc(3000), published: z.boolean() });
 
 export async function saveFaqItem(_prev: FaqSaveState, form: FormData): Promise<FaqSaveState> {
