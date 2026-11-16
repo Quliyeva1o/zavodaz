@@ -6,13 +6,14 @@ import { pages } from "@/db/schema";
 import { locales } from "@/i18n/config";
 import { requireAdmin } from "@/lib/auth";
 import { invalidateTags, pageTag } from "@/lib/cache/tags";
+import { parseRichDoc } from "@/features/pages/doc-schema";
 import { PAGE_KEYS, type PageKey, type RichDoc } from "@/features/pages/types";
 
 export type PageSaveState = { ok?: boolean; error?: string } | undefined;
 
 const loc = (max: number) =>
   z.object(Object.fromEntries(locales.map((l) => [l, z.string().trim().max(max)])) as Record<"az" | "en" | "ru", z.ZodString>);
-const docSchema = z.object({ type: z.literal("doc"), content: z.array(z.any()).optional() }).nullable();
+const BODY_KEYS = new Set<string>(["terms", "privacy"]);
 const MAX_DOC_LENGTH = 200_000;
 
 export async function savePage(_prev: PageSaveState, form: FormData): Promise<PageSaveState> {
@@ -22,17 +23,15 @@ export async function savePage(_prev: PageSaveState, form: FormData): Promise<Pa
   const get = (k: string) => String(form.get(k) ?? "");
   const group = (prefix: string) => Object.fromEntries(locales.map((l) => [l, get(`${prefix}.${l}`)]));
 
-  const body: Record<string, RichDoc | null> = {};
-  for (const l of locales) {
+  const body: Record<string, RichDoc | null> = { az: null, en: null, ru: null };
+  // Only the legal pages have a body; for the other keys it stays null whatever was submitted.
+  for (const l of BODY_KEYS.has(key) ? locales : []) {
     const raw = get(`body.${l}`);
-    if (!raw) {
-      body[l] = null;
-      continue;
-    }
+    if (!raw) continue;
     try {
-      const parsed = raw.length <= MAX_DOC_LENGTH ? docSchema.safeParse(JSON.parse(raw)) : null;
-      if (!parsed?.success) return { error: "Məzmun oxunmadı" };
-      body[l] = parsed.data as RichDoc | null;
+      const doc = raw.length <= MAX_DOC_LENGTH ? parseRichDoc(JSON.parse(raw)) : null;
+      if (!doc) return { error: "Məzmun oxunmadı" };
+      body[l] = doc.content?.length ? doc : null;
     } catch {
       return { error: "Məzmun oxunmadı" };
     }

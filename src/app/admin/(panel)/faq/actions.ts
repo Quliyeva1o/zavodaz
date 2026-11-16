@@ -1,6 +1,6 @@
 "use server";
 
-import { asc, eq, max } from "drizzle-orm";
+import { asc, eq, max, not } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { faqItems } from "@/db/schema";
@@ -51,9 +51,7 @@ export async function deleteFaqItem(id: string): Promise<void> {
 export async function toggleFaqItem(id: string): Promise<void> {
   await requireAdmin();
   if (!idSchema.safeParse(id).success) return;
-  const [row] = await db.select({ published: faqItems.published }).from(faqItems).where(eq(faqItems.id, id)).limit(1);
-  if (!row) return;
-  await db.update(faqItems).set({ published: !row.published }).where(eq(faqItems.id, id));
+  await db.update(faqItems).set({ published: not(faqItems.published) }).where(eq(faqItems.id, id));
   await invalidateTags([FAQ_TAG]);
 }
 

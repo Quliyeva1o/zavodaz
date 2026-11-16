@@ -82,3 +82,23 @@ test("orderedList, h3, heading level 1 -> h2, hardBreak, empty content", () => {
   assert.match(out, /a<br\/>b/);
   assert.equal(html({ type: "doc", content: [] }), "");
 });
+
+test("malformed data already in the database never throws", () => {
+  const cases: unknown[] = [
+    { type: "doc", content: "x" },
+    { type: "doc", content: [null, "s", 5, { type: "paragraph", content: null }] },
+    { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: { a: 1 } }, { type: "text", text: "ok", marks: "bold" }, { type: "text", text: "m", marks: [null, 3, { type: "bold" }] }] }] },
+  ];
+  for (const c of cases) assert.doesNotThrow(() => html(c));
+  assert.equal(html({ type: "doc", content: "x" }), "");
+  const mixed = html(cases[2]);
+  assert.match(mixed, /ok/);
+  assert.match(mixed, /<strong>m<\/strong>/);
+  assert.doesNotMatch(mixed, /object/);
+});
+
+test("too deep nesting stops rendering", () => {
+  let inner: unknown = { type: "paragraph", content: [{ type: "text", text: "deep" }] };
+  for (let i = 0; i < 20; i++) inner = { type: "bulletList", content: [{ type: "listItem", content: [inner] }] };
+  assert.doesNotMatch(html({ type: "doc", content: [inner] }), /deep/);
+});
