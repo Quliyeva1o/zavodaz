@@ -38,8 +38,8 @@ export function TariffCard({ plan, lang, joinHref }: { plan: TariffPlan; lang: L
         )}
       </div>
       <ul className="flex flex-col gap-4 lg:px-4">
-        {features.map((f) => (
-          <li key={f} className="flex items-start gap-1.5 text-body-sm text-gray-700">
+        {features.map((f, i) => (
+          <li key={i} className="flex items-start gap-1.5 text-body-sm text-gray-700">
             <Icon name="check-circle" size={20} className="shrink-0" />
             <span>{f}</span>
           </li>
