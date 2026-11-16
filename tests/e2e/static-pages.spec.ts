@@ -6,12 +6,12 @@ test.use({ viewport: { width: 1440, height: 900 } });
 test("terms page: breadcrumb, title, legal nav, body", async ({ page }) => {
   const res = await page.goto("/istifadeci-qaydalari");
   expect(res?.status()).toBe(200);
-  await expect(page.getByRole("heading", { level: 1, name: "Istifadəçi qaydaları" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "İstifadəçi qaydaları" })).toBeVisible();
   const crumb = page.getByRole("navigation", { name: "Naviqasiya" });
   await expect(crumb.getByRole("link", { name: "Ana səhifə" })).toHaveAttribute("href", "/");
   const legal = page.getByRole("navigation", { name: "Hüquqi səhifələr" });
   await expect(legal.getByRole("link", { name: "Məxfilik siyasəti" })).toHaveAttribute("href", "/mexfilik-siyaseti");
-  await expect(legal.locator('[aria-current="page"]')).toHaveText(/İstifadəçi qaydaları|Istifadəçi qaydaları/);
+  await expect(legal.locator('[aria-current="page"]')).toHaveText("İstifadəçi qaydaları");
   await expect(page.locator("main p").first()).toContainText("Sed ut perspiciatis");
   const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
   expect(ld.join()).toContain('"BreadcrumbList"');
