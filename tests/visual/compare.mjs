@@ -48,9 +48,13 @@ for (const t of targets) {
   const percent = +raw.toFixed(2);
   await mkdir("test-results/visual/diff", { recursive: true });
   await writeFile(`test-results/visual/diff/${t.bp}-${t.name}.png`, PNG.sync.write(diff));
-  const ok = raw <= MAX_DIFF_PERCENT;
+  // Per-target exception (approved 2026-11-16) only for text-dense targets, where glyph
+  // rasterisation differs between Figma and Chrome; it must state why. Geometry stays ±1px.
+  if (t.maxDiff !== undefined && !t.maxDiffReason) throw new Error(`${t.bp}/${t.name}: maxDiff requires maxDiffReason`);
+  const limit = t.maxDiff ?? MAX_DIFF_PERCENT;
+  const ok = raw <= limit;
   if (!ok) failed = true;
-  rows.push({ ...row, diff: `${percent}%`, ok });
+  rows.push({ ...row, diff: `${percent}%`, limit: `${limit}%`, ok });
 }
 
 console.table(rows);

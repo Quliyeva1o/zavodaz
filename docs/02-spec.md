@@ -32,7 +32,7 @@
 5. **Breakpoint-lər:** 1440 və 320-də Figma ilə tam eyni. Aralıq ölçülərdə (321–1439, o cümlədən tablet) layout axıcıdır, ən yaxın dizayna əsaslanır. 1440-dan böyük ekranlarda məzmun Figma-dakı konteyner enində mərkəzdə qalır.
 6. **Avtomatik yoxlama (hər səhifə üçün məcburi), iki pillə** — *2026-11-12-də yeniləndi: Windows-da Chrome mətni Figma-dan fərqli rasterləşdirir (ClearType), ona görə hərf kənarlarına görə 0.5% həddi mətnli hissələrdə əlçatmazdır; ölçü/yerləşmə isə ±1px-ə qədər eynidir.*
    - **a) Həndəsə (əsas, sərt):** səhifənin həmin hissəsinin ölçüsü Figma frame-i ilə **eyni** olmalıdır; Figma-dakı hər görünən mətn node-unun yeri (x, y) və sətir hündürlüyü saytdakı eyni mətnlə müqayisə olunur — fərq **≤ ±1px**. Figma dəyərləri `/nodes` API-dən (və ya yerli nüsxədən) götürülür.
-   - **b) Vizual fərq (qoruyucu):** Figma frame-i PNG (`scale=1`) və eyni hissənin Playwright screenshot-u (1440 / 320, Figma-dakı eyni test mətnləri ilə) `pixelmatch` ilə müqayisə olunur — fərq **≤ 2.5%**, diff PNG saxlanılır. Bu, rəng, ikon, boşluq və itən element səhvlərini tutur; şrift rasterləşdirmə fərqini səhv saymır.
+   - **b) Vizual fərq (qoruyucu):** Figma frame-i PNG (`scale=1`) və eyni hissənin Playwright screenshot-u (1440 / 320, Figma-dakı eyni test mətnləri ilə) `pixelmatch` ilə müqayisə olunur — fərq **≤ 2.5%**, diff PNG saxlanılır. Bu, rəng, ikon, boşluq və itən element səhvlərini tutur; şrift rasterləşdirmə fərqini səhv saymır. İstisna (2026-11-16): sıx mətnli hədəflərdə (uzun hüquqi mətn, mətn naviqasiyası) Figma ilə Chrome hərfləri fərqli rasterizə edir. Belə hədəflərə `targets.json`-da `maxDiff` (≤ 7%) yalnız `maxDiffReason` ilə verilə bilər; həmin hədəflərdə həndəsə yenə ±1px yoxlanılır.
    - Diff şəkli və overlay (bənd 7) əl ilə də nəzərdən keçirilir.
    - Hallar da yoxlanılır: hover, açıq modal, filtr açıq, boş nəticə, xəta mesajı, CV yüklənib, uğurlu müraciət və s. Figma-da çəkilmiş hər hal ayrıca test olunur.
 7. **Əl ilə overlay yoxlaması:** brauzerdə Figma PNG-si yarımşəffaf qat kimi səhifənin üstünə qoyulur (dev rejimində `?overlay=1`) — kiçik sürüşmələr gözlə də yoxlanılır.
@@ -169,7 +169,7 @@ site_settings      key, value(jsonb)                       (header/footer, əlaq
 | CLS | < 0.05 |
 | INP | < 200 ms |
 | TTFB (cache-dən) | < 200 ms |
-| Açıq səhifədə JS (gzip) | < 100 KB |
+| Açıq səhifədə JS (gzip) | ≤ 150 KB (köhnə brauzerlər üçün `noModule` polyfill xaric), bunun içində öz kodumuz ≤ 15 KB — *2026-11-16-da yeniləndi: Next.js + React runtime-ın özü ~136 KB-dır, 100 KB əlçatmazdır; hostinqdə brotli açılır* |
 | Kataloq filtr sorğusu (DB) | < 50 ms (10 000 zavod, 300 000 məhsulla) |
 
 ### 6.2 Baza
