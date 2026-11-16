@@ -6,7 +6,7 @@ import { pages } from "@/db/schema";
 import { locales } from "@/i18n/config";
 import { requireAdmin } from "@/lib/auth";
 import { invalidateTags, pageTag } from "@/lib/cache/tags";
-import { parseRichDoc } from "@/features/pages/doc-schema";
+import { checkRichDoc, richDocProblemMessage } from "@/features/pages/doc-schema";
 import { PAGE_KEYS, type PageKey, type RichDoc } from "@/features/pages/types";
 
 export type PageSaveState = { ok?: boolean; error?: string } | undefined;
@@ -28,13 +28,17 @@ export async function savePage(_prev: PageSaveState, form: FormData): Promise<Pa
   for (const l of BODY_KEYS.has(key) ? locales : []) {
     const raw = get(`body.${l}`);
     if (!raw) continue;
+    const where = `Məzmun (${l.toUpperCase()})`;
+    if (raw.length > MAX_DOC_LENGTH) return { error: `${where}: ${richDocProblemMessage.size}` };
+    let json: unknown;
     try {
-      const doc = raw.length <= MAX_DOC_LENGTH ? parseRichDoc(JSON.parse(raw)) : null;
-      if (!doc) return { error: "Məzmun oxunmadı" };
-      body[l] = doc.content?.length ? doc : null;
+      json = JSON.parse(raw);
     } catch {
-      return { error: "Məzmun oxunmadı" };
+      return { error: `${where} oxunmadı — səhifəni yeniləyib yenidən cəhd edin` };
     }
+    const checked = checkRichDoc(json);
+    if (!checked.ok) return { error: `${where}: ${richDocProblemMessage[checked.reason]}` };
+    body[l] = checked.doc.content?.length ? checked.doc : null;
   }
 
   const parsed = z

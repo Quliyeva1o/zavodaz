@@ -1,7 +1,6 @@
 import { Fragment, type ReactNode } from "react";
+import { isSafeHref } from "@/features/pages/safe-href";
 import type { RichDoc, RichMark, RichNode } from "@/features/pages/types";
-
-const SAFE_HREF = /^(https?:\/\/|mailto:)/i;
 
 const MAX_DEPTH = 12;
 
@@ -16,7 +15,7 @@ function withMarks(text: string, rawMarks: unknown, key: number): ReactNode {
         return <em>{child}</em>;
       case "link": {
         const href = String(mark.attrs?.href ?? "");
-        if (!SAFE_HREF.test(href)) return child;
+        if (!isSafeHref(href)) return child;
         const external = /^https?:/i.test(href);
         return (
           <a href={href} className="underline" {...(external ? { target: "_blank", rel: "noopener" } : {})}>

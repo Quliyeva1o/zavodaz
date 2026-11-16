@@ -28,6 +28,40 @@ test("admin edits the terms title and body; the site shows it at once", async ({
   }
 });
 
+test("a rejected body says why (unsafe link) and nothing is saved", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/pages/terms");
+  // The editor never produces such a link (same rule as the server), so the request is altered on the way.
+  const bad = JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "x", marks: [{ type: "link", attrs: { href: "https:zavod.az" } }] }] }] });
+  await page.route("**/admin/pages/terms", async (route) => {
+    // Server action payload: form fields are sent as multipart parts named "_<n>_body.az".
+    const body = route.request().postData();
+    const field = /(name="(?:_?\d+_)?body\.az"\r\n\r\n)[^\r]*/;
+    if (route.request().method() !== "POST" || !body || !field.test(body)) return route.continue();
+    await route.continue({ postData: body.replace(field, (_, head: string) => head + bad) });
+  });
+  await page.getByRole("button", { name: "Yadda saxla" }).click();
+  await expect(page.locator("form").getByRole("alert")).toHaveText("Məzmun (AZ): Link yalnız https://, http:// və ya mailto: ilə başlaya bilər");
+  await expect(page.getByText("Yadda saxlanıldı")).toBeHidden();
+});
+
+test("the editor refuses a link the server would reject", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/pages/terms");
+  const messages: string[] = [];
+  page.on("dialog", async (d) => {
+    messages.push(d.message());
+    if (d.type() === "prompt") await d.accept("https:zavod.az");
+    else await d.accept();
+  });
+  await page.locator('[data-editor="body-az"] [contenteditable="true"]').click();
+  await page.keyboard.press("Control+A");
+  await page.getByRole("button", { name: "Link", exact: true }).click();
+  await expect.poll(() => messages.length).toBe(2);
+  expect(messages[1]).toBe("Yalnız https://, http:// və ya mailto: ünvanlarına icazə verilir.");
+  await expect(page.locator('[data-editor="body-az"] a')).toHaveCount(0);
+});
+
 test("admin adds, hides and deletes a FAQ item", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto("/admin/faq");

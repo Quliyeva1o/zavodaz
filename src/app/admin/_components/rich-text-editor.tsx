@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { isSafeHref } from "@/features/pages/safe-href";
 import type { RichDoc } from "@/features/pages/types";
-
-const SAFE_URL = /^(https?:|mailto:)/i;
 
 const EDITOR_CLASS =
   "min-h-64 rounded-b-[4px] bg-white px-3 py-2 text-body-md text-gray-700 focus:outline-none " +
@@ -50,7 +49,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       return;
     }
-    if (!SAFE_URL.test(value)) {
+    if (!isSafeHref(value)) {
       window.alert("Yalnız https://, http:// və ya mailto: ünvanlarına icazə verilir.");
       return;
     }
@@ -99,7 +98,8 @@ export function RichTextEditor({
         horizontalRule: false,
         strike: false,
         underline: false,
-        link: { openOnClick: false, protocols: ["http", "https", "mailto"], autolink: true },
+        // Same rule as the save action, so autolinked / pasted links never make the save fail.
+        link: { openOnClick: false, protocols: ["http", "https", "mailto"], autolink: true, isAllowedUri: (url) => isSafeHref(url) },
       }),
     ],
     content: initial ?? "",
