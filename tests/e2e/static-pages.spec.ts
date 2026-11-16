@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import postgres from "postgres";
 import { defaultPages } from "../../src/features/pages/defaults";
 
 test.use({ viewport: { width: 1440, height: 900 } });
@@ -53,5 +54,23 @@ test("sitemap lists static pages in 3 languages", async ({ request }) => {
   const xml = await r.text();
   for (const p of ["/istifadeci-qaydalari", "/en/privacy-policy", "/ru/pomoshch", "/tarifler", "/en/contact"]) {
     expect(xml).toContain(p);
+  }
+  // <lastmod> of a static page is its pages.updated_at; the home page has none.
+  const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
+  try {
+    const rows = await sql<{ key: string; updated_at: Date }[]>`select key, updated_at from pages`;
+    const at = Object.fromEntries(rows.map((r) => [r.key, r.updated_at.toISOString()]));
+    const entries = xml.split("<url>").slice(1);
+    const entry = (path: string) => entries.find((e) => e.includes(`${path}</loc>`)) ?? "";
+    expect(entry("/istifadeci-qaydalari")).toContain(`<lastmod>${at.terms}</lastmod>`);
+    expect(entry("/en/privacy-policy")).toContain(`<lastmod>${at.privacy}</lastmod>`);
+    expect(entry("/ru/pomoshch")).toContain(`<lastmod>${at.help}</lastmod>`);
+    expect(entry("/tarifler")).toContain(`<lastmod>${at.tariffs}</lastmod>`);
+    expect(entry("/en/contact")).toContain(`<lastmod>${at.contact}</lastmod>`);
+    const home = entries.find((e) => /<loc>https?:\/\/[^/<]+\/?<\/loc>/.test(e)) ?? "";
+    expect(home).not.toBe("");
+    expect(home).not.toContain("<lastmod>");
+  } finally {
+    await sql.end();
   }
 });
