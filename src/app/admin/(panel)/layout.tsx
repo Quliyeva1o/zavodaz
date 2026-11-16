@@ -6,6 +6,8 @@ import { logout } from "../actions";
 const MENU = [
   { label: "Dashboard", href: "/admin" },
   { label: "Sayt ayarları", href: "/admin/settings" },
+  { label: "Səhifələr", href: "/admin/pages" },
+  { label: "FAQ (Yardım)", href: "/admin/faq" },
 ];
 
 export default function PanelLayout({ children }: LayoutProps<"/admin">) {

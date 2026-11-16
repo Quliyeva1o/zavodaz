@@ -29,6 +29,9 @@
     "visual:check": "npm run visual:capture && npm run visual:geometry && npm run visual:compare"
   },
   "dependencies": {
+    "@tiptap/pm": "^3.34.0",
+    "@tiptap/react": "^3.34.0",
+    "@tiptap/starter-kit": "^3.34.0",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.2",
