@@ -14,7 +14,7 @@ export const fieldBox =
 /** Label row (52:2200): Subtitle 2/Regular 16/20.8, brand-950; the red asterisk (52:2202) is hidden in the contact form. */
 export function FieldLabel({ id, htmlFor, label, requiredMark }: { id?: string; htmlFor: string; label: string; requiredMark?: boolean }) {
   return (
-    <label id={id} htmlFor={htmlFor} className="flex gap-1 text-subtitle-2s text-brand-950">
+    <label id={id} htmlFor={htmlFor} className="flex min-h-[21px] gap-1 text-subtitle-2s text-brand-950">
       {label}
       {requiredMark && (
         <span aria-hidden className="text-red-700">

@@ -23,7 +23,11 @@ export function TariffCard({ plan, lang, joinHref }: { plan: TariffPlan; lang: L
             <h2 className="text-mob-subtitle text-brand-950 lg:text-h5">{pick(plan.name, lang)}</h2>
           </div>
           <div className="flex items-end gap-1.5 lg:gap-2.5">
-            <span className="text-mob-h2 text-brand-950 lg:text-h2">{free ? t.free : formatPrice(plan.priceMonthQ)}</span>
+            {/* CSS letter-spacing also follows the last glyph, a Figma text box (157:2342) does not include it: the margin
+                gives it back so "/Ay" sits gap 10 (mobile 6) after the Figma box. */}
+            <span className="mr-[calc(-1*var(--text-mob-h2--letter-spacing))] text-mob-h2 text-brand-950 lg:mr-[calc(-1*var(--text-h2--letter-spacing))] lg:text-h2">
+              {free ? t.free : formatPrice(plan.priceMonthQ)}
+            </span>
             {free ? null : <span className="text-body-sm text-gray-500 lg:text-subtitle-1">{t.perMonth}</span>}
           </div>
         </div>

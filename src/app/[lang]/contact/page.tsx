@@ -27,7 +27,7 @@ export default async function ContactPage({ params }: PageProps<"/[lang]/contact
     <PageShell lang={lang} title={title} currentPath={href("contact", lang)} figma="contact" heading={false}>
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,617px)_minmax(0,605px)] lg:justify-between lg:gap-x-8">
         <div className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
-          <h1 className="text-mob-h2 text-brand-950 lg:text-h2">{title}</h1>
+          <h1 className="min-h-[30px] text-mob-h2 text-brand-950 lg:min-h-0 lg:text-h2">{title}</h1>
           {intro && <p className="text-body-md text-gray-700">{intro}</p>}
         </div>
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-end">

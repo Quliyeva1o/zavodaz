@@ -41,7 +41,7 @@ export function TextareaField({ name, label, maxLength, required, requiredMark, 
         />
         <div className="pointer-events-none absolute right-3 bottom-2.5 flex items-end gap-1">
           <span id={`${id}-count`} className="text-label-xs text-brand-950">
-            {count}/{maxLength}
+            {`${count}/${maxLength}`}
           </span>
           <Icon name="notches" size={12} />
         </div>

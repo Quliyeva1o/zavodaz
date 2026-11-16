@@ -23,7 +23,7 @@ for (const [width, min, max] of [[1024, 32, 98], [1180, 32, 98], [1280, 32, 98],
     await page.goto("/elaqe");
     await page.evaluate(() => document.fonts.ready);
     const gap = await page.evaluate(() => {
-      const grid = document.querySelector("[data-figma=contact] form")!.closest("main > div")!;
+      const grid = document.querySelector("[data-figma=contact-body] > div")!;
       const [head, form, info] = [...grid.children].map((c) => c.getBoundingClientRect());
       return Math.round(form.left - Math.max(head.right, info.right));
     });

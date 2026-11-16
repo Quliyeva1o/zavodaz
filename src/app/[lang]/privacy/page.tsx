@@ -16,13 +16,10 @@ export default async function PrivacyPage({ params }: PageProps<"/[lang]/privacy
   const page = await getPage("privacy");
   const body = page.body[lang]?.content?.length ? page.body[lang] : page.body.az;
   return (
-    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("privacy", lang)} figma="privacy">
-      <div className="flex flex-col gap-[60px] lg:flex-row">
-        <RichText doc={body} className="text-body-md text-gray-700 lg:min-w-0 lg:shrink lg:basis-[880px]" />
-        <div className="lg:min-w-0 lg:shrink lg:basis-[380px]">
-          <LegalNav lang={lang} active="privacy" gap={16} />
-        </div>
-      </div>
+    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("privacy", lang)} figma="privacy"
+      aside={<LegalNav lang={lang} active="privacy" gap={16} />}
+    >
+      <RichText doc={body} />
     </PageShell>
   );
 }

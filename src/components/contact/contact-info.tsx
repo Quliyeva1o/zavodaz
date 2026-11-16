@@ -12,7 +12,8 @@ const SOCIAL_LABELS = { facebook: "Facebook", instagram: "Instagram", linkedin: 
  * gray-200 lines; mobile no padding, gap 20. Title row: icon 24 + gap 6 + Subtitle 2/Medium 20/26; value
  * Body 16/24 gray-700 in an 18px box (as drawn), title → value 10. Socials: 44 circles gap 6 (desktop),
  * 40 spread over the width (mobile). WhatsApp pill (153:4657 / 692:19382): radius full, 2px stroke,
- * padding 16/24; desktop hugs its content (icon 30, Subtitle 3/Medium 18), mobile full width centred
+ * padding 16/24; desktop hugs its content (icon 30, Subtitle 3/Medium 18; fixed height 62.234375 as drawn — it
+ * makes the Figma frame 153:4374 603.23 high), mobile full width centred
  * (icon 24, Mob/Subtitle 2 16).
  */
 export async function ContactInfo({ lang }: { lang: Locale }) {
@@ -56,7 +57,7 @@ export async function ContactInfo({ lang }: { lang: Locale }) {
         href={whatsappHref(s.whatsapp)}
         target="_blank"
         rel="noopener"
-        className="flex h-14 items-center justify-center gap-1.5 rounded-full border-2 border-whatsapp-border bg-whatsapp-bg px-[22px] text-mob-subtitle-2 text-whatsapp-text lg:h-[62px] lg:self-start lg:text-subtitle-3-medium"
+        className="flex h-14 items-center justify-center gap-1.5 rounded-full border-2 border-whatsapp-border bg-whatsapp-bg px-[22px] text-mob-subtitle-2 text-whatsapp-text lg:h-[62.234375px] lg:self-start lg:text-subtitle-3-medium"
       >
         <Icon name="whatsapp" size={30} className="size-6 shrink-0 lg:size-[30px]" />
         {t.header.whatsapp}

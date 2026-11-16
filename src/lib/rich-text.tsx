@@ -37,7 +37,11 @@ function node(n: RichNode, i: number, depth = 0): ReactNode {
   const kids = (Array.isArray(n.content) ? n.content : []).map((c, j) => node(c, j, depth + 1));
   switch (n.type) {
     case "paragraph":
-      return <p key={i}>{kids}</p>;
+      return (
+        <p key={i} className="[&+p]:mt-4">
+          {kids}
+        </p>
+      );
     case "heading": {
       const level = n.attrs?.level === 3 ? 3 : 2;
       return level === 3 ? (
@@ -75,7 +79,8 @@ function node(n: RichNode, i: number, depth = 0): ReactNode {
 
 /**
  * Tiptap JSON → React elements. No HTML strings: everything is escaped by React.
- * Base style is the Figma page text (Body Text/Medium 16/24, gray-700; no gap between paragraphs).
+ * Base style is the Figma page text 144:4017 (Body Text/Medium 16/24, gray-700, paragraphSpacing 16 → 16px between
+ * consecutive paragraphs).
  */
 export function RichText({ doc, className }: { doc: RichDoc | null; className?: string }) {
   if (!doc || !Array.isArray(doc.content) || !doc.content.length) return null;
