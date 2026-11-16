@@ -8,12 +8,19 @@ const transport = smtp.host
       port: smtp.port,
       secure: smtp.port === 465,
       auth: smtp.user ? { user: smtp.user, pass: smtp.pass } : undefined,
+      // Fail fast: nodemailer defaults are 2 min (connect) and 10 min (socket).
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     })
   : null;
 
 /** Sends a plain-text email. Never throws: a mail failure must not lose the saved submission. */
 export async function sendMail(o: { to: string[]; subject: string; text: string; replyTo?: string }): Promise<boolean> {
-  if (!o.to.length) return false;
+  if (!o.to.length) {
+    console.warn("mail: no recipients (admin → contact settings) — skipped", o.subject);
+    return false;
+  }
   if (!transport) {
     console.warn("mail: SMTP_HOST is not set — skipped", o.subject);
     return false;

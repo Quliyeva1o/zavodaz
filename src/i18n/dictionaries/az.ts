@@ -49,6 +49,7 @@ export const az = {
     },
     errors: {
       required: "Bu sahə mütləqdir",
+      invalid: "Yanlış dəyər",
       email: "E-mail düzgün deyil",
       phone: "Nömrə düzgün deyil",
       tooLong: "Mətn çox uzundur",

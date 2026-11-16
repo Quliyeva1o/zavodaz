@@ -48,8 +48,13 @@ export function ContactForm({ lang, topics, t, homeHref }: Props) {
 
   // After a failed submit, focus the first field with an error.
   useEffect(() => {
-    if (state.result?.errors) form.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')?.focus();
+    if (state.result?.errors) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [state]);
+
+  // After the success dialog closes, focus returns to the (now empty) form.
+  useEffect(() => {
+    if (dismissed > 0) form.current?.querySelector<HTMLElement>("#f-firstName")?.focus();
+  }, [dismissed]);
 
   const f = t.form;
   return (
@@ -67,7 +72,7 @@ export function ContactForm({ lang, topics, t, homeHref }: Props) {
             <Field name="email" type="email" label={f.email} placeholder={f.emailPlaceholder} required autoComplete="email" maxLength={200} defaultValue={v.email} error={err("email")} />
             <Field name="phone" type="tel" label={f.phone} placeholder={f.phonePlaceholder} required autoComplete="tel" maxLength={20} defaultValue={v.phone} error={err("phone")} />
           </div>
-          <SelectField name="topic" label={f.topic} placeholder={f.topicPlaceholder} options={topics} defaultValue={v.topic} error={err("topic")} />
+          <SelectField name="topic" required label={f.topic} placeholder={f.topicPlaceholder} options={topics} defaultValue={v.topic} error={err("topic")} />
           <TextareaField name="message" label={f.message} placeholder={f.messagePlaceholder} required maxLength={MESSAGE_MAX} defaultValue={v.message} error={err("message")} />
         </div>
         <Button type="submit" size="lg" disabled={pending} className="w-full">

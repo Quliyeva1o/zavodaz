@@ -14,7 +14,7 @@ async function fill(page: Page, email = "aysel@test.az") {
   await page.getByLabel("Soyadınız").fill("Məmmədova");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Nömrə").fill("+994 50 123 45 67");
-  await page.getByRole("button", { name: /Mövzu/ }).click();
+  await page.getByRole("combobox", { name: "Mövzu" }).click();
   await page.getByRole("option", { name: "Reklam" }).click();
   await page.getByLabel("Mesajınız").fill("Salam, reklam barədə məlumat istəyirəm.");
   await page.waitForTimeout(3100); // anti-bot timer
@@ -34,8 +34,9 @@ test("valid message is saved and the success dialog shows", async ({ page }) => 
   await dialog.getByRole("button", { name: "Bağla" }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByLabel("Adınız", { exact: true })).toHaveValue("");
-  await expect(page.getByRole("button", { name: /Mövzu/ })).toContainText("Mövzunu seçin");
+  await expect(page.getByRole("combobox", { name: "Mövzu" })).toContainText("Mövzunu seçin");
   await expect(page.getByText("0/200")).toBeVisible();
+  await expect(page.getByLabel("Adınız", { exact: true })).toBeFocused();
 });
 
 test("invalid email keeps typed values and shows the field error", async ({ page }) => {
@@ -45,7 +46,7 @@ test("invalid email keeps typed values and shows the field error", async ({ page
   await expect(page.getByText("E-mail düzgün deyil")).toBeVisible();
   await expect(page.getByLabel("E-mail")).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByLabel("Adınız", { exact: true })).toHaveValue("Aysel");
-  await expect(page.getByRole("button", { name: /Mövzu/ })).toContainText("Reklam");
+  await expect(page.getByRole("combobox", { name: "Mövzu" })).toContainText("Reklam");
   await expect(page.getByText("39/200")).toBeVisible();
   await expect(page.getByRole("dialog")).toBeHidden();
 });
@@ -65,7 +66,7 @@ test("a bot that submits instantly is silently ignored", async ({ page }) => {
   await page.getByLabel("Soyadınız").fill("Bot");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Nömrə").fill("+994 50 000 00 00");
-  await page.getByRole("button", { name: /Mövzu/ }).click();
+  await page.getByRole("combobox", { name: "Mövzu" }).click();
   await page.getByRole("option", { name: "Digər" }).click();
   await page.getByLabel("Mesajınız").fill("spam");
   await page.getByRole("button", { name: "Müraciət et" }).click(); // < 3 s after load
@@ -75,12 +76,14 @@ test("a bot that submits instantly is silently ignored", async ({ page }) => {
 
 test("topic dropdown works with the keyboard", async ({ page }) => {
   await page.goto("/elaqe");
-  const trigger = page.getByRole("button", { name: /Mövzu/ });
+  const trigger = page.getByRole("combobox", { name: "Mövzu" });
   await trigger.focus();
   await page.keyboard.press("ArrowDown");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   const listbox = page.getByRole("listbox");
-  await expect(listbox).toBeFocused();
+  await expect(listbox).toBeVisible();
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-required", "true");
   await page.keyboard.press("End"); // Digər
   await page.keyboard.press("ArrowUp"); // Reklam
   await page.keyboard.press("Enter");
@@ -111,6 +114,44 @@ test("contact details and the WhatsApp link come from site settings; EN page is 
   await page.goto("/en/contact");
   await expect(page.getByLabel("First name")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send" })).toBeVisible();
-  await page.getByRole("button", { name: /Topic/ }).click();
+  await page.getByRole("combobox", { name: "Topic" }).click();
   await expect(page.getByRole("option", { name: "Advertising" })).toBeVisible();
+});
+
+test("a bot that fills the hidden honeypot field is silently ignored", async ({ page }) => {
+  const email = `honeypot-${Date.now()}@test.az`;
+  await page.goto("/elaqe");
+  await fill(page, email); // waits past the 3 s timer, so only the honeypot catches it
+  await page.locator("[name=website]").evaluate((el) => ((el as HTMLInputElement).value = "x"));
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
+  expect(await sql`select 1 from contact_messages where email = ${email}`).toHaveLength(0);
+});
+
+test("the 6th valid message in an hour is refused and the typed values stay", async ({ page }) => {
+  const first = `limit-a-${Date.now()}@test.az`;
+  await page.goto("/elaqe");
+  await fill(page, first);
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
+  // Pretend the visitor has already sent 5 messages this hour.
+  await sql`update rate_limits set count = 5 where key like 'contact:%'`;
+
+  const sixth = `limit-b-${Date.now()}@test.az`;
+  await page.goto("/elaqe");
+  await fill(page, sixth);
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.locator("form").getByRole("alert")).toHaveText("Çox müraciət göndərildi. Bir az sonra yenidən yoxlayın.");
+  await expect(page.getByLabel("E-mail")).toHaveValue(sixth);
+  await expect(page.getByRole("combobox", { name: "Mövzu" })).toContainText("Reklam");
+  await expect(page.getByRole("dialog")).toBeHidden();
+  expect(await sql`select 1 from contact_messages where email = ${sixth}`).toHaveLength(0);
+});
+
+test("invalid submissions do not use up the hourly limit", async ({ page }) => {
+  await page.goto("/elaqe");
+  await fill(page, "yanlis");
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByText("E-mail düzgün deyil")).toBeVisible();
+  expect(await sql`select 1 from rate_limits where key like 'contact:%'`).toHaveLength(0);
 });

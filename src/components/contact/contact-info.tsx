@@ -77,12 +77,12 @@ function Block({ icon, title, children }: { icon: IconName; title: string; child
   );
 }
 
-/** 18px box like Figma (line-height 24 overflows it); the invisible ::after makes the tap target 44px high. */
+/** 18px line like the Figma text box (it grows when an admin enters a long value); ::after makes the tap target 44px high. */
 function Value({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}
-      className="relative h-[18px] self-start text-body-md text-gray-700 [overflow-wrap:anywhere] after:absolute after:inset-x-0 after:-inset-y-[13px]"
+      className="relative min-h-[18px] self-start text-body-md leading-[18px] text-gray-700 [overflow-wrap:anywhere] after:absolute after:inset-x-0 after:-inset-y-[13px]"
     >
       {children}
     </a>

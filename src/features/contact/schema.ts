@@ -5,13 +5,15 @@ export { CONTACT_FIELDS, MESSAGE_MAX };
 
 // Error messages are dictionary keys (t.contact.errors[key]); the form translates them.
 const text = (max: number) => z.string().trim().min(1, "required").max(max, "tooLong");
+// Single-line fields: no CR/LF (names and the phone go into the notification email).
+const line = (max: number) => text(max).regex(/^[^\r\n]*$/, "invalid");
 
 export const contactSchema = (topicIds: string[]) =>
   z.object({
-    firstName: text(60),
-    lastName: text(60),
+    firstName: line(60),
+    lastName: line(60),
     email: z.string().trim().min(1, "required").max(200, "tooLong").pipe(z.email("email")),
-    phone: z.string().trim().min(1, "required").regex(/^\+?[\d\s()-]{9,20}$/, "phone"),
+    phone: z.string().trim().min(1, "required").regex(/^\+?[\d ()-]{9,20}$/, "phone"), // plain spaces only: no CR/LF/tabs
     topic: z.string().refine((v) => topicIds.includes(v), "topic"),
     message: text(MESSAGE_MAX),
   });

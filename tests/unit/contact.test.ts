@@ -52,3 +52,19 @@ test("empty fields are 'required', an empty topic is 'topic'; typed values come 
     assert.equal(r.values.firstName, "Aysel");
   }
 });
+
+test("single-line fields reject line breaks (mail header / body injection)", () => {
+  const r = parseContactForm(form({ ...valid, firstName: "Ay\r\nsel", lastName: "Məm\nmədova", phone: "+994 50\n123 45 67" }), ["advertising"]);
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.deepEqual(r.errors, { firstName: "invalid", lastName: "invalid", phone: "phone" });
+});
+
+test("phone allows plain spaces, brackets and dashes only", () => {
+  const ok = (phone: string) => parseContactForm(form({ ...valid, phone }), ["advertising"]).ok;
+  assert.equal(ok("+994 (50) 123-45-67"), true);
+  assert.equal(ok("+994\t50 123 45 67"), false);
+});
+
+test("the message may have several lines", () => {
+  assert.equal(parseContactForm(form({ ...valid, message: "Salam\nNecəsiz?" }), ["advertising"]).ok, true);
+});

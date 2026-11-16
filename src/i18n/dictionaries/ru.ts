@@ -51,6 +51,7 @@ export const ru: Dictionary = {
     },
     errors: {
       required: "Обязательное поле",
+      invalid: "Недопустимое значение",
       email: "Неверный e-mail",
       phone: "Неверный номер",
       tooLong: "Слишком длинный текст",

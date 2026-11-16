@@ -51,6 +51,7 @@ export const en: Dictionary = {
     },
     errors: {
       required: "This field is required",
+      invalid: "Invalid value",
       email: "E-mail is not valid",
       phone: "Phone number is not valid",
       tooLong: "The text is too long",
