@@ -58,6 +58,7 @@ export const en: Dictionary = {
       topic: "Choose a topic",
       rateLimited: "Too many messages. Please try again a little later.",
       server: "Something went wrong, please try again.",
+      notReady: "The form had not finished loading. Please send it again.",
     },
     success: {
       title: "Received!",

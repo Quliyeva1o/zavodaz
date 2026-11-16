@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { sendContact, type ContactState } from "@/features/contact/actions";
 import { CONTACT_FIELDS, MESSAGE_MAX } from "@/features/contact/constants";
+import { MIN_FILL_MS } from "@/features/contact/spam";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
@@ -17,8 +18,8 @@ type Submitted = { n: number; result: ContactState };
 
 /**
  * Figma 153:4664 (desktop: 2 rows × 2 fields 295 wide, gap 16; Mövzu; Mesaj; 24 → 48px button) and
- * 692:19335 (mobile: one column, gap 12). Spam traps: honeypot field + minimum fill time (startedAt is the
- * hydration time, added at submit, so bots without JS are caught too).
+ * 692:19335 (mobile: one column, gap 12). Spam traps (features/contact/spam.ts): honeypot field + minimum fill time (startedAt is the
+ * hydration time, added at submit; without it the message is refused with a visible "send again" error).
  */
 export function ContactForm({ lang, topics, t, homeHref }: Props) {
   const startedAt = useRef(0);
@@ -46,9 +47,14 @@ export function ContactForm({ lang, topics, t, homeHref }: Props) {
     return key ? (t.errors[key] ?? t.errors.required) : undefined;
   };
 
-  // After a failed submit, focus the first field with an error.
+  // After a failed submit, focus the first field with an error. After a success the (empty) form
+  // starts over, so the next message is timed from now, not from the first page load.
   useEffect(() => {
     if (state.result?.errors) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    if (state.result?.ok) startedAt.current = Date.now();
+    // Sent before the timer started (e.g. replayed right after hydration): the visitor has been
+    // typing all along, so sending again is accepted at once instead of looking like a bot.
+    if (state.result?.formError === "notReady") startedAt.current = Math.min(startedAt.current || Infinity, Date.now() - MIN_FILL_MS);
   }, [state]);
 
   // After the success dialog closes, focus returns to the (now empty) form.

@@ -56,6 +56,7 @@ export const az = {
       topic: "Mövzunu seçin",
       rateLimited: "Çox müraciət göndərildi. Bir az sonra yenidən yoxlayın.",
       server: "Xəta baş verdi, yenidən cəhd edin.",
+      notReady: "Forma hələ tam yüklənməmişdi. Zəhmət olmasa, yenidən göndərin.",
     },
     success: {
       title: "Qəbul olundu!",

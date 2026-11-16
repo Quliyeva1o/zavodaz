@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseContactForm } from "../../src/features/contact/schema.ts";
+import { spamCheck } from "../../src/features/contact/spam.ts";
 import { defaultContactSettings, mergeContactSettings } from "../../src/features/contact/settings.ts";
 
 test("default topics are the user's list", () => {
@@ -67,4 +68,23 @@ test("phone allows plain spaces, brackets and dashes only", () => {
 
 test("the message may have several lines", () => {
   assert.equal(parseContactForm(form({ ...valid, message: "Salam\nNecəsiz?" }), ["advertising"]).ok, true);
+});
+
+test("spam check: honeypot and a too fast real timestamp are bots, a missing timestamp is not", () => {
+  const now = 1_000_000;
+  const form = (startedAt: string | null, website = "") => {
+    const f = new FormData();
+    if (startedAt !== null) f.set("startedAt", startedAt);
+    f.set("website", website);
+    return f;
+  };
+  assert.equal(spamCheck(form(String(now - 5000)), now), "ok");
+  assert.equal(spamCheck(form(String(now - 5000), "http://spam"), now), "bot");
+  assert.equal(spamCheck(form(String(now - 1000)), now), "bot");
+  // Sent before the page was interactive (or without JS): ask to send again, never drop silently.
+  assert.equal(spamCheck(form("0"), now), "notReady");
+  assert.equal(spamCheck(form(null), now), "notReady");
+  assert.equal(spamCheck(form("abc"), now), "notReady");
+  // The honeypot wins over a missing timestamp.
+  assert.equal(spamCheck(form("0", "x"), now), "bot");
 });

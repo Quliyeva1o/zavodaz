@@ -8,21 +8,24 @@ import { clientIpHash } from "@/lib/client-ip";
 import { sendMail } from "@/lib/mail";
 import { consumeAttempt } from "@/lib/rate-limit";
 import { getContactSettings } from "./queries";
+import { CONTACT_FIELDS } from "./constants";
 import { parseContactForm } from "./schema";
+import { spamCheck } from "./spam";
 
 export type ContactState =
-  | { ok?: boolean; errors?: Record<string, string>; values?: Record<string, string>; formError?: "rateLimited" | "server" }
+  | { ok?: boolean; errors?: Record<string, string>; values?: Record<string, string>; formError?: "rateLimited" | "server" | "notReady" }
   | undefined;
 
-const MIN_FILL_MS = 3000;
 const LIMIT = 5; // messages per IP per hour
 const WINDOW_SEC = 60 * 60;
 
 export async function sendContact(_prev: ContactState, form: FormData): Promise<ContactState> {
   // Spam traps first: the hidden field must stay empty; humans need more than 3 s to fill the form.
-  const startedAt = Number(form.get("startedAt"));
-  if (String(form.get("website") ?? "") !== "" || !startedAt || Date.now() - startedAt < MIN_FILL_MS) {
-    return { ok: true }; // silent: do not tell bots they were caught
+  const spam = spamCheck(form);
+  if (spam === "bot") return { ok: true }; // silent: do not tell bots they were caught
+  if (spam === "notReady") {
+    // No start time (sent before hydration / without JS): not a bot signal — ask to send again.
+    return { formError: "notReady", values: Object.fromEntries(CONTACT_FIELDS.map((k) => [k, String(form.get(k) ?? "").slice(0, 5000)])) };
   }
 
   const settings = await getContactSettings();

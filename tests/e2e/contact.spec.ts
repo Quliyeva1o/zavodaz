@@ -155,3 +155,52 @@ test("invalid submissions do not use up the hourly limit", async ({ page }) => {
   await expect(page.getByText("E-mail düzgün deyil")).toBeVisible();
   expect(await sql`select 1 from rate_limits where key like 'contact:%'`).toHaveLength(0);
 });
+
+test("a message sent before the timer started gets a visible error, keeps the values and can be sent again", async ({ page }) => {
+  // Date.now() is 0 while the page hydrates, so the form's start time stays 0 (as when the
+  // submit happens before hydration).
+  await page.addInitScript(() => {
+    const real = Date.now.bind(Date);
+    const w = window as unknown as { __zvFrozen?: boolean };
+    w.__zvFrozen = true;
+    Date.now = () => (w.__zvFrozen ? 0 : real());
+  });
+  const email = `notready-${Date.now()}@test.az`;
+  await page.goto("/elaqe");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => ((window as unknown as { __zvFrozen?: boolean }).__zvFrozen = false));
+  await fill(page, email);
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.locator("form").getByRole("alert")).toHaveText("Forma hələ tam yüklənməmişdi. Zəhmət olmasa, yenidən göndərin.");
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByLabel("E-mail")).toHaveValue(email);
+  await expect(page.getByRole("combobox", { name: "Mövzu" })).toContainText("Reklam");
+  expect(await sql`select 1 from contact_messages where email = ${email}`).toHaveLength(0);
+  // Sending again right away is accepted: the visitor was typing all along.
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
+  expect(await sql`select 1 from contact_messages where email = ${email}`).toHaveLength(1);
+});
+
+test("after a successful send the timer starts over for the next message", async ({ page }) => {
+  const first = `again-a-${Date.now()}@test.az`;
+  await page.goto("/elaqe");
+  await fill(page, first);
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
+  await page.getByRole("dialog").getByRole("button", { name: "Bağla" }).click();
+  expect(await sql`select 1 from contact_messages where email = ${first}`).toHaveLength(1);
+
+  // A second message right away (< 3 s after the first one) looks like a bot and is dropped silently.
+  const second = `again-b-${Date.now()}@test.az`;
+  await page.getByLabel("Adınız", { exact: true }).fill("Aysel");
+  await page.getByLabel("Soyadınız").fill("Məmmədova");
+  await page.getByLabel("E-mail").fill(second);
+  await page.getByLabel("Nömrə").fill("+994 50 123 45 67");
+  await page.getByRole("combobox", { name: "Mövzu" }).click();
+  await page.getByRole("option", { name: "Reklam" }).click();
+  await page.getByLabel("Mesajınız").fill("İkinci mesaj");
+  await page.getByRole("button", { name: "Müraciət et" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Qəbul olundu!");
+  expect(await sql`select 1 from contact_messages where email = ${second}`).toHaveLength(0);
+});
