@@ -21,10 +21,10 @@ export default async function HelpPage({ params }: PageProps<"/[lang]/help">) {
     <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("help", lang)} figma="help">
       {items.length > 0 && <JsonLd data={faqJsonLd(items)} />}
       <div className="flex flex-col gap-[60px] lg:flex-row">
-        <div className="lg:w-[880px] lg:shrink-0">
+        <div className="lg:min-w-0 lg:shrink lg:basis-[880px]">
           <FaqList items={items} />
         </div>
-        <div className="lg:w-[380px] lg:shrink-0">
+        <div className="lg:min-w-0 lg:shrink lg:basis-[380px]">
           <LegalNav lang={lang} active="help" gap={20} />
         </div>
       </div>

@@ -39,7 +39,7 @@ export function PageShell({ lang, title, intro, currentPath, figma, heading = tr
       <div className="flex flex-col gap-8">
         <Breadcrumb items={crumbs} label={t.breadcrumb} />
         {intro ? (
-          <div className="flex flex-col gap-4 lg:w-[617px]">
+          <div className="flex flex-col gap-4 lg:w-full lg:max-w-[617px]">
             <h1 className="text-mob-h2 text-brand-950 lg:text-h2">{title}</h1>
             {/* not in the mobile Figma frame (696:19453) */}
             <p className="hidden text-body-md text-gray-700 lg:block">{intro}</p>

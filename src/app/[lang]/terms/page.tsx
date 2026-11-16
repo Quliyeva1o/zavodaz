@@ -18,8 +18,8 @@ export default async function TermsPage({ params }: PageProps<"/[lang]/terms">) 
   return (
     <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("terms", lang)} figma="terms">
       <div className="flex flex-col gap-[60px] lg:flex-row">
-        <RichText doc={body} className="text-body-md text-gray-700 lg:w-[880px] lg:shrink-0" />
-        <div className="lg:w-[380px] lg:shrink-0">
+        <RichText doc={body} className="text-body-md text-gray-700 lg:min-w-0 lg:shrink lg:basis-[880px]" />
+        <div className="lg:min-w-0 lg:shrink lg:basis-[380px]">
           <LegalNav lang={lang} active="terms" gap={16} />
         </div>
       </div>
