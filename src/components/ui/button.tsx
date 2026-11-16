@@ -6,8 +6,9 @@ const base = "relative after:absolute after:inset-x-0 after:-inset-y-1 inline-fl
 const variants = {
   primary: "bg-brand-950 text-white hover:bg-brand-900 disabled:opacity-60",
 } as const;
-// Figma "Medium 40" (157:2344) and "Medium 36" (mobile 696:19857); "responsive" = 36 on mobile, 40 on desktop.
-const sizes = { md: "h-10", sm: "h-9", responsive: "h-9 lg:h-10" } as const;
+// Figma "Medium 40" (157:2344) and "Medium 36" (mobile 696:19857); "responsive" = 36 on mobile, 40 on desktop;
+// "lg" = the 48px form button (contact 153:4674, popup 244:9746: padding 8/10).
+const sizes = { md: "h-10", sm: "h-9", responsive: "h-9 lg:h-10", lg: "h-12" } as const;
 type Variant = keyof typeof variants;
 type Size = keyof typeof sizes;
 

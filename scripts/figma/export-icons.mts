@@ -36,6 +36,12 @@ export const ICONS: Record<string, string> = {
   "social-light-x": "560:15601",
   "social-light-youtube": "560:15609",
   "social-light-tiktok": "560:15611",
+  // Contact form (Task 7). Drawn from the Phosphor outlines while the API was rate-limited;
+  // the next `npm run figma:icons` replaces them with the exact Figma geometry.
+  "warning-circle": "52:2233",
+  notches: "I153:4673;52:2353",
+  "x-brand": "244:9727",
+  "check-brand": "I52:2337;9:571",
 };
 
 const hex = (p: Paint) => {

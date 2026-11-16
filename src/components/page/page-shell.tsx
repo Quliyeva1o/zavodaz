@@ -5,16 +5,34 @@ import { href } from "@/i18n/routes";
 import { JsonLd, breadcrumbJsonLd } from "@/lib/structured-data";
 import { Breadcrumb } from "./breadcrumb";
 
-type Props = { lang: Locale; title: string; intro?: string; currentPath: string; figma: string; children: ReactNode };
+type Props = {
+  lang: Locale;
+  title: string;
+  intro?: string;
+  currentPath: string;
+  figma: string;
+  /** false: the page lays out its own h1 (e.g. Əlaqə, where the title sits inside a column); content starts 32 under the breadcrumb. */
+  heading?: boolean;
+  children: ReactNode;
+};
 
 /**
  * Breadcrumb + page title (H2 style, h1 element) + content, as the Figma content frames
  * (143:4005 desktop: header→breadcrumb 30, breadcrumb→title 32, title→content 32;
  * mobile 685:20709: 20 / 32 / 24).
  */
-export function PageShell({ lang, title, intro, currentPath, figma, children }: Props) {
+export function PageShell({ lang, title, intro, currentPath, figma, heading = true, children }: Props) {
   const t = dict(lang);
   const crumbs = [{ label: t.nav.home, href: href("home", lang) }, { label: title }];
+  if (!heading) {
+    return (
+      <main data-figma={figma} className="container-site flex flex-col gap-8 pt-5 lg:pt-[30px]">
+        <JsonLd data={breadcrumbJsonLd([{ name: t.nav.home, url: href("home", lang) }, { name: title, url: currentPath }])} />
+        <Breadcrumb items={crumbs} label={t.breadcrumb} />
+        {children}
+      </main>
+    );
+  }
   return (
     <main data-figma={figma} className="container-site flex flex-col gap-6 pt-5 lg:gap-8 lg:pt-[30px]">
       <JsonLd data={breadcrumbJsonLd([{ name: t.nav.home, url: href("home", lang) }, { name: title, url: currentPath }])} />
