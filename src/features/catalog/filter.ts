@@ -1,6 +1,6 @@
 // Pure functions, no zod and no server code: client components (mobile filter) import this too.
 import { FACTORY_TYPES, isCooperation, isFactoryType } from "./types";
-import type { CatalogFilter, CatalogScope, CatalogSort, FactoryType } from "./types";
+import type { CatalogFilter, CatalogScope, CatalogSort, Dict, Dictionaries, FactoryType } from "./types";
 
 export type { CatalogFilter, CatalogScope } from "./types";
 
@@ -64,4 +64,21 @@ export function catalogSearch(f: CatalogFilter, scope: CatalogScope): string {
 /** Anything beyond the page scope and the page number: such URLs are `noindex, follow`. */
 export function isFiltered(f: CatalogFilter, scope: CatalogScope): boolean {
   return catalogSearch({ ...f, page: 1 }, scope) !== "";
+}
+
+/**
+ * R8: dictionary slugs that do not exist are dropped before the cached query, so crawler junk never becomes
+ * a cache entry (the URL is still filtered → noindex, canonical base). A landing slug is the page's own and
+ * stays (the landing page decides on 404).
+ */
+export function normalizeCatalogFilter(f: CatalogFilter, d: Dictionaries, scope: CatalogScope): CatalogFilter {
+  const known = (list: Dict[], slug: string | null) => (slug !== null && list.some((x) => x.slug === slug) ? slug : null);
+  const landing = scope.landing?.kind;
+  return {
+    ...f,
+    industry: landing === "industry" ? f.industry : known(d.industries, f.industry),
+    city: landing === "city" ? f.city : known(d.cities, f.city),
+    product: known(d.productTypes, f.product),
+    model: known(d.productionModels, f.model),
+  };
 }

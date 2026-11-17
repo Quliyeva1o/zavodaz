@@ -10,6 +10,8 @@ type Props = {
   title: string;
   intro?: string;
   currentPath: string;
+  /** Crumbs between "Ana səhifə" and the current page (catalog type pages: Kataloq). */
+  crumbs?: { label: string; href: string }[];
   figma: string;
   /** false: the page lays out its own h1 (e.g. Əlaqə, where the title sits inside a column); content starts 32 under the breadcrumb. */
   heading?: boolean;
@@ -27,9 +29,9 @@ type Props = {
  * 685:21532, content 685:20860, card 685:21541): `<figma>-crumbs`, `<figma>-body` and `<figma>-nav` mark them
  * (`-mx-4 px-4` = the 320 frame with its 16px padding; `lg:contents` drops the wrapper box on desktop).
  */
-export function PageShell({ lang, title, intro, currentPath, figma, heading = true, aside, children }: Props) {
+export function PageShell({ lang, title, intro, currentPath, crumbs: middle = [], figma, heading = true, aside, children }: Props) {
   const t = dict(lang);
-  const crumbs = [{ label: t.nav.home, href: href("home", lang) }, { label: title }];
+  const crumbs = [{ label: t.nav.home, href: href("home", lang) }, ...middle, { label: title }];
   // Mobile title box 30 high as in Figma (685:20861: 24/29.76 in a 30 text box — Figma rounds auto-height boxes).
   const h1 = <h1 className="min-h-[30px] text-mob-h2 text-brand-950 lg:min-h-0 lg:text-h2">{title}</h1>;
   const head = !heading ? null : intro ? (
@@ -49,7 +51,13 @@ export function PageShell({ lang, title, intro, currentPath, figma, heading = tr
   );
   return (
     <main data-figma={figma} className="container-site mt-5 mb-[60px] flex flex-col gap-8 lg:mt-[30px] lg:mb-[120px]">
-      <JsonLd data={breadcrumbJsonLd([{ name: t.nav.home, url: href("home", lang) }, { name: title, url: currentPath }])} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: t.nav.home, url: href("home", lang) },
+          ...middle.map((c) => ({ name: c.label, url: c.href })),
+          { name: title, url: currentPath },
+        ])}
+      />
       <div data-figma={`${figma}-crumbs`} className="-mx-4 px-4 lg:mx-0 lg:px-0">
         <Breadcrumb items={crumbs} label={t.breadcrumb} />
       </div>

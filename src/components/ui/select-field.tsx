@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { FieldError, FieldLabel, fieldBox } from "./field";
 import { Icon } from "./icon";
 
@@ -15,6 +15,8 @@ type Props = {
   defaultValue?: string;
   required?: boolean;
   requiredMark?: boolean;
+  /** "filter": catalog sidebar look — heading 20/26 medium, 16 above the box (Figma 281:7016). */
+  variant?: "form" | "filter";
 };
 
 /**
@@ -28,9 +30,13 @@ type Props = {
  * aria-activedescendant; ↑ ↓ Home End open/move, Enter/Space choose, Escape closes, leaving the field closes.
  * An option highlighted from the keyboard also gets an inset brand-500 ring (the Figma hover fill alone is
  * too faint to see); pointer hover keeps the plain Figma look. A click on the label focuses the combobox.
+ * Choosing a new value fires a bubbling `change` on the hidden input (React state alone fires none), so a
+ * surrounding form can react (catalog AutoSubmit). Long lists scroll (7 rows visible; the city list).
+ * An empty value shows in the placeholder colour (catalog "Hamısı").
  */
-export function SelectField({ name, label, options, placeholder, error, defaultValue = "", required, requiredMark }: Props) {
+export function SelectField({ name, label, options, placeholder, error, defaultValue = "", required, requiredMark, variant = "form" }: Props) {
   const id = `f-${name}`;
+  const hidden = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -46,9 +52,20 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
     setOpen(true);
   }
   function choose(i: number) {
-    setValue(options[i].value);
+    const next = options[i].value;
     setOpen(false);
+    if (next === value) return;
+    setValue(next);
+    const input = hidden.current;
+    if (input) {
+      input.value = next;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   }
+
+  useEffect(() => {
+    if (open) document.getElementById(`${id}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [open, active, id]);
 
   function onKey(e: KeyboardEvent) {
     const last = options.length - 1;
@@ -77,9 +94,15 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel id={`${id}-label`} htmlFor={id} label={label} requiredMark={requiredMark} />
-      <input type="hidden" name={name} value={value} readOnly />
+    <div className={`flex flex-col ${variant === "filter" ? "gap-4" : "gap-1.5"}`}>
+      <FieldLabel
+        id={`${id}-label`}
+        htmlFor={id}
+        label={label}
+        requiredMark={requiredMark}
+        className={variant === "filter" ? "flex min-h-[26px] text-subtitle-2-medium text-brand-950" : undefined}
+      />
+      <input ref={hidden} type="hidden" name={name} value={value} readOnly />
       <div className="relative">
         <button
           id={id}
@@ -104,7 +127,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
           onBlur={() => setOpen(false)}
           className={`flex h-10 items-center justify-between gap-1.5 text-left text-subtitle-2s ${fieldBox}`}
         >
-          <span className={`truncate ${selected ? "text-brand-950" : "text-gray-700"}`}>{selected?.label ?? placeholder}</span>
+          <span className={`truncate ${selected && value ? "text-brand-950" : "text-gray-700"}`}>{selected?.label ?? placeholder}</span>
           <Icon name="caret-down" size={20} className={`shrink-0 ${open ? "rotate-180" : ""}`} />
         </button>
         {open && (
@@ -114,7 +137,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
             aria-labelledby={`${id}-label`}
             // Keep focus on the combobox while an option is pressed.
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute inset-x-0 top-[calc(100%+6px)] z-20 flex flex-col rounded-[4px] bg-white p-2.5"
+            className="absolute inset-x-0 top-[calc(100%+6px)] z-20 flex max-h-[290px] flex-col overflow-y-auto rounded-[4px] bg-white p-2.5"
           >
             {options.map((o, i) => {
               const isSelected = o.value === value;
@@ -129,7 +152,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
                     setKeyboard(false);
                   }}
                   onClick={() => choose(i)}
-                  className={`flex h-10 cursor-pointer items-center justify-between gap-1 rounded-[4px] px-3 text-subtitle-2s ${
+                  className={`flex h-10 shrink-0 cursor-pointer items-center justify-between gap-1 rounded-[4px] px-3 text-subtitle-2s ${
                     isSelected ? "text-brand-950" : "text-gray-700"
                   } ${i === active ? "bg-gray-50" : "bg-white"} ${i === active && keyboard ? "ring-2 ring-inset ring-brand-500" : ""}`}
                 >
