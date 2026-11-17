@@ -34,6 +34,7 @@ export const ru: Dictionary = {
   factoryTypes: { zavod: "Заводы", fabrik: "Фабрики", sex: "Цеха", emalatxana: "Мастерские", kombinat: "Комбинаты", aqropark: "Агропарки" },
   recommended: "Рекомендуемые",
   tariffs: { perMonth: "/Мес", free: "Бесплатно", join: "Подключить" },
+  catalog: { more: "Подробнее", verified: "Проверено", rating: "Рейтинг {r} / 5", pages: "Постраничная навигация", page: "Страница {n}", prev: "Предыдущая страница", next: "Следующая страница" },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {
     info: { phone: "Телефон", email: "E-mail", social: "Соцсети" },

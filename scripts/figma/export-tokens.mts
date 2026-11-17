@@ -14,6 +14,7 @@ const EXTRA_COLORS: Record<string, string> = {
   "whatsapp-bg": "#F2FBF5",
   "whatsapp-border": "#C3EFD1",
   "whatsapp-text": "#1C4B2E",
+  "photo-placeholder": "#D9D9D9", // factory card image fill when there is no cover (Figma 281:7099)
 };
 /** Figma style (name|size|letter-spacing) → token. New styles must be added here on purpose. */
 const TEXT_MAP: Record<string, string> = {

@@ -32,6 +32,7 @@ export const az = {
   factoryTypes: { zavod: "Zavodlar", fabrik: "Fabriklər", sex: "Sexlər", emalatxana: "Emalatxanalar", kombinat: "Kombinatlar", aqropark: "Aqroparklar" },
   recommended: "Tövsiyə edilənlər",
   tariffs: { perMonth: "/Ay", free: "Pulsuz", join: "İndi qoşul" },
+  catalog: { more: "Ətraflı", verified: "Təsdiqlənib", rating: "Reytinq {r} / 5", pages: "Səhifələmə", page: "Səhifə {n}", prev: "Əvvəlki səhifə", next: "Növbəti səhifə" },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {
     info: { phone: "Telefon", email: "E-mail", social: "Social Media" },
