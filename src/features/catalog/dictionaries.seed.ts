@@ -39,10 +39,9 @@ const productionModels = entries([
   ["OEM (Orijinal avadanlıq istehsalçısı)", "OEM (Original Equipment Manufacturer)", "OEM (Оригинальный производитель оборудования)"],
 ]);
 
-// Azerbaijani alphabet order (a b c ç d e ə f g ğ h x ı i j k q l m n o ö p r s ş t u ü v y z).
-// The head of the list is exactly the Figma dropdown (Ağcabədi … Biləsuvar, no Abşeron/Balakən),
-// so those two districts, missing from Figma, are appended at the end instead of their alphabetical place.
+// Azerbaijani alphabet order (a b c ç d e ə f g ğ h x ı i j k q l m n o ö p r s ş t u ü v y z); the Figma dropdown is sample data.
 const cities = entries([
+  ["Abşeron", "Absheron", "Апшерон"],
   ["Ağcabədi", "Aghjabadi", "Агджабеди"],
   ["Ağdam", "Agdam", "Агдам"],
   ["Ağdaş", "Agdash", "Агдаш"],
@@ -52,6 +51,7 @@ const cities = entries([
   ["Astara", "Astara", "Астара"],
   ["Babək", "Babek", "Бабек"],
   ["Bakı", "Baku", "Баку"],
+  ["Balakən", "Balakan", "Балакен"],
   ["Beyləqan", "Beylagan", "Бейлаган"],
   ["Bərdə", "Barda", "Барда"],
   ["Biləsuvar", "Bilasuvar", "Билясувар"],
@@ -68,6 +68,7 @@ const cities = entries([
   ["Hacıqabul", "Hajigabul", "Гаджигабул"],
   ["Xaçmaz", "Khachmaz", "Хачмас"],
   ["Xankəndi", "Khankendi", "Ханкенди"],
+  ["Xırdalan", "Khirdalan", "Хырдалан"],
   ["Xızı", "Khizi", "Хызы"],
   ["Xocalı", "Khojaly", "Ходжалы"],
   ["Xocavənd", "Khojavend", "Ходжавенд"],
@@ -116,9 +117,6 @@ const cities = entries([
   ["Zaqatala", "Zagatala", "Загатала"],
   ["Zəngilan", "Zangilan", "Зангилан"],
   ["Zərdab", "Zardab", "Зардаб"],
-  // Not in the Figma list, appended (see the comment above).
-  ["Abşeron", "Absheron", "Апшерон"],
-  ["Balakən", "Balakan", "Балакен"],
 ]);
 
 export const DICTIONARY_SEED: Record<"cities" | "industries" | "productTypes" | "productionModels", DictSeedItem[]> = {

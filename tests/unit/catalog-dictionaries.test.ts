@@ -18,9 +18,14 @@ test("Figma filter values (Mob/Filtr frames), typos fixed", () => {
     "İxrac yönümlü", "Daxili bazara yönəlmiş", "Xammal emalı müəssisəsi", "Hazır məhsul istehsalçısı",
     "OEM (Orijinal avadanlıq istehsalçısı)",
   ]);
-  assert.deepEqual(names("cities").slice(0, 12), [
-    "Ağcabədi", "Ağdam", "Ağdaş", "Ağdərə", "Ağstafa", "Ağsu", "Astara", "Babək", "Bakı", "Beyləqan", "Bərdə", "Biləsuvar",
-  ]);
+  const figma = ["Ağcabədi", "Ağdam", "Ağdaş", "Ağdərə", "Ağstafa", "Ağsu", "Astara", "Babək", "Bakı", "Beyləqan", "Bərdə", "Biləsuvar"];
+  const cities = names("cities");
+  let from = 0;
+  for (const city of figma) {
+    const at = cities.indexOf(city, from);
+    assert.ok(at >= 0, `${city} missing or out of order`);
+    from = at + 1;
+  }
 });
 
 test("slugs are unique per dictionary and across cities + industries (landing segment)", () => {
@@ -40,10 +45,21 @@ test("every slug is slugify(az name) and every entry has EN and RU names", () =>
   }
 });
 
-test("cities are in Azerbaijani alphabetical order (only the two Figma-missing districts trail)", () => {
-  const collator = new Intl.Collator("az");
+const AZ_ORDER = "abcçdeəfgğhxıijkqlmnoöprsştuüvyz";
+const azKey = (text: string) => [...text.replace(/İ/g, "i").toLowerCase()].map((ch) => AZ_ORDER.indexOf(ch));
+
+function azCompare(a: string, b: string): number {
+  const ka = azKey(a);
+  const kb = azKey(b);
+  for (let i = 0; i < Math.min(ka.length, kb.length); i++) if (ka[i] !== kb[i]) return ka[i] - kb[i];
+  return ka.length - kb.length;
+}
+
+test("cities are in Azerbaijani alphabetical order", () => {
   const names = DICTIONARY_SEED.cities.map((d) => d.name.az);
-  assert.deepEqual(names.slice(-2), ["Abşeron", "Balakən"]);
-  const main = names.slice(0, -2);
-  assert.deepEqual([...main].sort(collator.compare), main);
+  for (const name of names) assert.ok(!azKey(name).includes(-1), `unknown letter in ${name}`);
+  assert.deepEqual([...names].sort(azCompare), names);
+  assert.equal(names[0], "Abşeron");
+  assert.equal(names[names.indexOf("Bakı") + 1], "Balakən");
+  assert.ok(names.includes("Xırdalan"));
 });
