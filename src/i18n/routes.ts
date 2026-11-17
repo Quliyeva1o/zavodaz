@@ -1,3 +1,4 @@
+import { FACTORY_TYPES, type FactoryType } from "../features/catalog/types";
 import { defaultLocale, hasLocale, locales, type Locale, type Localized } from "./config";
 
 /**
@@ -19,9 +20,43 @@ export const staticRoutes = {
   login: { az: "daxil-ol", en: "login", ru: "vhod" },
   register: { az: "qeydiyyat", en: "register", ru: "registraciya" },
   cabinet: { az: "kabinet", en: "cabinet", ru: "lichnyj-kabinet" },
+  factory: { az: "fabrik", en: "factory", ru: "fabrika" },
 } as const satisfies Record<string, Localized>;
 
 export type RouteKey = keyof typeof staticRoutes;
+
+/** Public segment of each factory type's catalog page (`/zavodlar`, `/en/plants`, ...). */
+export const typeRoutes: Record<FactoryType, Localized> = {
+  zavod: { az: "zavodlar", en: "plants", ru: "zavody" },
+  fabrik: { az: "fabrikler", en: "factories", ru: "fabriki" },
+  sex: { az: "sexler", en: "workshops", ru: "cekhi" },
+  emalatxana: { az: "emalatxanalar", en: "ateliers", ru: "masterskie" },
+  kombinat: { az: "kombinatlar", en: "complexes", ru: "kombinaty" },
+  aqropark: { az: "aqroparklar", en: "agroparks", ru: "agroparki" },
+};
+
+/** The "Recommended" sub-page of the catalog. */
+export const CATALOG_RECOMMENDED: Localized = { az: "tovsiyye-edilenler", en: "recommended", ru: "rekomenduemye" };
+
+// Reverse lookups, built once at module load (resolvePublicPath runs on every request).
+const routeByLocale = Object.fromEntries(
+  locales.map((l) => [
+    l,
+    new Map((Object.keys(staticRoutes) as RouteKey[]).filter((k) => k !== "home").map((k) => [staticRoutes[k][l], k])),
+  ]),
+) as Record<Locale, Map<string, RouteKey>>;
+
+const typeByLocale = Object.fromEntries(
+  locales.map((l) => [l, new Map(FACTORY_TYPES.map((t) => [typeRoutes[t][l], t]))]),
+) as Record<Locale, Map<string, FactoryType>>;
+
+for (const l of locales) {
+  const taken = new Set<string>([...routeByLocale[l].keys(), CATALOG_RECOMMENDED[l]]);
+  for (const t of FACTORY_TYPES) {
+    if (taken.has(typeRoutes[t][l])) throw new Error(`URL segment clash in ${l}: ${typeRoutes[t][l]}`);
+    taken.add(typeRoutes[t][l]);
+  }
+}
 
 /** Public URL of a page (plus optional extra segments) in a language. */
 export function href(route: RouteKey, locale: Locale, ...rest: string[]): string {
@@ -34,6 +69,19 @@ const CABINET_SECTIONS = { tariffs: { az: "tarifler", en: "pricing", ru: "tarify
 /** Cabinet sub-page URL (pages themselves arrive in step 7). */
 export function cabinetPath(section: keyof typeof CABINET_SECTIONS, lang: Locale): string {
   return href("cabinet", lang, CABINET_SECTIONS[section][lang]);
+}
+
+/** Factory type page (optionally a landing: type + city/sector/...). Landing slugs are language-neutral. */
+export function typeHref(type: FactoryType, lang: Locale, landing?: string): string {
+  return "/" + [lang === defaultLocale ? "" : lang, typeRoutes[type][lang], landing].filter(Boolean).join("/");
+}
+
+export function recommendedHref(lang: Locale): string {
+  return href("catalog", lang, CATALOG_RECOMMENDED[lang]);
+}
+
+export function factoryHref(slug: string, lang: Locale): string {
+  return href("factory", lang, slug);
 }
 
 /** One page in every language — for hreflang. */
@@ -62,10 +110,20 @@ export function resolvePublicPath(pathname: string): ResolvedPath {
   const [first, ...rest] = segments;
   if (!first) return { kind: "rewrite", internal: `/${locale}` };
 
-  const route = (Object.keys(staticRoutes) as RouteKey[]).find(
-    (key) => key !== "home" && staticRoutes[key][locale] === first,
-  );
+  const type = typeByLocale[locale].get(first);
+  if (type) {
+    if (rest.length > 1) return { kind: "notFound", locale };
+    return { kind: "rewrite", internal: ["", locale, "catalog", "type", type, ...rest].join("/") };
+  }
+
+  const route = routeByLocale[locale].get(first);
   if (!route) return { kind: "notFound", locale };
+  if (route === "catalog" && rest.length) {
+    if (rest.length === 1 && rest[0] === CATALOG_RECOMMENDED[locale]) {
+      return { kind: "rewrite", internal: `/${locale}/catalog/recommended` };
+    }
+    return { kind: "notFound", locale };
+  }
   return { kind: "rewrite", internal: ["", locale, route, ...rest].join("/") };
 }
 
@@ -75,5 +133,9 @@ export function switchLocalePath(pathname: string, target: Locale): string {
   if (resolved.kind !== "rewrite") return href("home", target);
   const [, , route, ...rest] = resolved.internal.split("/");
   if (!route) return href("home", target);
+  if (route === "catalog") {
+    if (rest[0] === "recommended") return recommendedHref(target);
+    if (rest[0] === "type" && rest[1]) return typeHref(rest[1] as FactoryType, target, rest[2]);
+  }
   return href(route as RouteKey, target, ...rest);
 }

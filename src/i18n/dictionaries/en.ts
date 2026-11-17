@@ -30,6 +30,9 @@ export const en: Dictionary = {
   breadcrumb: "Breadcrumb",
   legalNav: "Legal pages",
   pages: { terms: "Terms of use", privacy: "Privacy policy", help: "Help", tariffs: "Pricing", contact: "Contact" },
+  factoryType: { zavod: "Plant", fabrik: "Factory", sex: "Workshop", emalatxana: "Atelier", kombinat: "Complex", aqropark: "Agropark" },
+  factoryTypes: { zavod: "Plants", fabrik: "Factories", sex: "Workshops", emalatxana: "Ateliers", kombinat: "Complexes", aqropark: "Agroparks" },
+  recommended: "Recommended",
   tariffs: { perMonth: "/Month", free: "Free", join: "Join now" },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {

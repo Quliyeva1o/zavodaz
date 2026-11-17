@@ -28,6 +28,9 @@ export const az = {
   breadcrumb: "Naviqasiya",
   legalNav: "Hüquqi səhifələr",
   pages: { terms: "İstifadəçi qaydaları", privacy: "Məxfilik siyasəti", help: "Yardım", tariffs: "Tariflər", contact: "Əlaqə" },
+  factoryType: { zavod: "Zavod", fabrik: "Fabrik", sex: "Sex", emalatxana: "Emalatxana", kombinat: "Kombinat", aqropark: "Aqropark" },
+  factoryTypes: { zavod: "Zavodlar", fabrik: "Fabriklər", sex: "Sexlər", emalatxana: "Emalatxanalar", kombinat: "Kombinatlar", aqropark: "Aqroparklar" },
+  recommended: "Tövsiyə edilənlər",
   tariffs: { perMonth: "/Ay", free: "Pulsuz", join: "İndi qoşul" },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {
