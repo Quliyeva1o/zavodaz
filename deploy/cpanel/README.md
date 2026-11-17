@@ -43,7 +43,7 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
 Build 1 CPU-da bir neçə dəqiqə çəkir — yeniləmələri axşam/gecə et.
 
 ## Bilmək lazım olanlar
-- **Yüklənmiş şəkillər** `UPLOAD_DIR`-dədir (`app.js` default olaraq `~/zavod-app/shared/uploads` verir; başqa yer lazımdırsa app qovluğundan kənarda mütləq yol yaz, məs. `~/zavod-uploads`). Production-da bu dəyişən məcburidir. `deploy.sh` və `rollback.sh` bu qovluğu silmir və əvəz etmir; əl ilə də `releases/` altına qoyma. `backup.sh` yalnız `shared/uploads`-u yedəkləyir, başqa yol seçsən yedəyi də ona uyğunlaşdır.
+- **Yüklənmiş şəkillər** `UPLOAD_DIR`-dədir (`app.js` default olaraq `~/zavod-app/shared/uploads` verir; başqa yer lazımdırsa app qovluğundan kənarda mütləq yol yaz, məs. `~/zavod-uploads`). Production-da bu dəyişən məcburidir. `deploy.sh` və `rollback.sh` bu qovluğu silmir və əvəz etmir; əl ilə də `releases/` altına qoyma. `deploy.sh`-dakı `~/zavod-public/media` symlink-i və `media.htaccess` `shared/uploads`-a işarə edir: `UPLOAD_DIR` köçürülsə, onlar da (symlink hədəfi və `.htaccess` surəti) birlikdə köçürülməlidir. `backup.sh` yalnız `shared/uploads`-u yedəkləyir, başqa yol seçsən yedəyi də ona uyğunlaşdır.
 - Yaddaş limiti 768 MB-dır (marketinq 1024): hesabda 4 GB RAM 3+ Node tətbiqi arasında bölünür.
 - Thread limiti 150-dir: `deploy.sh` thread hovuzlarını kiçildir; `check-server.sh` cari istifadəni göstərir.
 

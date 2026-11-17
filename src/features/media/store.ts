@@ -5,7 +5,7 @@ import path from "node:path";
 import { db } from "@/db";
 import { media } from "@/db/schema";
 import { uploadDir } from "@/lib/env";
-import { processImage } from "./process";
+import { processImage, UnsupportedFormatError } from "./process";
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES } from "./url";
 
 export type SaveResult = { id: string } | { error: "type" | "size" | "decode" };
@@ -18,8 +18,8 @@ export async function saveImage(file: File): Promise<SaveResult> {
   let processed;
   try {
     processed = await processImage(Buffer.from(await file.arrayBuffer()));
-  } catch {
-    return { error: "decode" };
+  } catch (e) {
+    return { error: e instanceof UnsupportedFormatError ? "type" : "decode" };
   }
 
   const id = randomUUID();

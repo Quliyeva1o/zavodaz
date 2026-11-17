@@ -8,9 +8,19 @@ export type ProcessedImage = {
   files: { width: number; data: Buffer }[];
 };
 
+const ALLOWED_FORMATS = ["jpeg", "png", "webp"];
+
+/** Thrown when the decoded content is not JPEG/PNG/WebP (the client-supplied MIME type is not trusted). */
+export class UnsupportedFormatError extends Error {}
+
+export const isAllowedFormat = (format: string | undefined): boolean => format !== undefined && ALLOWED_FORMATS.includes(format);
+
 /** Re-encodes an upload as WebP variants (never upscaled) and a tiny blur placeholder. EXIF rotation is applied. */
 export async function processImage(input: Buffer): Promise<ProcessedImage> {
-  const base = sharp(input).rotate();
+  const source = sharp(input, { limitInputPixels: 40_000_000 }); // decompression-bomb guard
+  const { format } = await source.metadata();
+  if (!isAllowedFormat(format)) throw new UnsupportedFormatError(format ?? "unknown");
+  const base = source.rotate();
   const { data: oriented, info } = await base.toBuffer({ resolveWithObject: true });
   const { width, height } = info;
 

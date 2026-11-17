@@ -6,7 +6,8 @@ export const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type MediaRef = { id: string; variants: number[] };
 
 const ID = /^[0-9a-f-]{36}$/;
-const FILE = /^(320|640|960)\.webp$/;
+// Any stored width (1-960): images narrower than 320px keep their own width as the only variant.
+const FILE = /^[1-9][0-9]{0,2}[.]webp$/;
 
 /** Strict check of the `/media/<id>/<w>.webp` path segments (the only shape the route serves). */
 export function isMediaPath(parts: string[]): boolean {
