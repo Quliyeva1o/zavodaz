@@ -66,6 +66,8 @@ main() {
 
   # Next.js (build), drizzle-kit and the npm scripts all read .env.local from the project root.
   ln -sfn "$APP/shared/.env" .env.local
+  # The build validates the production env too; app.js gives the same default at runtime.
+  export UPLOAD_DIR="${UPLOAD_DIR:-$APP/shared/uploads}"
 
   echo "→ installing dependencies"
   npm ci --no-audit --no-fund --loglevel=error

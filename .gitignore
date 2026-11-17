@@ -4,6 +4,7 @@
 node_modules/
 .next/
 uploads/
+/uploads
 private/
 test-results/
 *.tsbuildinfo
