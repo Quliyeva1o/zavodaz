@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { eq, inArray } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { seedContent } from "../../scripts/seed/content-seed";
-import { cacheTags, pages, siteSettings } from "../../src/db/schema";
+import { cacheTags, dictCities, dictIndustries, dictProductionModels, dictProductTypes, factories, pages, siteSettings } from "../../src/db/schema";
+import { DICTIONARY_SEED } from "../../src/features/catalog/dictionaries.seed";
 
 // Database only (no browser): everything runs inside a transaction that is rolled back.
 const client = postgres(process.env.DATABASE_URL!, { max: 1 });
@@ -39,5 +40,30 @@ test("content seed invalidates the cache tags of the rows it inserted", async ()
     const rows = await tx.select().from(cacheTags).where(inArray(cacheTags.tag, tags));
     expect(rows).toHaveLength(2);
     for (const row of rows) expect(row.expiredAt).toBeGreaterThanOrEqual(before);
+  });
+});
+
+test("content seed creates the filter dictionaries; a second run adds nothing", async () => {
+  await inRolledBackTx(async (tx) => {
+    // The dev database is already seeded: empty the dictionaries inside the transaction first.
+    await tx.delete(factories);
+    for (const table of [dictCities, dictIndustries, dictProductTypes, dictProductionModels]) await tx.delete(table);
+    const before = Date.now();
+    const tags = await seedContent(tx);
+    expect(tags).toEqual(expect.arrayContaining(["dictionaries", "factories"]));
+    const [{ n: cities }] = await tx.select({ n: count() }).from(dictCities);
+    const [{ n: industries }] = await tx.select({ n: count() }).from(dictIndustries);
+    const [{ n: productTypes }] = await tx.select({ n: count() }).from(dictProductTypes);
+    const [{ n: models }] = await tx.select({ n: count() }).from(dictProductionModels);
+    expect({ cities, industries, productTypes, models }).toEqual({
+      cities: DICTIONARY_SEED.cities.length,
+      industries: 10,
+      productTypes: 7,
+      models: 5,
+    });
+    const rows = await tx.select().from(cacheTags).where(inArray(cacheTags.tag, ["dictionaries", "factories"]));
+    expect(rows).toHaveLength(2);
+    for (const row of rows) expect(row.expiredAt).toBeGreaterThanOrEqual(before);
+    expect(await seedContent(tx)).toEqual([]);
   });
 });

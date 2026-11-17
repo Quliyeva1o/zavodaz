@@ -11,6 +11,10 @@ export const pageTag = (key: string) => `page:${key}`;
 export const FAQ_TAG = "faq";
 export const TARIFFS_TAG = "tariffs";
 export const CONTACT_TAG = "contact";
+/** Catalog lists and zavod pages (admin → Zavodlar). */
+export const FACTORIES_TAG = "factories";
+/** Filter dictionaries: cities, industries, product types, production models. */
+export const DICTIONARIES_TAG = "dictionaries";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any drizzle Postgres database or transaction
 export type AnyPgDb = PgDatabase<PgQueryResultHKT, any, any>;

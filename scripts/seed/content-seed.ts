@@ -1,4 +1,4 @@
-// Idempotent seed of the static content: pages, tariff plans, FAQ, contact settings.
+// Idempotent seed of the static content: pages, tariff plans, FAQ, contact settings, filter dictionaries.
 // Existing rows are never overwritten (admin edits win). Texts are the literal Figma texts.
 import { count } from "drizzle-orm";
 import { faqItems, pages, siteSettings, tariffPlans } from "../../src/db/schema";
@@ -6,6 +6,7 @@ import { defaultContactSettings } from "../../src/features/contact/settings";
 import { defaultPages } from "../../src/features/pages/defaults";
 import { PAGE_KEYS } from "../../src/features/pages/types";
 import { CONTACT_TAG, FAQ_TAG, pageTag, recordTagInvalidations, TARIFFS_TAG, type AnyPgDb } from "../../src/lib/cache/tag-store";
+import { seedDictionariesIn } from "./dictionaries-seed";
 
 const loc = (az: string) => ({ az, en: "", ru: "" });
 const feats = (az: string[]) => ({ az, en: [] as string[], ru: [] as string[] });
@@ -93,6 +94,8 @@ export async function seedContent(db: AnyPgDb): Promise<string[]> {
       .onConflictDoNothing()
       .returning({ key: siteSettings.key });
     if (insertedSettings.length > 0) tags.push(CONTACT_TAG);
+
+    tags.push(...(await seedDictionariesIn(tx)));
 
     await recordTagInvalidations(tx, tags);
     return tags;
