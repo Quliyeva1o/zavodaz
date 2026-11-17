@@ -18,16 +18,11 @@ export default async function HelpPage({ params }: PageProps<"/[lang]/help">) {
   const [page, faq] = await Promise.all([getPage("help"), getFaq()]);
   const items = faq.map((q) => ({ id: q.id, question: pick(q.question, lang), answer: pick(q.answer, lang) }));
   return (
-    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("help", lang)} figma="help">
+    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("help", lang)} figma="help"
+      aside={<LegalNav lang={lang} active="help" gap={20} />}
+    >
       {items.length > 0 && <JsonLd data={faqJsonLd(items)} />}
-      <div className="flex flex-col gap-[60px] lg:flex-row">
-        <div className="lg:w-[880px] lg:shrink-0">
-          <FaqList items={items} />
-        </div>
-        <div className="lg:w-[380px] lg:shrink-0">
-          <LegalNav lang={lang} active="help" gap={20} />
-        </div>
-      </div>
+      <FaqList items={items} />
     </PageShell>
   );
 }

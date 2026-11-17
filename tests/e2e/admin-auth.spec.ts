@@ -10,6 +10,15 @@ test("signed-out visitor is sent to the login page", async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/login$/);
 });
 
+test("every admin section sends a signed-out visitor to the login page", async ({ page }) => {
+  for (const path of ["/admin", "/admin/pages", "/admin/pages/terms", "/admin/faq", "/admin/tariffs", "/admin/contact", "/admin/submissions", "/admin/settings"]) {
+    await page.context().clearCookies();
+    await page.goto(path);
+    await expect(page, path).toHaveURL(/\/admin\/login$/);
+    await expect(page.getByRole("button", { name: "Daxil ol" }), path).toBeVisible();
+  }
+});
+
 test("wrong password shows an error", async ({ page }) => {
   await page.goto("/admin/login");
   await page.getByLabel("E-mail").fill(email);

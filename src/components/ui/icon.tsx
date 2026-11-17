@@ -14,7 +14,11 @@ export type IconName =
   | "diamonds-four"
   | "crown-simple"
   | "phone-24"
-  | "envelope-simple";
+  | "envelope-simple"
+  | "warning-circle"
+  | "notches"
+  | "x-brand"
+  | "check-brand";
 export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube" | "tiktok";
 
 export function Icon({ name, size, className }: { name: IconName; size: number; className?: string }) {
@@ -24,9 +28,9 @@ export function Icon({ name, size, className }: { name: IconName; size: number; 
   );
 }
 
-export function SocialIcon({ name, variant = "dark", size }: { name: SocialName; variant?: "dark" | "light"; size?: number }) {
+export function SocialIcon({ name, variant = "dark", size, className }: { name: SocialName; variant?: "dark" | "light"; size?: number; className?: string }) {
   const file = variant === "light" ? `social-light-${name}` : `social-${name}`;
   const px = size ?? (variant === "light" ? 44 : 40);
   // eslint-disable-next-line @next/next/no-img-element -- static SVG from Figma
-  return <img src={`/icons/${file}.svg`} width={px} height={px} alt="" aria-hidden />;
+  return <img src={`/icons/${file}.svg`} width={px} height={px} alt="" aria-hidden className={className} />;
 }

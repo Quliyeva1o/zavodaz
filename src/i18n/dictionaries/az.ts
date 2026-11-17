@@ -30,6 +30,41 @@ export const az = {
   pages: { terms: "İstifadəçi qaydaları", privacy: "Məxfilik siyasəti", help: "Yardım", tariffs: "Tariflər", contact: "Əlaqə" },
   tariffs: { perMonth: "/Ay", free: "Pulsuz", join: "İndi qoşul" },
   languages: { az: "Az", en: "En", ru: "Ru" },
+  contact: {
+    info: { phone: "Telefon", email: "E-mail", social: "Social Media" },
+    form: {
+      firstName: "Adınız",
+      lastName: "Soyadınız",
+      email: "E-mail",
+      phone: "Nömrə",
+      topic: "Mövzu",
+      message: "Mesajınız",
+      firstNamePlaceholder: "Adınızı daxil edin",
+      lastNamePlaceholder: "Soyadınızı daxil edin",
+      emailPlaceholder: "E-mail ünvanınızı daxil edin",
+      phonePlaceholder: "+994 50 000 00 00",
+      topicPlaceholder: "Mövzunu seçin",
+      messagePlaceholder: "Mesajınızı daxil edin",
+      submit: "Müraciət et",
+    },
+    errors: {
+      required: "Bu sahə mütləqdir",
+      invalid: "Yanlış dəyər",
+      email: "E-mail düzgün deyil",
+      phone: "Nömrə düzgün deyil",
+      tooLong: "Mətn çox uzundur",
+      topic: "Mövzunu seçin",
+      rateLimited: "Çox müraciət göndərildi. Bir az sonra yenidən yoxlayın.",
+      server: "Xəta baş verdi, yenidən cəhd edin.",
+      notReady: "Forma hələ tam yüklənməmişdi. Zəhmət olmasa, yenidən göndərin.",
+    },
+    success: {
+      title: "Qəbul olundu!",
+      text: "Müraciətiniz qəbul olundu. Tezliklə sizinlə əlaqə saxlanılacaq.",
+      home: "Ana səhifəyə",
+      close: "Bağla",
+    },
+  },
 };
 
 export type Dictionary = typeof az;

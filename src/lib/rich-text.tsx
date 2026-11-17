@@ -1,10 +1,13 @@
 import { Fragment, type ReactNode } from "react";
+import { isSafeHref } from "@/features/pages/safe-href";
 import type { RichDoc, RichMark, RichNode } from "@/features/pages/types";
 
-const SAFE_HREF = /^(https?:\/\/|mailto:)/i;
+const MAX_DEPTH = 12;
 
-function withMarks(text: string, marks: RichMark[] = [], key: number): ReactNode {
+function withMarks(text: string, rawMarks: unknown, key: number): ReactNode {
+  const marks = Array.isArray(rawMarks) ? (rawMarks as RichMark[]) : [];
   const content = marks.reduce<ReactNode>((child, mark) => {
+    if (typeof mark !== "object" || mark === null) return child;
     switch (mark.type) {
       case "bold":
         return <strong>{child}</strong>;
@@ -12,7 +15,7 @@ function withMarks(text: string, marks: RichMark[] = [], key: number): ReactNode
         return <em>{child}</em>;
       case "link": {
         const href = String(mark.attrs?.href ?? "");
-        if (!SAFE_HREF.test(href)) return child;
+        if (!isSafeHref(href)) return child;
         const external = /^https?:/i.test(href);
         return (
           <a href={href} className="underline" {...(external ? { target: "_blank", rel: "noopener" } : {})}>
@@ -27,11 +30,17 @@ function withMarks(text: string, marks: RichMark[] = [], key: number): ReactNode
   return <Fragment key={key}>{content}</Fragment>;
 }
 
-function node(n: RichNode, i: number): ReactNode {
-  const kids = (n.content ?? []).map(node);
+function node(n: RichNode, i: number, depth = 0): ReactNode {
+  // Data already in the database is not trusted: skip anything malformed or too deep.
+  if (typeof n !== "object" || n === null || depth > MAX_DEPTH) return null;
+  const kids = (Array.isArray(n.content) ? n.content : []).map((c, j) => node(c, j, depth + 1));
   switch (n.type) {
     case "paragraph":
-      return <p key={i}>{kids}</p>;
+      return (
+        <p key={i} className="[&+p]:mt-4">
+          {kids}
+        </p>
+      );
     case "heading": {
       const level = n.attrs?.level === 3 ? 3 : 2;
       return level === 3 ? (
@@ -61,7 +70,7 @@ function node(n: RichNode, i: number): ReactNode {
     case "hardBreak":
       return <br key={i} />;
     case "text":
-      return withMarks(n.text ?? "", n.marks, i);
+      return typeof n.text === "string" ? withMarks(n.text, n.marks, i) : null;
     default:
       return null; // unknown node types are never rendered
   }
@@ -69,9 +78,10 @@ function node(n: RichNode, i: number): ReactNode {
 
 /**
  * Tiptap JSON → React elements. No HTML strings: everything is escaped by React.
- * Base style is the Figma page text (Body Text/Medium 16/24, gray-700; no gap between paragraphs).
+ * Base style is the Figma page text 144:4017 (Body Text/Medium 16/24, gray-700, paragraphSpacing 16 → 16px between
+ * consecutive paragraphs).
  */
 export function RichText({ doc, className }: { doc: RichDoc | null; className?: string }) {
-  if (!doc?.content?.length) return null;
-  return <div className={`text-body-md text-gray-700${className ? ` ${className}` : ""}`}>{doc.content.map(node)}</div>;
+  if (!doc || !Array.isArray(doc.content) || !doc.content.length) return null;
+  return <div className={`text-body-md break-words text-gray-700${className ? ` ${className}` : ""}`}>{doc.content.map((n, i) => node(n, i))}</div>;
 }

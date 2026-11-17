@@ -17,7 +17,7 @@
 - Rəng və text style yalnız `src/styles/tokens.css`-dən; Figma-dakı xam px dəyərləri `[..px]` kimi yazıla bilər.
 - `< 1024px` mobil (Figma 320), `≥ 1024px` desktop (Figma 1440). Mətn qutularına sabit `h-*` yox, `min-h-*` + uyğun `leading-*` (EN/RU uzun mətnlər böyüyə bilsin). Klik/toxunma sahəsi ≥ 44px.
 - Dillər: AZ prefikssiz, `/en`, `/ru`. İstifadəçi mətnləri lüğətdən və ya bazadan; bazada boş qalan EN/RU dəyəri AZ-a düşür (fallback).
-- Client komponentlər zod və server modullarını import etmir (JS büdcəsi < 100 KB). Tiptap yalnız `/admin` altında.
+- Client komponentlər zod və server modullarını import etmir (JS büdcəsi ≤ 150 KB polyfill xaric, öz kodumuz ≤ 15 KB — spec §6.1). Tiptap yalnız `/admin` altında.
 - Hər admin səhifəsi və admin action `requireAdmin()`-i özü çağırır (R15). Hər yazmadan sonra uyğun cache teqi `invalidateTags` ilə yenilənir.
 - Hər tapşırıq: TDD (əvvəl uğursuz test), sonra `npm run typecheck && npm run lint && npm run test:unit`, E2E olanlarda `npm run build && npm run test:e2e` (port 3100 boş olsun). Commit mesajı Azərbaycanca, sonunda boş sətir + `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Playwright sistem Chrome-u ilə işləyir (`channel: "chrome"`). Lokal baza: Docker, `localhost:5442`; Mailpit SMTP `localhost:1027`, API/UI `http://localhost:8027`.

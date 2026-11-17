@@ -56,3 +56,22 @@ test("link helpers", () => {
   assert.equal(whatsappHref("+994501234567"), "https://wa.me/994501234567");
   assert.equal(telHref("+994 12 555 55 55"), "tel:+994125555555");
 });
+
+test("parseSettingsForm reports length and link errors in Azerbaijani", () => {
+  const form = new FormData();
+  form.set("phone", "+99");
+  form.set("phone2", "1".repeat(31));
+  form.set("whatsapp", "+994501234567");
+  form.set("email", "info@zavod.az");
+  form.set("address.az", "x".repeat(201));
+  form.set("copyright.en", "x".repeat(121));
+  form.set("socials.facebook", "javascript:alert(1)");
+  const res = parseSettingsForm(form);
+  assert.equal(res.ok, false);
+  if (res.ok) return;
+  assert.equal(res.errors.phone, "Ən azı 5 simvol");
+  assert.equal(res.errors.phone2, "Ən çox 30 simvol");
+  assert.equal(res.errors["address.az"], "Ən çox 200 simvol");
+  assert.equal(res.errors["copyright.en"], "Ən çox 120 simvol");
+  assert.equal(res.errors["socials.facebook"], "Link http:// və ya https:// ilə başlamalıdır");
+});

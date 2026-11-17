@@ -36,6 +36,12 @@ export const ICONS: Record<string, string> = {
   "social-light-x": "560:15601",
   "social-light-youtube": "560:15609",
   "social-light-tiktok": "560:15611",
+  // Contact form (Task 7). 2026-11-16: exported as SVG from the Figma UI (the API was rate-limited) —
+  // exact Figma outlines; check-brand = vector of 52:2337 shifted (-2,-2) into its 16×16 frame.
+  "warning-circle": "52:2233",
+  notches: "I153:4673;52:2353",
+  "x-brand": "244:9727",
+  "check-brand": "I52:2337;9:571",
 };
 
 const hex = (p: Paint) => {
@@ -48,7 +54,7 @@ const solid = (n: Node) => (n.fills ?? []).find((f) => f.visible !== false && f.
 
 const isBoxPath = (d: string, n: Node) => {
   const { width: w, height: h } = n.absoluteBoundingBox;
-  return d.replace(/s+/g, "") === `M0 0L${w} 0L${w} ${h}L0 ${h}L0 0Z`.replace(/s+/g, "");
+  return d.replace(/\s+/g, "") === `M0 0L${w} 0L${w} ${h}L0 ${h}L0 0Z`.replace(/\s+/g, "");
 };
 
 /** One <path> per fill geometry, placed by the node's offset inside the icon frame. */

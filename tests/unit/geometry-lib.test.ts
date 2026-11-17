@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isMultiParagraph, minTextsError, normalizeText, resolveText } from "../visual/geometry-lib.mjs";
+import { isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveText } from "../visual/geometry-lib.mjs";
 
 test("normalizeText: boşluqlar və sətir keçidləri tək boşluğa enir", () => {
   assert.equal(normalizeText("  a\n\n b \t c "), "a b c");
@@ -27,4 +27,21 @@ test("Figma yumşaq sətir keçidləri (U+2028/U+2029) çoxparaqraf sayılır v�
   assert.equal(isMultiParagraph("bir iki"), true);
   assert.equal(isMultiParagraph("bir iki"), true);
   assert.equal(normalizeText("bir iki  üç"), "bir iki üç");
+});
+
+test("isIgnored: ignore siyahısı normallaşdırılmış mətnlə müqayisə olunur", () => {
+  assert.equal(isIgnored("Type  here...\n", ["Type here..."]), true);
+  assert.equal(isIgnored("Adınız", ["Type here..."]), false);
+  assert.equal(isIgnored("Adınız", undefined), false);
+});
+
+test("pickMatch: eyni mətnli istifadə olunmamış qutulardan ən yaxını seçilir", () => {
+  const site = [
+    { text: "E-mail", x: 775, y: 218 },
+    { text: "E-mail", x: 90, y: 309 },
+    { text: "Ad", x: 0, y: 0 },
+  ];
+  assert.equal(pickMatch({ x: 90, y: 309 }, site, new Set(), "E-mail"), 1);
+  assert.equal(pickMatch({ x: 90, y: 309 }, site, new Set([1]), "E-mail"), 0);
+  assert.equal(pickMatch({ x: 0, y: 0 }, site, new Set(), "Yox"), -1);
 });

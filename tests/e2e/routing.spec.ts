@@ -21,6 +21,16 @@ test("unknown page answers 404 with the site layout", async ({ page }) => {
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "Səhifə tapılmadı" })).toBeVisible();
   await expect(page.locator("header")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ana səhifəyə qayıt" })).toHaveAttribute("href", "/");
+});
+
+test("404 speaks the language of the URL", async ({ page }) => {
+  const res = await page.goto("/en/missing-page");
+  expect(res?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/en");
+  await page.goto("/ru/missing-page");
+  await expect(page.getByRole("heading", { name: "Страница не найдена" })).toBeVisible();
 });
 
 test("test copy is closed to search engines", async ({ request }) => {

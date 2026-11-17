@@ -29,6 +29,8 @@ const TOKEN = process.env.FIGMA_TOKEN;
 const CACHE = "design/.cache/file.json";
 
 async function figma<T>(path: string): Promise<T> {
+  // FIGMA_OFFLINE=1: never call the API (saves the rate-limit quota); callers fall back to the local copy.
+  if (process.env.FIGMA_OFFLINE) throw new Error("FIGMA_OFFLINE is set — Figma API not called");
   if (!TOKEN) throw new Error("FIGMA_TOKEN is not set (.env.local)");
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(`https://api.figma.com/v1${path}`, { headers: { "X-Figma-Token": TOKEN } });

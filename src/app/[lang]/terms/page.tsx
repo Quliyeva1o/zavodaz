@@ -16,13 +16,10 @@ export default async function TermsPage({ params }: PageProps<"/[lang]/terms">) 
   const page = await getPage("terms");
   const body = page.body[lang]?.content?.length ? page.body[lang] : page.body.az;
   return (
-    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("terms", lang)} figma="terms">
-      <div className="flex flex-col gap-[60px] lg:flex-row">
-        <RichText doc={body} className="text-body-md text-gray-700 lg:w-[880px] lg:shrink-0" />
-        <div className="lg:w-[380px] lg:shrink-0">
-          <LegalNav lang={lang} active="terms" gap={16} />
-        </div>
-      </div>
+    <PageShell lang={lang} title={pick(page.title, lang)} currentPath={href("terms", lang)} figma="terms"
+      aside={<LegalNav lang={lang} active="terms" gap={16} />}
+    >
+      <RichText doc={body} />
     </PageShell>
   );
 }

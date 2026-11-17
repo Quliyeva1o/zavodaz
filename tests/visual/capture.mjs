@@ -7,7 +7,9 @@ const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, mobile: { width: 320, height: 568 } };
 const targets = JSON.parse(await readFile("tests/visual/targets.json", "utf8"));
 
-const browser = await chromium.launch({ channel: "chrome" });
+// --disable-lcd-text: grayscale text anti-aliasing like Figma's export. Windows Chrome otherwise
+// draws ClearType colour fringes on every glyph, which pixelmatch counts as differences.
+const browser = await chromium.launch({ channel: "chrome", args: ["--disable-lcd-text"] });
 for (const t of targets) {
   const page = await browser.newPage({ viewport: VIEWPORTS[t.bp], deviceScaleFactor: 1 });
   await page.goto(base + t.path, { waitUntil: "networkidle" });
