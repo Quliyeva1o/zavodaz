@@ -37,6 +37,7 @@ export const az = {
     title: "Kataloq",
     description: "Azərbaycanın zavod, fabrik, sex və emalatxanaları bir yerdə: sahəyə, şəhərə və məhsul tipinə görə seçin.",
     filter: "Filtr",
+    back: "Geri",
     reset: "Filtri sıfırla",
     apply: "Tətbiq et",
     all: "Hamısı",

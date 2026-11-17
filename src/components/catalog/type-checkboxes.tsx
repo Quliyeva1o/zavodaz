@@ -46,7 +46,7 @@ export function ChoiceBox({
 }
 
 /** Figma order (281:7007): Hamısı, Zavod, Fabrik, Emalatxana, Sex, Kombinat, Aqropark. */
-const ORDER: FactoryType[] = ["zavod", "fabrik", "emalatxana", "sex", "kombinat", "aqropark"];
+export const TYPE_ORDER: FactoryType[] = ["zavod", "fabrik", "emalatxana", "sex", "kombinat", "aqropark"];
 
 /** "İstehsalın tipi" (281:7005): multi-select checkboxes `type=…`; "Hamısı" is checked when none is. */
 export function TypeCheckboxes({ lang, selected }: { lang: Locale; selected: FactoryType[] }) {
@@ -56,7 +56,7 @@ export function TypeCheckboxes({ lang, selected }: { lang: Locale; selected: Fac
       <legend className="mb-4 min-h-[26px] text-subtitle-2-medium text-brand-950">{t.catalog.filters.type}</legend>
       <div className="flex flex-col gap-2.5">
         <ChoiceBox id="ft-all" type="checkbox" value="" label={t.catalog.all} checked={selected.length === 0} allOf="type" />
-        {ORDER.map((type) => (
+        {TYPE_ORDER.map((type) => (
           <ChoiceBox key={type} id={`ft-${type}`} type="checkbox" name="type" value={type} label={t.factoryType[type]} checked={selected.includes(type)} />
         ))}
       </div>

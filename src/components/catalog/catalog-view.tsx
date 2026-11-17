@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Locale } from "@/i18n/config";
+import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { catalogSearch, isFiltered, normalizeCatalogFilter, parseCatalogParams } from "@/features/catalog/filter";
 import { getCatalogPage, getDictionaries } from "@/features/catalog/queries";
-import { PAGE_SIZE, type CatalogScope } from "@/features/catalog/types";
+import { COOPERATION, PAGE_SIZE, type CatalogScope, type Dict, type Dictionaries } from "@/features/catalog/types";
 import { itemListJsonLd } from "@/lib/catalog-seo";
 import { siteUrl } from "@/lib/seo";
 import { JsonLd } from "@/lib/structured-data";
 import { PageShell } from "@/components/page/page-shell";
-import { Icon } from "@/components/ui/icon";
 import { FactoryCard } from "./factory-card";
 import { FilterSidebar } from "./filter-sidebar";
+import { MobileFilterButton } from "./mobile-filter-button";
+import type { FilterGroup } from "./mobile-filter";
 import { Pagination } from "./pagination";
+import { TYPE_ORDER } from "./type-checkboxes";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -41,18 +43,9 @@ const grid = "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3";
  * Components rejects request-time data outside Suspense); the data itself comes from the `use cache` queries.
  */
 export function CatalogView({ lang, scope, searchParams, title, crumbs, basePath }: Props) {
-  const c = dict(lang).catalog;
   return (
     <PageShell lang={lang} title={title} currentPath={basePath} crumbs={crumbs} figma="catalog">
       <div data-figma="catalog-main" className="flex flex-col gap-4 max-lg:-mt-2 lg:flex-row lg:items-start lg:gap-8">
-        {/* Figma "Button" 736:23890: 288×40, padding 8/10 (9 + border), r4, gray-200 stroke; Funnel 20 + "Filtr" body-md. */}
-        <a
-          href="#filtr"
-          className="relative flex h-10 items-center gap-1.5 rounded-[4px] border border-gray-200 px-[9px] text-body-md text-brand-950 after:absolute after:inset-x-0 after:-inset-y-1 lg:hidden"
-        >
-          <Icon name="funnel" size={20} />
-          {c.filter}
-        </a>
         <CatalogResults lang={lang} scope={scope} searchParams={searchParams} basePath={basePath} />
       </div>
     </PageShell>
@@ -71,8 +64,23 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
 
   const filtered = isFiltered(parsed, scope);
   const hrefFor = (page: number) => basePath + catalogSearch({ ...filter, page }, scope);
+  const groups = filterGroups(lang, scope, dicts);
   return (
     <>
+      {/* Mobile: Figma "Button" 736:23890 opens the lazy dialog (Mob/Filtr). Without JS the <noscript> link shows the sidebar (:target). */}
+      <MobileFilterButton
+        label={c.filter}
+        groups={groups}
+        filter={filter}
+        scope={scope}
+        basePath={basePath}
+        labels={{ back: c.back, reset: c.reset }}
+      />
+      <noscript>
+        <a href="#filtr" className="flex h-10 items-center rounded-[4px] border border-gray-200 px-[9px] text-body-md text-brand-950 lg:hidden">
+          {c.filter}
+        </a>
+      </noscript>
       {/* Keyed by the filter: after a navigation (reset link, back/forward) the form shows the URL's values, not stale DOM state. */}
       <FilterSidebar key={catalogSearch({ ...filter, page: 1 }, scope)} lang={lang} scope={scope} filter={filter} dicts={dicts} filtered={filtered} basePath={basePath} />
       <section aria-labelledby="catalog-results" className="flex min-w-0 flex-1 flex-col gap-8 lg:gap-[60px]">
@@ -101,4 +109,27 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
       </section>
     </>
   );
+}
+
+/** Mobile dialog rows in Figma order (Mob/Filtr 737:22004); groups the page scope fixes are left out. */
+function filterGroups(lang: Locale, scope: CatalogScope, dicts: Dictionaries): FilterGroup[] {
+  const t = dict(lang);
+  const c = t.catalog;
+  const all = { value: "", label: c.all };
+  const fromDict = (list: Dict[]) => [all, ...list.map((d) => ({ value: d.slug, label: pick(d.name, lang) }))];
+  const landing = scope.landing?.kind;
+  const groups: (FilterGroup | false)[] = [
+    !scope.types?.length && { key: "type", title: c.filters.type, options: [all, ...TYPE_ORDER.map((v) => ({ value: v, label: t.factoryType[v] }))] },
+    landing !== "industry" && { key: "industry", title: c.filters.industry, options: fromDict(dicts.industries) },
+    landing !== "city" && { key: "city", title: c.filters.city, options: fromDict(dicts.cities) },
+    { key: "product", title: c.filters.product, options: fromDict(dicts.productTypes) },
+    { key: "model", title: c.filters.model, options: fromDict(dicts.productionModels) },
+    { key: "coop", title: c.filters.coop, options: [all, ...COOPERATION.map((v) => ({ value: v, label: c.coop[v] }))] },
+    {
+      key: "sort",
+      title: c.filters.sort,
+      options: [all, { value: "rating_desc", label: c.sortHigh }, { value: "rating_asc", label: c.sortLow }],
+    },
+  ];
+  return groups.filter((g) => g !== false);
 }

@@ -39,6 +39,7 @@ export const en: Dictionary = {
     title: "Catalog",
     description: "Plants, factories, workshops and ateliers of Azerbaijan in one place: choose by sector, city and product type.",
     filter: "Filter",
+    back: "Back",
     reset: "Reset filters",
     apply: "Apply",
     all: "All",

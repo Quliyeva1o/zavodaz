@@ -116,14 +116,86 @@ test("/en/catalog: English heading, filter and factory links", async ({ page }) 
   await expect(cards(page).first().getByRole("link")).toHaveAttribute("href", "/en/factory/e2e-vip");
 });
 
-test("mobile: title, Filter button (#filtr) and cards in one column", async ({ page }) => {
+test("mobile: title, Filter button and cards in one column", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto(`/kataloq${CITY}`);
-  const button = page.getByRole("link", { name: "Filtr" });
+  const button = page.getByRole("button", { name: "Filtr", exact: true });
   await expect(button).toBeVisible();
   expect(await button.boundingBox()).toMatchObject({ width: 288, height: 40 });
-  await expect(page.locator("#filtr")).toBeHidden();
   const [a, b] = await Promise.all([cards(page).nth(0).boundingBox(), cards(page).nth(1).boundingBox()]);
   expect(a!.width).toBe(288);
   expect(b!.y - (a!.y + a!.height)).toBe(16);
+});
+
+test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
+  test.use({ viewport: { width: 320, height: 568 } });
+
+  const open = async (page: Page, path = "/kataloq") => {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    const button = page.getByRole("button", { name: "Filtr", exact: true });
+    await button.click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    return { button, dialog };
+  };
+
+  test("opens with 7 rows; choosing a value navigates and returns to the list; multi-select types; reset", async ({ page }) => {
+    const { dialog } = await open(page);
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    await expect(dialog.getByRole("button", { name: /^(İstehsalın tipi|İstehsal sahəsi|Şəhər \/ Region|Məhsul tipi|İstehsalat Modeli|Əməkdaşlıq imkanı|Reytinqinə görə)$/ })).toHaveCount(7);
+    await expect(dialog.getByRole("heading", { name: "Filtr" })).toBeFocused();
+
+    await dialog.getByRole("button", { name: "Şəhər / Region" }).click();
+    await expect(dialog.getByRole("radio", { name: "Hamısı" })).toHaveAttribute("aria-checked", "true");
+    await dialog.getByRole("radio", { name: "Bakı" }).click();
+    await expect(page).toHaveURL("/kataloq?city=baki");
+    // Back on the list screen, dialog still open.
+    await expect(dialog.getByRole("button", { name: "Şəhər / Region" })).toBeVisible();
+
+    await dialog.getByRole("button", { name: "İstehsalın tipi" }).click();
+    await dialog.getByRole("checkbox", { name: "Sex" }).click();
+    await expect(page).toHaveURL("/kataloq?type=sex&city=baki");
+    await dialog.getByRole("checkbox", { name: "Zavod" }).click();
+    await expect(page).toHaveURL("/kataloq?type=zavod&type=sex&city=baki");
+    await expect(dialog.getByRole("checkbox", { name: "Zavod" })).toHaveAttribute("aria-checked", "true");
+    await expect(dialog).toBeVisible();
+
+    // The back arrow leaves the option screen; reset clears everything.
+    await dialog.getByRole("button", { name: "Geri" }).click();
+    await dialog.getByRole("button", { name: "Filtri sıfırla" }).click();
+    await expect(page).toHaveURL("/kataloq");
+  });
+
+  test("Escape closes the dialog and focus returns to the Filter button; the back arrow closes from the list", async ({ page }) => {
+    const { button, dialog } = await open(page);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(button).toBeFocused();
+
+    await button.click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Geri" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(button).toBeFocused();
+  });
+
+  test("the dialog chunk is not loaded with the page, only after the button click", async ({ page }) => {
+    const marker = "data-mobile-filter";
+    const scripts: { when: "before" | "after"; hit: Promise<boolean> }[] = [];
+    let phase: "before" | "after" = "before";
+    page.on("response", (res) => {
+      if (res.request().resourceType() !== "script") return;
+      scripts.push({ when: phase, hit: res.text().then((t) => t.includes(marker)).catch(() => false) });
+    });
+    await page.goto("/kataloq");
+    await page.waitForLoadState("networkidle");
+    phase = "after";
+    await page.getByRole("button", { name: "Filtr", exact: true }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    const before = await Promise.all(scripts.filter((s) => s.when === "before").map((s) => s.hit));
+    const after = await Promise.all(scripts.filter((s) => s.when === "after").map((s) => s.hit));
+    expect(before.some(Boolean)).toBe(false);
+    expect(after.some(Boolean)).toBe(true);
+  });
 });

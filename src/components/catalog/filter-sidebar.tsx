@@ -26,7 +26,7 @@ type Props = {
  * 16 to the control; type = checkboxes, coop and rating = radio boxes, the rest = Dropdown (SelectField).
  * A GET `next/form` (client-side navigation); AutoSubmit submits on change, `<noscript>` adds a button.
  * The form has no `page` field: any filter change starts again from page 1.
- * Mobile: hidden; the "Filtr" link (#filtr) shows it via :target until Task 8's dialog replaces it.
+ * Mobile: hidden (the "Filtr" button opens MobileFilter); without JS the <noscript> link (#filtr) shows it via :target.
  */
 export function FilterSidebar({ lang, scope, filter, dicts, filtered, basePath }: Props) {
   const t = dict(lang);
