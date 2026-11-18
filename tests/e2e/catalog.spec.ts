@@ -243,7 +243,7 @@ test("/fabrikler: h1 'Fabriklər', 3-step breadcrumb, only fabrik cards", async 
   const res = await page.goto(`/fabrikler${CITY}`);
   expect(res?.status()).toBe(200);
   await expect(page.locator("h1")).toHaveText("Fabriklər");
-  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Fabriklər"]);
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Fabriklər"]);
   await expect(cards(page)).toHaveCount(2);
   expect(await types(page)).toEqual(["fabrik", "fabrik"]);
 });
@@ -258,7 +258,11 @@ test("landing /fabrikler/e2e-city: h1, 4-step breadcrumb, canonical + hreflang, 
   const res = await page.goto(`/fabrikler/${E2E_CITY}`);
   expect(res?.status()).toBe(200);
   await expect(page.locator("h1")).toHaveText("Fabriklər — E2E şəhər");
-  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Fabriklər", "E2E şəhər"]);
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Fabriklər", "E2E şəhər"]);
+  await expect(page.getByRole("navigation", { name: "Naviqasiya" }).first().getByRole("link", { name: "Fabriklər" })).toHaveAttribute("href", "/fabrikler");
+  const ld = (await page.locator('script[type="application/ld+json"]').allTextContents()).map((x) => JSON.parse(x));
+  const bc = ld.find((d) => d["@type"] === "BreadcrumbList");
+  expect(bc.itemListElement.map((i: { name: string }) => i.name)).toEqual(["Ana səhifə", "Fabriklər", "E2E şəhər"]);
   await expect(cards(page)).toHaveCount(2);
   await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/fabrikler/${E2E_CITY}$`));
@@ -305,7 +309,7 @@ test("recommended: only Premium/VIP factories (through ?city)", async ({ page })
   expect(res?.status()).toBe(200);
   await expect(page.locator("h1")).toHaveText("Tövsiyə edilənlər");
   expect(await cardNames(page)).toEqual(["E2E VIP Fabrik", "E2E Premium Zavod"]);
-  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Tövsiyə edilənlər"]);
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Tövsiyə edilənlər"]);
   await page.goto("/en/catalog/recommended");
   await expect(page.locator("h1")).toHaveText("Recommended");
 });

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
-import { href, recommendedHref } from "@/i18n/routes";
+import { recommendedHref } from "@/i18n/routes";
 import { parseCatalogParams } from "@/features/catalog/filter";
 import { catalogMetadata, localizedPaths } from "@/lib/catalog-seo";
 import { CatalogView } from "@/components/catalog/catalog-view";
@@ -33,7 +33,6 @@ export default async function RecommendedPage({ params, searchParams }: PageProp
       scope={scope}
       searchParams={searchParams}
       title={t.recommended}
-      crumbs={[{ label: t.catalog.title, href: href("catalog", lang) }]}
       basePath={recommendedHref(lang)}
     />
   );

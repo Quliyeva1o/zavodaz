@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
-import { href, typeHref } from "@/i18n/routes";
+import { typeHref } from "@/i18n/routes";
 import { parseCatalogParams } from "@/features/catalog/filter";
 import { isFactoryType } from "@/features/catalog/types";
 import { catalogMetadata, localizedPaths, typeDescription } from "@/lib/catalog-seo";
@@ -40,7 +40,6 @@ export default async function TypePage({ params, searchParams }: Props) {
       scope={{ types: [type] }}
       searchParams={searchParams}
       title={t.factoryTypes[type]}
-      crumbs={[{ label: t.catalog.title, href: href("catalog", lang) }]}
       basePath={typeHref(type, lang)}
     />
   );

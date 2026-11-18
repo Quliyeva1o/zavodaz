@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
-import { href, typeHref } from "@/i18n/routes";
+import { typeHref } from "@/i18n/routes";
 import { normalizeCatalogFilter, parseCatalogParams, resolveLanding } from "@/features/catalog/filter";
 import { getCatalogPage, getDictionaries } from "@/features/catalog/queries";
 import { isFactoryType, type CatalogScope } from "@/features/catalog/types";
@@ -56,10 +56,7 @@ export default async function LandingPage({ params, searchParams }: Props) {
       scope={{ types: [type], landing: { kind: landing.kind, slug } }}
       searchParams={searchParams}
       title={landingTitle(lang, t.factoryTypes[type], pick(landing.dict.name, lang))}
-      crumbs={[
-        { label: t.catalog.title, href: href("catalog", lang) },
-        { label: t.factoryTypes[type], href: typeHref(type, lang) },
-      ]}
+      crumbs={[{ label: t.factoryTypes[type], href: typeHref(type, lang) }]}
       crumbLabel={pick(landing.dict.name, lang)}
       basePath={typeHref(type, lang, slug)}
     />
