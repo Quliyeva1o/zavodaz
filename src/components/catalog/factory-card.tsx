@@ -19,6 +19,7 @@ export function FactoryCard({ data, lang, priority = false }: { data: FactoryCar
   return (
     <article
       data-figma="card"
+      data-type={data.type}
       className="relative flex flex-col gap-2.5 rounded-[20px] bg-white px-3 pb-3.5 pt-3 shadow-card lg:rounded-3xl lg:px-3.5 lg:pb-4 lg:pt-3.5"
     >
       <div

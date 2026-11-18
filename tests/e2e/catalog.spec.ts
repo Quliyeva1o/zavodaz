@@ -15,7 +15,8 @@ test.afterAll(async () => {
 const CITY = `?city=${E2E_CITY}`;
 const cards = (page: Page) => page.locator("main article");
 const cardNames = (page: Page) => cards(page).locator("h3").allTextContents();
-const types = async (page: Page) => (await cards(page).locator("span.uppercase").allTextContents()).map((t) => t.trim());
+/** Factory types of the cards (FactoryCard's `data-type` hook; the visible label is uppercased by CSS). */
+const types = (page: Page) => cards(page).evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.type));
 
 test("/kataloq: 200, h1, cards; the VIP factory comes first in the default order; 15 per page", async ({ page }) => {
   const res = await page.goto("/kataloq");
@@ -41,7 +42,7 @@ test("type checkbox → ?type=fabrik, only fabrik cards; 'Hamısı' clears the t
   await page.getByRole("checkbox", { name: "Fabrik" }).check();
   await expect(page).toHaveURL(`/kataloq?type=fabrik&city=${E2E_CITY}`);
   await expect(cards(page)).toHaveCount(2);
-  expect(await types(page)).toEqual(["Fabrik", "Fabrik"]);
+  expect(await types(page)).toEqual(["fabrik", "fabrik"]);
   await expect(page.getByRole("checkbox", { name: "Hamısı" })).not.toBeChecked();
 
   await page.getByRole("checkbox", { name: "Hamısı" }).check();
@@ -77,8 +78,36 @@ test("without JavaScript the <noscript> button submits the same filter", async (
   expect(url.searchParams.getAll("type")).toEqual(["fabrik"]);
   expect(url.searchParams.get("city")).toBe(E2E_CITY);
   await expect(cards(page)).toHaveCount(2);
-  expect(await types(page)).toEqual(["Fabrik", "Fabrik"]);
+  expect(await types(page)).toEqual(["fabrik", "fabrik"]);
   await context.close();
+});
+
+test("without JavaScript the dropdowns are native selects: city → ?city=…", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto("/kataloq");
+  // The JS combobox box is hidden; the native <select> carries the value.
+  await expect(page.locator("#f-city")).toBeHidden();
+  await page.getByRole("combobox", { name: "Şəhər / Region" }).selectOption({ label: "E2E şəhər" });
+  await page.getByRole("button", { name: "Tətbiq et" }).click();
+  await page.waitForURL(/city=/);
+  const url = new URL(page.url());
+  expect(url.pathname).toBe("/kataloq");
+  expect(url.searchParams.getAll("city")).toEqual([E2E_CITY]);
+  await expect(cards(page)).toHaveCount(15);
+  await expect(page.getByRole("combobox", { name: "Şəhər / Region" })).toHaveValue(E2E_CITY);
+  await context.close();
+});
+
+test("radio arrow keys navigate once (debounced), with JS", async ({ page }) => {
+  await page.goto(`/kataloq${CITY}`);
+  const navigations: string[] = [];
+  page.on("request", (r) => r.isNavigationRequest() || r.headers()["rsc"] ? navigations.push(r.url()) : undefined);
+  await page.getByRole("radio", { name: "Hamısı" }).last().focus();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(page).toHaveURL(`/kataloq${CITY}&sort=rating_asc`);
+  expect(navigations.filter((u) => u.includes("sort=rating_desc"))).toEqual([]);
 });
 
 test("SEO: filtered URLs are noindex, follow with the base canonical; ?page=2 is its own canonical; JSON-LD", async ({ page }) => {

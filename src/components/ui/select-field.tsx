@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { FieldError, FieldLabel, fieldBox } from "./field";
 import { Icon } from "./icon";
 
@@ -15,9 +15,18 @@ type Props = {
   defaultValue?: string;
   required?: boolean;
   requiredMark?: boolean;
-  /** "filter": catalog sidebar look — heading 20/26 medium, 16 above the box (Figma 281:7016). */
+  /**
+   * "filter": catalog sidebar look — heading 20/26 medium, 16 above the box (Figma 281:7016) — and it works
+   * without JS: a native <select> in <noscript> carries the value, the combobox box is marked `data-js-only`
+   * (hidden by the sidebar's <noscript> style) and the hidden input stays disabled until hydration, so the
+   * value is never sent twice.
+   */
   variant?: "form" | "filter";
 };
+
+const noop = () => () => {};
+/** false on the server and during hydration, true afterwards (no effect, no extra state). */
+const useHydrated = () => useSyncExternalStore(noop, () => true, () => false);
 
 /**
  * Figma "Dropdown" (52:2273): same box as the input (padding 10/12, gap 6), text 16/20.8 — placeholder gray-700,
@@ -37,6 +46,10 @@ type Props = {
 export function SelectField({ name, label, options, placeholder, error, defaultValue = "", required, requiredMark, variant = "form" }: Props) {
   const id = `f-${name}`;
   const hidden = useRef<HTMLInputElement>(null);
+  const filter = variant === "filter";
+  const hydrated = useHydrated();
+  /** Scroll the highlighted option into view on the next render: set when the list opens and on keyboard moves, never on hover. */
+  const reveal = useRef(false);
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -47,6 +60,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
   const clamp = (i: number) => Math.max(0, Math.min(options.length - 1, i));
 
   function show(at: number, byKeyboard: boolean) {
+    reveal.current = true;
     setActive(clamp(at));
     setKeyboard(byKeyboard);
     setOpen(true);
@@ -64,7 +78,9 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
   }
 
   useEffect(() => {
-    if (open) document.getElementById(`${id}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
+    if (!open || !reveal.current) return;
+    reveal.current = false;
+    document.getElementById(`${id}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
   }, [open, active, id]);
 
   function onKey(e: KeyboardEvent) {
@@ -80,6 +96,7 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
     const moves: Record<string, number> = { ArrowDown: active + 1, ArrowUp: active - 1, Home: 0, End: last };
     if (e.key in moves) {
       e.preventDefault();
+      reveal.current = true;
       setActive(clamp(moves[e.key]));
       setKeyboard(true);
     } else if (e.key === "Enter" || e.key === " ") {
@@ -102,8 +119,19 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
         requiredMark={requiredMark}
         className={variant === "filter" ? "flex min-h-[26px] text-subtitle-2-medium text-brand-950" : undefined}
       />
-      <input ref={hidden} type="hidden" name={name} value={value} readOnly />
-      <div className="relative">
+      <input ref={hidden} type="hidden" name={name} value={value} readOnly disabled={filter && !hydrated} />
+      {filter && (
+        <noscript>
+          <select name={name} defaultValue={value} aria-labelledby={`${id}-label`} className={`h-10 text-subtitle-2s ${fieldBox}`}>
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </noscript>
+      )}
+      <div className="relative" data-js-only={filter || undefined}>
         <button
           id={id}
           type="button"

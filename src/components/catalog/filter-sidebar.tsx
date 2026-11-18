@@ -46,6 +46,10 @@ export function FilterSidebar({ lang, scope, filter, dicts, filtered, basePath }
 
   return (
     <aside id="filtr" aria-labelledby="filtr-title" className="flex-col gap-5 max-lg:hidden max-lg:target:flex lg:flex lg:w-[303px] lg:shrink-0">
+      {/* Without JS the dropdowns are native <select>s (SelectField variant "filter"): hide the JS-only combobox boxes. */}
+      <noscript>
+        <style>{"[data-js-only]{display:none}"}</style>
+      </noscript>
       <div className="flex min-h-[35px] items-end justify-between gap-5">
         <h2 id="filtr-title" className="text-h4 text-brand-950">
           {c.filter}
