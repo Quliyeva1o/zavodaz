@@ -15,6 +15,19 @@ export async function resetRateLimits() {
   await sql`delete from rate_limits`;
 }
 
+/**
+ * Opens a page and waits until React has hydrated it (the <main> element carries a React fiber).
+ * Typing into an uncontrolled field before hydration races React: hydration puts the server value back
+ * under Playwright's edit (seen: fill("") on "admin@zavod.test" left "dmin@zavod.test", which was valid
+ * and got saved into the shared settings).
+ */
+export async function gotoHydrated(page: Page, url: string) {
+  await page.goto(url);
+  await expect
+    .poll(() => page.locator("main").first().evaluate((el) => Object.keys(el).some((k) => k.startsWith("__reactFiber$"))))
+    .toBe(true);
+}
+
 export async function loginAsAdmin(page: Page) {
   await page.goto("/admin/login");
   await page.getByLabel("E-mail").fill(process.env.ADMIN_EMAIL!);
