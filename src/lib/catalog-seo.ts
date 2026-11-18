@@ -19,9 +19,12 @@ export function catalogMetadata(opts: {
   title: string;
   description: string;
   basePaths: Localized;
+  /** Force `noindex, follow` (a landing without results). */
+  empty?: boolean;
 }): Metadata {
   const { lang, filter, basePaths } = opts;
   const filtered = isFiltered(filter, opts.scope);
+  const noindex = filtered || opts.empty === true;
   const page = filtered ? 1 : filter.page;
   const query = page > 1 ? `?page=${page}` : "";
   const title = `${page > 1 ? `${opts.title} — ${dict(lang).catalog.page.replace("{n}", String(page))}` : opts.title} | ${SITE_NAME}`;
@@ -31,11 +34,11 @@ export function catalogMetadata(opts: {
     description: opts.description,
     alternates: {
       canonical,
-      languages: filtered
+      languages: noindex
         ? undefined
         : { ...(Object.fromEntries(locales.map((l) => [l, basePaths[l] + query])) as Localized), "x-default": basePaths[defaultLocale] + query },
     },
-    robots: filtered ? { index: false, follow: true } : undefined,
+    robots: noindex ? { index: false, follow: true } : undefined,
     openGraph: { type: "website", siteName: SITE_NAME, title, description: opts.description, url: canonical },
   };
 }
@@ -47,4 +50,22 @@ export function itemListJsonLd(items: { slug: string; name: string }[], lang: Lo
     "@type": "ItemList",
     itemListElement: items.map((it, i) => ({ "@type": "ListItem", position: offset + i + 1, url: origin + factoryHref(it.slug, lang), name: it.name })),
   };
+}
+
+/** "Fabriklər — Bakı" (dictionary template). */
+export function landingTitle(lang: Locale, typeTitle: string, place: string): string {
+  return dict(lang).catalog.landingTitle.replace("{type}", typeTitle).replace("{place}", place);
+}
+
+export function typeDescription(lang: Locale, typeTitle: string): string {
+  return dict(lang).catalog.typeDescription.replace("{type}", typeTitle.toLocaleLowerCase(lang));
+}
+
+export function landingDescription(lang: Locale, title: string): string {
+  return dict(lang).catalog.landingDescription.replace("{title}", title);
+}
+
+/** One URL per language (hreflang base paths of a catalog page). */
+export function localizedPaths(path: (lang: Locale) => string): Localized {
+  return Object.fromEntries(locales.map((l) => [l, path(l)])) as Localized;
 }

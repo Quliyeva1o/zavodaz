@@ -57,6 +57,10 @@ export const en: Dictionary = {
     sortHigh: "Highest rated first",
     sortLow: "Lowest rated first",
     empty: "No results match the selected filters",
+    landingTitle: "{type} — {place}",
+    typeDescription: "Azerbaijan's {type}: choose by industry, city and product type.",
+    landingDescription: "{title}: list of manufacturers in Azerbaijan with ratings and contact details.",
+    recommendedDescription: "Recommended plants, factories and workshops: manufacturers with Premium and VIP plans.",
   },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {

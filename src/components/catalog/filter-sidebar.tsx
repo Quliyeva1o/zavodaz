@@ -2,6 +2,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
+import { href } from "@/i18n/routes";
 import type { CatalogFilter, CatalogScope, Dict, Dictionaries } from "@/features/catalog/types";
 import { COOPERATION } from "@/features/catalog/types";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ type Props = {
  * Figma "Frame 26085812" (281:7004): 303 wide, groups 20 apart; "Filtr" H4 28/34.72 with "Filtri sıfırla"
  * (body-sm brand-500, bottom-aligned; only when filtered, as in 283:9156). Groups: heading 20/26 medium,
  * 16 to the control; type = checkboxes, coop and rating = radio boxes, the rest = Dropdown (SelectField).
- * A GET `next/form` (client-side navigation); AutoSubmit submits on change, `<noscript>` adds a button.
+ * A GET `next/form` (client-side navigation; on type/landing pages it submits to /kataloq with the type and landing as fields); AutoSubmit submits on change, `<noscript>` adds a button.
  * The form has no `page` field: any filter change starts again from page 1.
  * Mobile: hidden (the "Filtr" button opens MobileFilter); without JS the <noscript> link (#filtr) shows it via :target.
  */
@@ -33,6 +34,8 @@ export function FilterSidebar({ lang, scope, filter, dicts, filtered, basePath }
   const c = t.catalog;
   const options = (list: Dict[]) => [{ value: "", label: c.all }, ...list.map((d) => ({ value: d.slug, label: pick(d.name, lang) }))];
   const landing = scope.landing?.kind;
+  // Type pages are not filterable by type: changing anything (the type first of all) continues on /kataloq, keeping the page scope.
+  const leaves = Boolean(scope.types?.length);
   const radios = (heading: string, name: "coop" | "sort", current: string, items: { value: string; label: string }[]) => (
     <fieldset>
       <legend className="mb-4 min-h-[26px] text-subtitle-2-medium text-brand-950">{heading}</legend>
@@ -60,12 +63,14 @@ export function FilterSidebar({ lang, scope, filter, dicts, filtered, basePath }
           </Link>
         )}
       </div>
-      <Form action={basePath} scroll={false} className="flex flex-col gap-5">
+      <Form action={leaves ? href("catalog", lang) : basePath} scroll={false} className="flex flex-col gap-5">
         <AutoSubmit />
-        {!scope.types?.length && <TypeCheckboxes lang={lang} selected={filter.types} />}
+        <TypeCheckboxes lang={lang} selected={filter.types} />
+        {landing === "industry" && leaves && <input type="hidden" name="industry" value={scope.landing?.slug} />}
         {landing !== "industry" && (
           <SelectField variant="filter" name="industry" label={c.filters.industry} placeholder={c.all} options={options(dicts.industries)} defaultValue={filter.industry ?? ""} />
         )}
+        {landing === "city" && leaves && <input type="hidden" name="city" value={scope.landing?.slug} />}
         {landing !== "city" && (
           <SelectField variant="filter" name="city" label={c.filters.city} placeholder={c.all} options={options(dicts.cities)} defaultValue={filter.city ?? ""} />
         )}

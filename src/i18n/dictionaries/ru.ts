@@ -57,6 +57,10 @@ export const ru: Dictionary = {
     sortHigh: "Сначала с высоким рейтингом",
     sortLow: "Сначала с низким рейтингом",
     empty: "По выбранным фильтрам ничего не найдено",
+    landingTitle: "{type} — {place}",
+    typeDescription: "Каталог: {type} Азербайджана. Выбирайте по отрасли, городу и типу продукции.",
+    landingDescription: "{title}: список производителей Азербайджана с рейтингом и контактами.",
+    recommendedDescription: "Рекомендуемые заводы, фабрики и мастерские: производители с пакетами Premium и VIP.",
   },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {

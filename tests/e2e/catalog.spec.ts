@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { E2E_CITY, clearCatalogFixture, seedCatalogFixture } from "./db";
+import { E2E_CITY, E2E_INDUSTRY, clearCatalogFixture, gotoHydrated, seedCatalogFixture } from "./db";
 
 // R1: the dev DB may hold other factories (Figma fixture), so every assertion goes through ?city=e2e-city.
 test.use({ viewport: { width: 1440, height: 900 } });
@@ -233,4 +233,123 @@ test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
     expect(before.some(Boolean)).toBe(false);
     expect(after.some(Boolean)).toBe(true);
   });
+});
+
+// ---------- Task 9: type pages, recommended, landings, sitemap ----------
+
+const crumbItems = (page: Page) => page.getByRole("navigation", { name: "Naviqasiya" }).first().locator(":scope > span");
+
+test("/fabrikler: h1 'Fabriklər', 3-step breadcrumb, only fabrik cards", async ({ page }) => {
+  const res = await page.goto(`/fabrikler${CITY}`);
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText("Fabriklər");
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Fabriklər"]);
+  await expect(cards(page)).toHaveCount(2);
+  expect(await types(page)).toEqual(["fabrik", "fabrik"]);
+});
+
+test("/en/factories: English heading", async ({ page }) => {
+  await page.goto(`/en/factories${CITY}`);
+  await expect(page.locator("h1")).toHaveText("Factories");
+  await expect(cards(page).first().getByRole("link")).toHaveAttribute("href", "/en/factory/e2e-vip");
+});
+
+test("landing /fabrikler/e2e-city: h1, 4-step breadcrumb, canonical + hreflang, indexable", async ({ page }) => {
+  const res = await page.goto(`/fabrikler/${E2E_CITY}`);
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText("Fabriklər — E2E şəhər");
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Fabriklər", "E2E şəhər"]);
+  await expect(cards(page)).toHaveCount(2);
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/fabrikler/${E2E_CITY}$`));
+  await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", new RegExp(`/en/factories/${E2E_CITY}$`));
+  // The landing's own city dropdown is not offered.
+  await expect(page.getByRole("combobox", { name: "Şəhər / Region" })).toHaveCount(0);
+});
+
+test("industry landing /fabrikler/e2e-industry", async ({ page }) => {
+  await page.goto(`/fabrikler/${E2E_INDUSTRY}`);
+  await expect(page.locator("h1")).toHaveText("Fabriklər — E2E sahə");
+  await expect(cards(page)).toHaveCount(1);
+  await expect(page.getByRole("combobox", { name: "İstehsal sahəsi" })).toHaveCount(0);
+});
+
+test("empty landing (no such type in the city): 200, noindex, empty state", async ({ page }) => {
+  const res = await page.goto(`/aqroparklar/${E2E_CITY}`);
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText("Aqroparklar — E2E şəhər");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+  await expect(cards(page)).toHaveCount(0);
+  await expect(page.getByText("Seçilmiş filtrlərə uyğun nəticə tapılmadı")).toBeVisible();
+});
+
+test("unknown type segment is a real 404; unknown landing slug is a soft 404 (200 + not-found + noindex, R11/R12)", async ({ request, page }) => {
+  expect((await request.get("/yox-bele-tip")).status()).toBe(404);
+  // Cache Components commits status 200 before the page can call notFound() (same as ?page past the end);
+  // a real 404 would need a dictionary lookup in the proxy on every request.
+  expect((await request.get("/fabrikler/yox-bele-yer")).status()).toBe(200);
+  await page.goto("/fabrikler/yox-bele-yer");
+  await expect(page.getByRole("heading", { name: "Səhifə tapılmadı" })).toBeVisible();
+  await expect(cards(page)).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
+});
+
+test("type page: page past the last page is a soft 404 (noindex)", async ({ page }) => {
+  await page.goto(`/fabrikler${CITY}&page=999`);
+  await expect(page.getByRole("heading", { name: "Səhifə tapılmadı" })).toBeVisible();
+  await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
+});
+
+test("recommended: only Premium/VIP factories (through ?city)", async ({ page }) => {
+  const res = await page.goto(`/kataloq/tovsiyye-edilenler${CITY}`);
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText("Tövsiyə edilənlər");
+  expect(await cardNames(page)).toEqual(["E2E VIP Fabrik", "E2E Premium Zavod"]);
+  await expect(crumbItems(page)).toHaveText(["Ana səhifə", "Kataloq", "Tövsiyə edilənlər"]);
+  await page.goto("/en/catalog/recommended");
+  await expect(page.locator("h1")).toHaveText("Recommended");
+});
+
+test("type page: changing the type leaves it for /kataloq?type=…", async ({ page }) => {
+  await gotoHydrated(page, `/fabrikler${CITY}`);
+  await expect(page.getByRole("checkbox", { name: "Fabrik" })).toBeChecked();
+  await page.getByRole("checkbox", { name: "Sex" }).check();
+  await expect(page).toHaveURL(`/kataloq?type=fabrik&type=sex&city=${E2E_CITY}`);
+  // The type page stays mounted (hidden) behind the new route: count what is visible.
+  await expect(page.locator("main article:visible")).toHaveCount(15);
+});
+
+test("landing page: changing a filter moves to /kataloq and keeps type + landing city", async ({ page }) => {
+  await gotoHydrated(page, `/fabrikler/${E2E_CITY}`);
+  await page.getByRole("radio", { name: "Aşağı reytinqlilər öndə" }).check();
+  await expect(page).toHaveURL(`/kataloq?type=fabrik&city=${E2E_CITY}&sort=rating_asc`);
+  await expect(page.locator("main article:visible")).toHaveCount(2);
+});
+
+test("mobile filter on a type page offers the type group and leaves for /kataloq", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto(`/fabrikler${CITY}`);
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Filtr", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "İstehsalın tipi" }).click();
+  await expect(dialog.getByRole("checkbox", { name: "Fabrik" })).toHaveAttribute("aria-checked", "true");
+  await dialog.getByRole("checkbox", { name: "Sex" }).click();
+  await expect(page).toHaveURL(`/kataloq?type=fabrik&type=sex&city=${E2E_CITY}`);
+});
+
+test("sitemap: catalog, recommended, 6 types, non-empty landings in 3 languages with hreflang; no empty landings", async ({ request }) => {
+  const xml = await (await request.get("/sitemap.xml")).text();
+  const locs = [...xml.matchAll(/<loc>https?:\/\/[^/<]+(\/[^<]*)<\/loc>/g)].map((m) => m[1]);
+  for (const p of ["/kataloq", "/en/catalog", "/ru/katalog", "/kataloq/tovsiyye-edilenler", "/en/catalog/recommended", "/ru/katalog/rekomenduemye", "/zavodlar", "/en/plants", "/ru/zavody", "/ru/cekhi", "/aqroparklar", "/en/agroparks"]) {
+    expect(locs, p).toContain(p);
+  }
+  for (const p of [`/fabrikler/${E2E_CITY}`, `/en/factories/${E2E_CITY}`, `/ru/fabriki/${E2E_CITY}`, `/fabrikler/${E2E_INDUSTRY}`, `/zavodlar/${E2E_CITY}`]) {
+    expect(locs, p).toContain(p);
+  }
+  expect(locs).not.toContain(`/aqroparklar/${E2E_CITY}`);
+  expect(locs).not.toContain(`/kombinatlar/${E2E_CITY}`);
+  const entry = xml.split("<url>").find((e) => e.includes(`/fabrikler/${E2E_CITY}</loc>`)) ?? "";
+  expect(entry).toContain(`/ru/fabriki/${E2E_CITY}"`);
+  expect(entry).toContain('hreflang="x-default"');
 });

@@ -23,6 +23,8 @@ export type MobileFilterProps = {
   filter: CatalogFilter;
   scope: CatalogScope;
   basePath: string;
+  /** Where "Filtri sıfırla" goes when it differs from `basePath` (type pages: the dialog filters live on /kataloq). */
+  resetPath?: string;
   labels: { back: string; reset: string };
 };
 
@@ -50,7 +52,7 @@ function withValue(f: CatalogFilter, key: FilterKey, value: string, on: boolean)
  * Native <dialog>: focus trap and Escape for free; focus goes to the heading on every screen change.
  * Choosing applies at once (router.push); single-select returns to the list, types (multi) stay on the screen.
  */
-export default function MobileFilter({ open, onClose, title, groups, filter, scope, basePath, labels }: MobileFilterProps) {
+export default function MobileFilter({ open, onClose, title, groups, filter, scope, basePath, resetPath, labels }: MobileFilterProps) {
   const router = useRouter();
   const ref = useModalDialog(open);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -163,8 +165,8 @@ export default function MobileFilter({ open, onClose, title, groups, filter, sco
             <div aria-hidden className="relative h-0 w-full after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gray-200" />
             <button type="button" onClick={() => {
                 pushed.current = null;
-                setSel({ ...filter, types: [], industry: null, city: null, product: null, model: null, coop: null, sort: "default", page: 1 });
-                router.push(basePath, { scroll: false });
+                if (!resetPath) setSel({ ...filter, types: [], industry: null, city: null, product: null, model: null, coop: null, sort: "default", page: 1 });
+                router.push(resetPath ?? basePath, { scroll: false });
               }} className="relative min-h-[21px] text-body-sm text-brand-500 before:absolute before:-inset-3">
               {labels.reset}
             </button>

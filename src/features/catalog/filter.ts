@@ -82,3 +82,11 @@ export function normalizeCatalogFilter(f: CatalogFilter, d: Dictionaries, scope:
     model: known(d.productionModels, f.model),
   };
 }
+
+/** A landing segment is a raw URL segment: city slugs first, then industry slugs (the admin keeps them apart). */
+export function resolveLanding(slug: string, d: Dictionaries): { kind: "city" | "industry"; dict: Dict } | null {
+  const city = d.cities.find((x) => x.slug === slug);
+  if (city) return { kind: "city", dict: city };
+  const industry = d.industries.find((x) => x.slug === slug);
+  return industry ? { kind: "industry", dict: industry } : null;
+}

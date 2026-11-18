@@ -55,6 +55,10 @@ export const az = {
     sortHigh: "Yüksək reytinqlilər öndə",
     sortLow: "Aşağı reytinqlilər öndə",
     empty: "Seçilmiş filtrlərə uyğun nəticə tapılmadı",
+    landingTitle: "{type} — {place}",
+    typeDescription: "Azərbaycanın {type}: sahəyə, şəhərə və məhsul tipinə görə seçin.",
+    landingDescription: "{title}: Azərbaycanda istehsalçıların siyahısı, reytinqi və əlaqə məlumatları.",
+    recommendedDescription: "Tövsiyə edilən zavod, fabrik və emalatxanalar: Premium və VIP paketli istehsalçılar.",
   },
   languages: { az: "Az", en: "En", ru: "Ru" },
   contact: {

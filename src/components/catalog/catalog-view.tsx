@@ -6,6 +6,7 @@ import { catalogSearch, isFiltered, normalizeCatalogFilter, parseCatalogParams }
 import { getCatalogPage, getDictionaries } from "@/features/catalog/queries";
 import { COOPERATION, PAGE_SIZE, type CatalogScope, type Dict, type Dictionaries } from "@/features/catalog/types";
 import { itemListJsonLd } from "@/lib/catalog-seo";
+import { href } from "@/i18n/routes";
 import { siteUrl } from "@/lib/seo";
 import { JsonLd } from "@/lib/structured-data";
 import { PageShell } from "@/components/page/page-shell";
@@ -25,6 +26,8 @@ type Props = {
   title: string;
   /** Crumbs between "Ana səhifə" and `title` (type pages: Kataloq). */
   crumbs?: { label: string; href: string }[];
+  /** Last breadcrumb item when it is not the title (landings: the city/industry name). */
+  crumbLabel?: string;
   /** The list's filterless URL in `lang`. */
   basePath: string;
 };
@@ -42,9 +45,9 @@ const grid = "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3";
  * be invisible. The page renders blocking instead (route `export const instant = false`, otherwise Cache
  * Components rejects request-time data outside Suspense); the data itself comes from the `use cache` queries.
  */
-export function CatalogView({ lang, scope, searchParams, title, crumbs, basePath }: Props) {
+export function CatalogView({ lang, scope, searchParams, title, crumbs, crumbLabel, basePath }: Props) {
   return (
-    <PageShell lang={lang} title={title} currentPath={basePath} crumbs={crumbs} figma="catalog">
+    <PageShell lang={lang} title={title} currentPath={basePath} crumbs={crumbs} crumbLabel={crumbLabel} figma="catalog">
       <div data-figma="catalog-main" className="flex flex-col gap-4 max-lg:-mt-2 lg:flex-row lg:items-start lg:gap-8">
         <CatalogResults lang={lang} scope={scope} searchParams={searchParams} basePath={basePath} />
       </div>
@@ -52,7 +55,7 @@ export function CatalogView({ lang, scope, searchParams, title, crumbs, basePath
   );
 }
 
-async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Props, "title" | "crumbs">) {
+async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Props, "title" | "crumbs" | "crumbLabel">) {
   const c = dict(lang).catalog;
   const parsed = parseCatalogParams(await searchParams, scope);
   const dicts = await getDictionaries();
@@ -64,7 +67,9 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
 
   const filtered = isFiltered(parsed, scope);
   const hrefFor = (page: number) => basePath + catalogSearch({ ...filter, page }, scope);
-  const groups = filterGroups(lang, scope, dicts);
+  // Type/landing pages: a filter change continues on /kataloq (type + landing as query values), see FilterSidebar.
+  const leaves = Boolean(scope.types?.length);
+  const groups = filterGroups(lang, { landing: scope.landing }, dicts);
   return (
     <>
       {/* Mobile: Figma "Button" 736:23890 opens the lazy dialog (Mob/Filtr). Without JS the <noscript> link shows the sidebar (:target). */}
@@ -72,8 +77,9 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
         label={c.filter}
         groups={groups}
         filter={filter}
-        scope={scope}
-        basePath={basePath}
+        scope={leaves ? {} : scope}
+        basePath={leaves ? href("catalog", lang) : basePath}
+        resetPath={leaves ? basePath : undefined}
         labels={{ back: c.back, reset: c.reset }}
       />
       <noscript>

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseCatalogParams, catalogSearch, isFiltered, normalizeCatalogFilter } from "../../src/features/catalog/filter.ts";
+import { parseCatalogParams, catalogSearch, isFiltered, normalizeCatalogFilter, resolveLanding } from "../../src/features/catalog/filter.ts";
 
 test("defaults", () => {
   const f = parseCatalogParams({}, {});
@@ -75,4 +75,12 @@ test("normalizeCatalogFilter drops slugs missing from the dictionaries (R8), kee
   // A landing slug belongs to the page (Task 9 decides 404); it is never dropped here.
   const scope = { landing: { kind: "city" as const, slug: "yoxdur" } };
   assert.equal(normalizeCatalogFilter(parseCatalogParams({}, scope), dicts, scope).city, "yoxdur");
+});
+
+test("resolveLanding: city first, then industry, unknown → null", () => {
+  const d = (slug: string) => ({ id: 1, slug, name: { az: slug, en: "", ru: "" } });
+  const dicts = { cities: [d("baki")], industries: [d("tekstil"), d("baki")], productTypes: [], productionModels: [] };
+  assert.equal(resolveLanding("baki", dicts)?.kind, "city");
+  assert.equal(resolveLanding("tekstil", dicts)?.kind, "industry");
+  assert.equal(resolveLanding("yox", dicts), null);
 });

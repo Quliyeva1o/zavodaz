@@ -39,6 +39,7 @@ export async function loginAsAdmin(page: Page) {
 // ---------- Catalog page fixture (R1: own city, slug prefix "e2e-", assertions go through ?city=e2e-city) ----------
 
 export const E2E_CITY = "e2e-city";
+export const E2E_INDUSTRY = "e2e-industry";
 
 /**
  * Marks the catalog cache tags as expired in `cache_tags`; the server applies it on its next tag sync
@@ -63,8 +64,11 @@ export async function seedCatalogFixture() {
   const [city] = await sql<{ id: number }[]>`
     insert into dict_cities (slug, name, sort)
     values (${E2E_CITY}, ${sql.json({ az: "E2E şəhər", en: "E2E city", ru: "E2E город" })}, 9001) returning id`;
+  const [industry] = await sql<{ id: number }[]>`
+    insert into dict_industries (slug, name, sort)
+    values (${E2E_INDUSTRY}, ${sql.json({ az: "E2E sahə", en: "E2E industry", ru: "E2E отрасль" })}, 9001) returning id`;
   const at = (minute: number) => new Date(Date.UTC(2026, 0, 1, 12, minute));
-  const row = (slug: string, name: string, type: string, minute: number, extra: Partial<{ tariff_code: string; tariff_rank: number; verified: boolean; status: string }> = {}) => ({
+  const row = (slug: string, name: string, type: string, minute: number, extra: Partial<{ tariff_code: string; tariff_rank: number; verified: boolean; status: string; industry_id: number }> = {}) => ({
     slug,
     name,
     about: `${name} haqqında`,
@@ -73,6 +77,7 @@ export async function seedCatalogFixture() {
     status: "published",
     tariff_code: "standart",
     tariff_rank: 0,
+    industry_id: null as number | null,
     verified: false,
     created_at: at(minute),
     ...extra,
@@ -80,7 +85,7 @@ export async function seedCatalogFixture() {
   const rows = [
     row("e2e-vip", "E2E VIP Fabrik", "fabrik", 1, { tariff_code: "vip", tariff_rank: 2 }),
     row("e2e-premium", "E2E Premium Zavod", "zavod", 2, { tariff_code: "premium", tariff_rank: 1 }),
-    row("e2e-fabrik", "E2E Fabrik", "fabrik", 3, { verified: true }),
+    row("e2e-fabrik", "E2E Fabrik", "fabrik", 3, { verified: true, industry_id: industry.id }),
     ...Array.from({ length: 13 }, (_, i) => row(`e2e-sex-${String(i + 1).padStart(2, "0")}`, `E2E Sex ${i + 1}`, "sex", 10 + i)),
     row("e2e-draft", "E2E Draft", "fabrik", 40, { tariff_code: "vip", tariff_rank: 2, status: "draft" }),
   ];
@@ -92,6 +97,7 @@ async function deleteCatalogFixture() {
   // "e2e-q-*" rows only ever exist inside the rolled-back DB test (R9); this removes page-level rows.
   await sql`delete from factories where slug like 'e2e-%'`;
   await sql`delete from dict_cities where slug = ${E2E_CITY}`;
+  await sql`delete from dict_industries where slug = ${E2E_INDUSTRY}`;
 }
 
 export async function clearCatalogFixture() {

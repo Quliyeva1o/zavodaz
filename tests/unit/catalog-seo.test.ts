@@ -44,3 +44,10 @@ test("ItemList JSON-LD: absolute factory URLs per language, positions continue a
     { "@type": "ListItem", position: 17, url: "https://zavod.az/en/factory/b", name: "B" },
   ]);
 });
+
+test("catalog metadata: an empty landing is noindex, follow without hreflang", () => {
+  const scope = { types: ["fabrik" as const], landing: { kind: "city" as const, slug: "baki" } };
+  const m = catalogMetadata({ lang: "az", scope, filter: parseCatalogParams({}, scope), title: "Fabriklər — Bakı", description: "T", basePaths, empty: true });
+  assert.deepEqual(m.robots, { index: false, follow: true });
+  assert.equal(m.alternates?.languages, undefined);
+});
