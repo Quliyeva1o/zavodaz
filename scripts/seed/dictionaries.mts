@@ -1,4 +1,4 @@
-// `npm run db:seed-dictionaries` — idempotent; `db:seed-content` (deploy) already includes it.
+// `npm run db:seed-dictionaries` — fills only empty dictionaries (R6); `db:seed-content` (deploy) already includes it.
 import { count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

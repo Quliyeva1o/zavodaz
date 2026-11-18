@@ -14,12 +14,14 @@ test.afterAll(() => client.end());
 class Rollback extends Error {}
 
 async function inRolledBackTx(fn: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<void>) {
-  await expect(
-    db.transaction(async (tx) => {
+  const outcome = await db
+    .transaction(async (tx) => {
       await fn(tx);
       throw new Rollback();
-    }),
-  ).rejects.toBeInstanceOf(Rollback);
+    })
+    .catch((e: unknown) => e);
+  // Any other error is a failed assertion (or a DB error) inside `fn`: rethrow it so its message is shown.
+  if (!(outcome instanceof Rollback)) throw outcome;
 }
 
 test("content seed is idempotent: a seeded database inserts nothing and invalidates nothing", async () => {
@@ -64,6 +66,29 @@ test("content seed creates the filter dictionaries; a second run adds nothing", 
     const rows = await tx.select().from(cacheTags).where(inArray(cacheTags.tag, ["dictionaries", "factories"]));
     expect(rows).toHaveLength(2);
     for (const row of rows) expect(row.expiredAt).toBeGreaterThanOrEqual(before);
+    expect(await seedContent(tx)).toEqual([]);
+  });
+});
+
+test("R6: a dictionary that already has rows is not refilled (admin deletes and slug renames stay)", async () => {
+  await inRolledBackTx(async (tx) => {
+    await seedContent(tx);
+    const [first] = DICTIONARY_SEED.cities;
+    // The admin deleted one seed city and renamed another one's slug.
+    await tx.delete(dictCities).where(eq(dictCities.slug, first.slug));
+    const second = DICTIONARY_SEED.cities[1];
+    await tx.update(dictCities).set({ slug: `${second.slug}-x` }).where(eq(dictCities.slug, second.slug));
+    // Only the empty dictionary (production models) is filled again.
+    await tx.update(factories).set({ productionModelIds: [] });
+    await tx.delete(dictProductionModels);
+    const tags = await seedContent(tx);
+    expect(tags.sort()).toEqual(["dictionaries", "factories"]);
+    const slugs = (await tx.select({ slug: dictCities.slug }).from(dictCities)).map((r) => r.slug);
+    expect(slugs).not.toContain(first.slug);
+    expect(slugs).not.toContain(second.slug);
+    expect(slugs).toContain(`${second.slug}-x`);
+    const [{ n: models }] = await tx.select({ n: count() }).from(dictProductionModels);
+    expect(models).toBe(DICTIONARY_SEED.productionModels.length);
     expect(await seedContent(tx)).toEqual([]);
   });
 });
