@@ -185,7 +185,12 @@ test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
     await dialog.getByRole("button", { name: "İstehsalın tipi" }).click();
     await dialog.getByRole("checkbox", { name: "Sex" }).click();
     await expect(page).toHaveURL("/kataloq?type=sex&city=baki");
+    // Two taps without waiting for the server in between: neither is lost, both boxes tick at once.
     await dialog.getByRole("checkbox", { name: "Zavod" }).click();
+    await dialog.getByRole("checkbox", { name: "Fabrik" }).click();
+    await expect(dialog.getByRole("checkbox", { name: "Fabrik" })).toHaveAttribute("aria-checked", "true");
+    await expect(page).toHaveURL("/kataloq?type=zavod&type=fabrik&type=sex&city=baki");
+    await dialog.getByRole("checkbox", { name: "Fabrik" }).click();
     await expect(page).toHaveURL("/kataloq?type=zavod&type=sex&city=baki");
     await expect(dialog.getByRole("checkbox", { name: "Zavod" })).toHaveAttribute("aria-checked", "true");
     await expect(dialog).toBeVisible();
@@ -215,7 +220,7 @@ test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
     let phase: "before" | "after" = "before";
     page.on("response", (res) => {
       if (res.request().resourceType() !== "script") return;
-      scripts.push({ when: phase, hit: res.text().then((t) => t.includes(marker)).catch(() => false) });
+      scripts.push({ when: phase, hit: res.text().then((t) => t.includes(marker)) });
     });
     await page.goto("/kataloq");
     await page.waitForLoadState("networkidle");
@@ -224,6 +229,7 @@ test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
     await expect(page.getByRole("dialog")).toBeVisible();
     const before = await Promise.all(scripts.filter((s) => s.when === "before").map((s) => s.hit));
     const after = await Promise.all(scripts.filter((s) => s.when === "after").map((s) => s.hit));
+    expect(before.length).toBeGreaterThan(0);
     expect(before.some(Boolean)).toBe(false);
     expect(after.some(Boolean)).toBe(true);
   });

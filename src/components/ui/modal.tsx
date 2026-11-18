@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { Icon } from "./icon";
+import { useModalDialog } from "./use-modal-dialog";
 
 type Props = {
   open: boolean;
@@ -20,15 +21,8 @@ type Props = {
  * focus starts on the close button.
  */
 export function Modal({ open, onClose, title, closeLabel, children, actions }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useModalDialog(open);
   const titleId = useId();
-
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
 
   return (
     <dialog
