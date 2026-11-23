@@ -83,7 +83,7 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
         labels={{ back: c.back, reset: c.reset }}
       />
       <noscript>
-        <a href="#filtr" className="flex h-10 items-center rounded-[4px] border border-gray-200 px-[9px] text-body-md text-brand-950 lg:hidden">
+        <a href="#filtr" className="flex h-10 items-center justify-center rounded-[4px] border border-gray-200 px-[9px] text-body-md text-brand-950 lg:hidden">
           {c.filter}
         </a>
       </noscript>

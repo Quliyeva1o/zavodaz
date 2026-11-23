@@ -42,6 +42,9 @@ const useHydrated = () => useSyncExternalStore(noop, () => true, () => false);
  * Choosing a new value fires a bubbling `change` on the hidden input (React state alone fires none), so a
  * surrounding form can react (catalog AutoSubmit). Long lists scroll (7 rows visible; the city list).
  * An empty value shows in the placeholder colour (catalog "Hamısı").
+ * Variant "filter" (catalog sidebar, Figma 283:10107 open "İstehsalat Modeli"): the list is in the flow under the box
+ * (6 below it, pushing the next groups down), items 2 apart with no list padding, and a long label wraps (the 62-high
+ * "OEM (Orijinal avadanlıq istehsalçısı)") instead of being cut.
  */
 export function SelectField({ name, label, options, placeholder, error, defaultValue = "", required, requiredMark, variant = "form" }: Props) {
   const id = `f-${name}`;
@@ -165,7 +168,11 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
             aria-labelledby={`${id}-label`}
             // Keep focus on the combobox while an option is pressed.
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute inset-x-0 top-[calc(100%+6px)] z-20 flex max-h-[290px] flex-col overflow-y-auto rounded-[4px] bg-white p-2.5"
+            className={
+              filter
+                ? "mt-1.5 flex max-h-[294px] flex-col gap-0.5 overflow-y-auto rounded-[4px]"
+                : "absolute inset-x-0 top-[calc(100%+6px)] z-20 flex max-h-[290px] flex-col overflow-y-auto rounded-[4px] bg-white p-2.5"
+            }
           >
             {options.map((o, i) => {
               const isSelected = o.value === value;
@@ -180,11 +187,11 @@ export function SelectField({ name, label, options, placeholder, error, defaultV
                     setKeyboard(false);
                   }}
                   onClick={() => choose(i)}
-                  className={`flex h-10 shrink-0 cursor-pointer items-center justify-between gap-1 rounded-[4px] px-3 text-subtitle-2s ${
+                  className={`flex shrink-0 cursor-pointer items-center justify-between gap-1 rounded-[4px] px-3 text-subtitle-2s ${filter ? "min-h-10 py-2.5" : "h-10"} ${
                     isSelected ? "text-brand-950" : "text-gray-700"
                   } ${i === active ? "bg-gray-50" : "bg-white"} ${i === active && keyboard ? "ring-2 ring-inset ring-brand-500" : ""}`}
                 >
-                  <span className="truncate">{o.label}</span>
+                  <span className={filter ? "min-w-0" : "truncate"}>{o.label}</span>
                   <span className="flex size-5 shrink-0 items-center justify-center" aria-hidden>
                     <span
                       className={`flex size-4 items-center justify-center rounded-[3.1px] border ${

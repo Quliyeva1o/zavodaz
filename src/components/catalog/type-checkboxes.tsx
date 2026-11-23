@@ -7,7 +7,8 @@ import { Icon } from "@/components/ui/icon";
  * One option box of the catalog filter, Figma "Frame 26085799" (281:7008 checked, 281:7427 unchecked):
  * 303×55, padding 16 (15 + the 1px CSS border), r6, gap 6; stroke gray-200, checked brand-950.
  * "Controls" 22×22 holds an 18×18 box (r3.54, 1.14 stroke gray-200 / brand-950 + brand-500 check, 280:6802).
- * Text 16/21.6 −0.16 (no Figma text style): gray-500, checked gray-700.
+ * Text 16/21.6 −0.16 (no Figma text style) in Figma's 23px text box (auto-height rounded up; the 21.6 line is centred
+ * in it within 0.7px): gray-500, checked gray-700.
  * A native input (checkbox or radio) carries the value (works without JS); it is transparent and covers the
  * whole box, so the box is its click target.
  */
@@ -40,7 +41,7 @@ export function ChoiceBox({
           <Icon name="check-brand" size={18} className="hidden max-w-none shrink-0 group-has-checked:block" />
         </span>
       </span>
-      <span className="min-w-0 flex-1 truncate text-[16px] leading-[21.6px] tracking-[-0.16px]">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-[16px] leading-[23px] tracking-[-0.16px]">{label}</span>
     </label>
   );
 }

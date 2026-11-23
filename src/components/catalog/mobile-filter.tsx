@@ -48,7 +48,8 @@ function withValue(f: CatalogFilter, key: FilterKey, value: string, on: boolean)
 /**
  * Full-screen filter dialog, Figma Mob/Filtr 737:22004 (list) + 758:22171 … 761:22772 (option screens), all
  * 320×568: padding 20/16, gap 26; back button 40×40 (brand-50, r4); rows 288×24, gap 16 (18/24.3 medium,
- * CaretRight 20); option rows 288×20, gap 16 (16/20.8, brand-950 when chosen else gray-700, 16×16 box r3.1).
+ * CaretRight 20); option rows 288×20, gap 16 (16/20.8, brand-950 when chosen else gray-700, 16×16 box r3.1); a long label
+ * wraps and the row grows (Figma "OEM (Orijinal avadanlıq istehsalçısı)" 288×42).
  * Native <dialog>: focus trap and Escape for free; focus goes to the heading on every screen change.
  * Choosing applies at once (router.push); single-select returns to the list, types (multi) stay on the screen.
  */
@@ -133,7 +134,7 @@ export default function MobileFilter({ open, onClose, title, groups, filter, sco
                       role={multi ? "checkbox" : "radio"}
                       aria-checked={on}
                       onClick={() => choose(group, o.value)}
-                      className={`-my-2 flex h-9 w-full items-center gap-1 py-2 text-left text-[16px] leading-[20.8px] ${on ? "text-brand-950" : "text-gray-700"}`}
+                      className={`-my-2 flex min-h-9 w-full items-center gap-1 py-[7.6px] text-left text-[16px] leading-[20.8px] ${on ? "text-brand-950" : "text-gray-700"}`}
                     >
                       <span className="min-w-0 flex-1">{o.label}</span>
                       <span aria-hidden className="flex size-5 shrink-0 items-center justify-center">
