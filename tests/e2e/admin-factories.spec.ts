@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { access, rm } from "node:fs/promises";
+import { access, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import postgres from "postgres";
 import { gotoHydrated, loginAsAdmin, resetRateLimits } from "./db";
@@ -83,7 +83,9 @@ test("factory: created with a cover as published Premium → in the catalog and 
   await page.getByLabel("Status").selectOption("published");
   await page.getByLabel("Tarif", { exact: true }).selectOption("premium");
   await page.getByLabel("Təsdiqlənib").check();
+  // R18: the file goes to POST /api/admin/media first; the form then sends only the media id.
   await page.getByLabel(/^Örtük şəkli/).setInputFiles(SAMPLE);
+  await expect(page.getByRole("img", { name: "Yeni örtük şəkli" })).toBeVisible();
   await page.getByRole("button", { name: "Yadda saxla" }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/factories/${UUID.source}\\?saved=1$`));
   await expect(page.getByRole("status")).toHaveText("Yadda saxlanıldı");
@@ -119,16 +121,17 @@ test("factory: created with a cover as published Premium → in the catalog and 
   await expect(page.getByLabel("Status")).toHaveValue("published");
   await expect(page.getByLabel("Təsdiqlənib")).toBeChecked();
 
-  // A file that is not an image (but claims to be a JPEG) is refused by the server.
+  // A file that is not an image (but claims to be a JPEG) is refused by the upload route; the typed values stay.
   await page.getByLabel("Ad", { exact: true }).fill(FACTORY);
   await page.getByLabel(/^Örtük şəkli/).setInputFiles({ name: "x.jpg", mimeType: "image/jpeg", buffer: Buffer.from("şəkil deyil") });
-  await page.getByRole("button", { name: "Yadda saxla" }).click();
   await expect(page.getByText("Şəkil oxunmadı")).toBeVisible();
+  await expect(page.getByLabel("Ad", { exact: true })).toHaveValue(FACTORY);
   await expect(page.getByLabel("Haqqında")).toHaveValue("Dəyişdirilmiş mətn");
   expect(await coverIdOf("e2e-admin-fabrik")).toBe(firstCover);
 
   // Replacing the cover deletes the old media row and its directory.
   await page.getByLabel(/^Örtük şəkli/).setInputFiles(SAMPLE);
+  await expect(page.getByRole("img", { name: "Yeni örtük şəkli" })).toBeVisible();
   await page.getByRole("button", { name: "Yadda saxla" }).click();
   await expect(page.getByRole("status")).toHaveText("Yadda saxlanıldı");
   const secondCover = await coverIdOf("e2e-admin-fabrik");
@@ -147,6 +150,28 @@ test("factory: created with a cover as published Premium → in the catalog and 
   expect((await sql<{ status: string }[]>`select status from factories where slug = 'e2e-admin-fabrik'`)[0].status).toBe("hidden");
   await page.goto(`/kataloq?city=${CITY.slug}`);
   await expect(cards(page)).toHaveCount(0);
+});
+
+test("upload route: signed out → 401; foreign or missing Origin → 403; too large → 413; an image → 201 { id, variants }", async ({ page, request, baseURL }) => {
+  const file = { name: "sample.jpg", mimeType: "image/jpeg", buffer: await readFile(SAMPLE) };
+  const signedOut = await request.post("/api/admin/media", { multipart: { file }, headers: { origin: baseURL! }, maxRedirects: 0 });
+  expect(signedOut.status()).toBe(401);
+
+  await loginAsAdmin(page); // page.request shares the admin session cookie
+  expect((await page.request.post("/api/admin/media", { multipart: { file }, headers: { origin: "https://evil.example" } })).status()).toBe(403);
+  expect((await page.request.post("/api/admin/media", { multipart: { file } })).status()).toBe(403); // no Origin
+  const huge = { name: "big.jpg", mimeType: "image/jpeg", buffer: Buffer.alloc(8 * 1024 * 1024 + 100 * 1024) };
+  const tooLarge = await page.request.post("/api/admin/media", { multipart: { file: huge }, headers: { origin: baseURL! } });
+  expect(tooLarge.status()).toBe(413);
+  expect(await tooLarge.json()).toEqual({ error: "size" });
+
+  const ok = await page.request.post("/api/admin/media", { multipart: { file }, headers: { origin: baseURL! } });
+  expect(ok.status()).toBe(201);
+  const body = (await ok.json()) as { id: string; variants: number[] };
+  expect(body.id).toMatch(UUID);
+  seenMedia.add(body.id); // not used by any factory: afterAll removes it
+  expect(body.variants).toEqual([320, 640, 960]);
+  expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(200);
 });
 
 test("factory list: name search treats % and _ literally; type and status filters", async ({ page }) => {

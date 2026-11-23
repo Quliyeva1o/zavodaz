@@ -8,20 +8,24 @@ import { requireAdmin } from "@/lib/auth";
 import { FACTORIES_TAG, invalidateTags } from "@/lib/cache/tags";
 import { uniqueSlug } from "@/features/catalog/slug";
 import { factoryRawFromForm, factoryToRaw, parseFactory, tariffRankOf, type FactoryRaw } from "@/features/factories/admin";
-import { coverRef, factorySlugTaken, missingDictRefs, type CoverRef } from "@/features/factories/admin-db";
-import { deleteImage, saveImage } from "@/features/media/store";
-import { ALLOWED_TYPES, MAX_UPLOAD_BYTES } from "@/features/media/url";
+import { coverRef, coverUploadUsable, factorySlugTaken, missingDictRefs, type CoverRef } from "@/features/factories/admin-db";
+import { deleteImage } from "@/features/media/store";
 
 export type FactoryState =
-  | { ok?: boolean; error?: string; errors?: Record<string, string>; values?: FactoryRaw; cover?: CoverRef | null; seq?: number }
+  | {
+      ok?: boolean;
+      error?: string;
+      errors?: Record<string, string>;
+      values?: FactoryRaw;
+      cover?: CoverRef | null;
+      /** The uploaded cover was deleted (the save failed after all): the form must forget its id. */
+      uploadDropped?: boolean;
+      seq?: number;
+    }
   | undefined;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const COVER_ERRORS = {
-  type: "Yalnız JPG, PNG və ya WebP",
-  size: "Fayl 8 MB-dan böyük ola bilməz",
-  decode: "Şəkil oxunmadı",
-} as const;
+const UPLOAD_GONE = "Yüklənmiş şəkil tapılmadı, şəkli yenidən seçin";
 const SLUG_TAKEN = "Bu slug artıq başqa zavoddadır";
 const isUniqueViolation = (e: unknown) => typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 
@@ -34,14 +38,14 @@ export async function saveFactory(_prev: FactoryState, form: FormData): Promise<
   if (idRaw !== "" && !UUID.test(idRaw)) return { error: "Zavod tapılmadı", values };
   const id = idRaw || null;
 
-  const file = form.get("cover");
-  const upload = file instanceof File && file.size > 0 ? file : null;
+  // The image itself went to POST /api/admin/media (R18); the form sends only the returned media id.
+  const uploadRaw = String(form.get("coverUploadId") ?? "");
   const errors: Record<string, string> = {};
-  if (upload && !(ALLOWED_TYPES as readonly string[]).includes(upload.type)) errors.cover = COVER_ERRORS.type;
-  else if (upload && upload.size > MAX_UPLOAD_BYTES) errors.cover = COVER_ERRORS.size;
+  if (uploadRaw !== "" && !UUID.test(uploadRaw)) errors.cover = UPLOAD_GONE;
 
   const parsed = parseFactory(values);
-  if (!parsed.ok) return { errors: { ...parsed.errors, ...errors }, values };
+  // A rejected upload id is forgotten by the form (uploadDropped), so the next save does not repeat the error.
+  if (!parsed.ok) return { errors: { ...parsed.errors, ...errors }, values, uploadDropped: errors.cover === UPLOAD_GONE };
   const data = parsed.data;
   Object.assign(errors, await missingDictRefs(data));
 
@@ -57,14 +61,10 @@ export async function saveFactory(_prev: FactoryState, form: FormData): Promise<
   } else {
     slug = await uniqueSlug(slug, (s) => factorySlugTaken(s, id));
   }
-  if (Object.keys(errors).length > 0) return { errors, values };
+  if (uploadRaw !== "" && !errors.cover && !(await coverUploadUsable(uploadRaw, id))) errors.cover = UPLOAD_GONE;
+  if (Object.keys(errors).length > 0) return { errors, values, uploadDropped: errors.cover === UPLOAD_GONE };
 
-  let newCoverId: string | null = null;
-  if (upload) {
-    const saved = await saveImage(upload);
-    if ("error" in saved) return { errors: { cover: COVER_ERRORS[saved.error] }, values };
-    newCoverId = saved.id;
-  }
+  const newCoverId: string | null = uploadRaw || null;
   const coverId = newCoverId ?? (values.removeCover ? null : (existing?.coverId ?? null));
 
   const row = {
@@ -94,13 +94,30 @@ export async function saveFactory(_prev: FactoryState, form: FormData): Promise<
       [{ id: savedId }] = await db.insert(factories).values(row).returning({ id: factories.id });
     }
   } catch (e) {
-    if (newCoverId) await deleteImage(newCoverId);
-    if (isUniqueViolation(e)) return { errors: { slug: SLUG_TAKEN }, values };
+    // The write failed: the new upload would be an orphan. Its cleanup must never hide the original error.
+    let dropped = false;
+    if (newCoverId && newCoverId !== existing?.coverId) {
+      try {
+        dropped = await deleteImage(newCoverId);
+      } catch (cleanup) {
+        console.error("factory save: could not delete the new cover", newCoverId, cleanup);
+      }
+    }
+    if (isUniqueViolation(e)) {
+      return { errors: { slug: SLUG_TAKEN, ...(dropped ? { cover: "Şəkli yenidən seçin" } : {}) }, values, uploadDropped: dropped };
+    }
     throw e;
   }
 
-  // The replaced / removed cover goes away with its files unless something else still uses it.
-  if (existing?.coverId && existing.coverId !== coverId) await deleteImage(existing.coverId);
+  // The replaced / removed cover goes away with its files unless something else still uses it. The save is already
+  // committed, so a failure here is only logged (the daily sweep removes it later).
+  if (existing?.coverId && existing.coverId !== coverId) {
+    try {
+      await deleteImage(existing.coverId);
+    } catch (cleanup) {
+      console.error("factory save: could not delete the old cover", existing.coverId, cleanup);
+    }
+  }
   await invalidateTags([FACTORIES_TAG]);
 
   if (!id) redirect(`/admin/factories/${savedId}?saved=1`);

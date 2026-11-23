@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId, useState, type ReactNode } from "react";
+import { useActionState, useId, useRef, useState, type ReactNode } from "react";
 import { COOPERATION, FACTORY_TYPES } from "@/features/catalog/types";
 import type { FactoryRaw } from "@/features/factories/admin";
 import type { CoverRef, DictOptions } from "@/features/factories/admin-db";
@@ -53,9 +53,8 @@ function Select({ label, name, value, error, options, empty }: { label: string; 
 }
 
 /** Uncontrolled fields; the form remounts them (key) after every save so they show what the server returned. */
-function Fields({ v, e, cover, options }: { v: FactoryRaw; e: Record<string, string>; cover: CoverRef | null; options: DictOptions }) {
+function Fields({ v, e, options }: { v: FactoryRaw; e: Record<string, string>; options: DictOptions }) {
   const [aboutLength, setAboutLength] = useState(v.about.length);
-  const [fileError, setFileError] = useState<string | null>(null);
   const opts = (list: { id: number; label: string }[]) => list.map((o) => ({ value: String(o.id), label: o.label }));
 
   return (
@@ -122,62 +121,107 @@ function Fields({ v, e, cover, options }: { v: FactoryRaw; e: Record<string, str
           Təsdiqlənib
         </label>
       </div>
-
-      <div className="flex flex-col gap-2 text-body-sm">
-        <Field label="Örtük şəkli (JPG, PNG və ya WebP, ən çox 8 MB)" error={fileError ?? e.cover}>
-          {(c) => (
-            <input
-              {...c}
-              type="file"
-              name="cover"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(ev) => {
-                const file = ev.target.files?.[0];
-                let msg: string | null = null;
-                if (file && !(ALLOWED_TYPES as readonly string[]).includes(file.type)) msg = "Yalnız JPG, PNG və ya WebP";
-                else if (file && file.size > MAX_UPLOAD_BYTES) msg = "Fayl 8 MB-dan böyük ola bilməz";
-                // A too large file would also exceed the server action body limit: never send it.
-                if (msg) ev.target.value = "";
-                setFileError(msg);
-              }}
-              className="text-body-sm"
-            />
-          )}
-        </Field>
-        {cover && (
-          <div className="flex items-end gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an already resized variant */}
-            <img src={mediaSrc(cover, 320)} alt="Mövcud örtük şəkli" width={160} className="rounded-[4px]" />
-            <label className="flex items-center gap-2">
-              <input type="checkbox" name="removeCover" defaultChecked={v.removeCover} className="size-4" />
-              Şəkli sil
-            </label>
-          </div>
-        )}
-      </div>
     </>
   );
 }
 
+const COVER_MESSAGES: Record<string, string> = {
+  type: "Yalnız JPG, PNG və ya WebP",
+  size: "Fayl 8 MB-dan böyük ola bilməz",
+  decode: "Şəkil oxunmadı",
+  auth: "Sessiya bitib, yenidən daxil olun",
+};
+
+type Upload = { status: "idle" } | { status: "uploading" } | { status: "done"; cover: CoverRef } | { status: "error"; message: string };
+
+/** Cover: the file goes to POST /api/admin/media at once; the form then submits only the returned id (R18). */
+function CoverField({ current, removeDefault, upload, serverError, onPick }: { current: CoverRef | null; removeDefault: boolean; upload: Upload; serverError?: string; onPick: (input: HTMLInputElement) => void }) {
+  const error = upload.status === "error" ? upload.message : serverError;
+  return (
+    <div className="flex flex-col gap-2 text-body-sm">
+      <Field label="Örtük şəkli (JPG, PNG və ya WebP, ən çox 8 MB)" error={error}>
+        {(c) => <input {...c} type="file" accept="image/jpeg,image/png,image/webp" disabled={upload.status === "uploading"} onChange={(ev) => onPick(ev.currentTarget)} className="text-body-sm" />}
+      </Field>
+      <p aria-live="polite" className="text-caption text-gray-500">
+        {upload.status === "uploading" ? "Şəkil yüklənir…" : upload.status === "done" ? "Şəkil yükləndi, yadda saxlayanda tətbiq olunacaq" : ""}
+      </p>
+      {upload.status === "done" ? (
+        <>
+          <input type="hidden" name="coverUploadId" value={upload.cover.id} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an already resized variant */}
+          <img src={mediaSrc(upload.cover, 320)} alt="Yeni örtük şəkli" width={160} className="rounded-[4px]" />
+        </>
+      ) : (
+        current && (
+          <div className="flex items-end gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an already resized variant */}
+            <img src={mediaSrc(current, 320)} alt="Mövcud örtük şəkli" width={160} className="rounded-[4px]" />
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="removeCover" defaultChecked={removeDefault} className="size-4" />
+              Şəkli sil
+            </label>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 export function FactoryForm({ id, initial, cover, options, saved }: { id: string | null; initial: FactoryRaw; cover: CoverRef | null; options: DictOptions; saved: boolean }) {
+  // Outside the remounted fields: an uploaded cover survives a failed save and is sent again with the next one.
+  const [upload, setUpload] = useState<Upload>({ status: "idle" });
+  const pickSeq = useRef(0);
   const [state, action, pending] = useActionState(async (prev: FactoryState, form: FormData): Promise<FactoryState> => {
     const result = await saveFactory(prev, form);
+    if (result?.ok || result?.uploadDropped) setUpload({ status: "idle" });
     return { ...result, seq: (prev?.seq ?? 0) + 1 };
   }, undefined);
   const v = state?.values ?? initial;
   const currentCover = state?.cover !== undefined ? state.cover : cover;
   const ok = state ? state.ok : saved;
+  const errors = state?.errors ?? {};
+
+  async function pick(inputEl: HTMLInputElement) {
+    const file = inputEl.files?.[0];
+    inputEl.value = "";
+    if (!file) return;
+    const seq = ++pickSeq.current;
+    if (!(ALLOWED_TYPES as readonly string[]).includes(file.type)) return setUpload({ status: "error", message: COVER_MESSAGES.type });
+    if (file.size > MAX_UPLOAD_BYTES) return setUpload({ status: "error", message: COVER_MESSAGES.size });
+    setUpload({ status: "uploading" });
+    let next: Upload;
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/admin/media", { method: "POST", body });
+      const data = (await res.json().catch(() => null)) as { id?: string; variants?: number[]; error?: string } | null;
+      next =
+        res.ok && data?.id && data.variants
+          ? { status: "done", cover: { id: data.id, variants: data.variants } }
+          : { status: "error", message: COVER_MESSAGES[data?.error ?? ""] ?? "Şəkil yüklənmədi" };
+    } catch {
+      next = { status: "error", message: "Şəkil yüklənmədi, bağlantını yoxlayın" };
+    }
+    if (seq === pickSeq.current) setUpload(next); // a newer pick wins
+  }
 
   return (
     <form action={action} className="flex max-w-5xl flex-col gap-6 rounded-[10px] bg-white p-6">
       {id && <input type="hidden" name="id" value={id} />}
-      <Fields key={state?.seq ?? 0} v={v} e={state?.errors ?? {}} cover={currentCover} options={options} />
+      <Fields key={state?.seq ?? 0} v={v} e={errors} options={options} />
+      <CoverField key={`cover-${state?.seq ?? 0}`} current={currentCover} removeDefault={v.removeCover} upload={upload} serverError={errors.cover} onPick={pick} />
       <div className="flex items-center gap-4">
-        <button type="submit" disabled={pending} className="h-10 rounded-[4px] bg-brand-950 px-6 text-body-md text-white disabled:opacity-60">
+        <button type="submit" disabled={pending || upload.status === "uploading"} className="h-10 rounded-[4px] bg-brand-950 px-6 text-body-md text-white disabled:opacity-60">
           Yadda saxla
         </button>
         {id && v.status !== "hidden" && (
-          <button type="submit" name="hide" value="1" disabled={pending} className="h-10 rounded-[4px] border border-gray-200 px-6 text-body-md hover:bg-gray-100 disabled:opacity-60">
+          <button
+            type="submit"
+            name="hide"
+            value="1"
+            disabled={pending || upload.status === "uploading"}
+            className="h-10 rounded-[4px] border border-gray-200 px-6 text-body-md hover:bg-gray-100 disabled:opacity-60"
+          >
             Gizlət
           </button>
         )}

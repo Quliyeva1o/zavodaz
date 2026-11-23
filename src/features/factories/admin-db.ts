@@ -132,3 +132,15 @@ export async function factorySlugTaken(slug: string, exceptId: string | null): P
     .limit(1);
   return !!row;
 }
+
+/** An uploaded image may become this factory's cover: it exists and no other factory uses it. */
+export async function coverUploadUsable(mediaId: string, factoryId: string | null): Promise<boolean> {
+  const [m] = await db.select({ id: media.id }).from(media).where(eq(media.id, mediaId));
+  if (!m) return false;
+  const [other] = await db
+    .select({ id: factories.id })
+    .from(factories)
+    .where(factoryId ? and(eq(factories.coverId, mediaId), ne(factories.id, factoryId)) : eq(factories.coverId, mediaId))
+    .limit(1);
+  return !other;
+}
