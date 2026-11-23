@@ -5,7 +5,12 @@ import type { NextConfig } from "next";
 const buildCpus = Number(process.env.NEXT_BUILD_CPUS) || undefined;
 
 const nextConfig: NextConfig = {
-  experimental: buildCpus ? { cpus: buildCpus, staticGenerationMaxConcurrency: 2 } : {},
+  experimental: {
+    ...(buildCpus ? { cpus: buildCpus, staticGenerationMaxConcurrency: 2 } : {}),
+    // Admin cover upload: an 8 MB image (MAX_UPLOAD_BYTES) plus the other form fields and multipart overhead.
+    // The default is 1 MB. The upload form also checks the size in the browser before sending.
+    serverActions: { bodySizeLimit: "9mb" },
+  },
   output: "standalone",
   outputFileTracingRoot: process.cwd(),
   poweredByHeader: false,

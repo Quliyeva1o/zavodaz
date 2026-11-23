@@ -1,5 +1,11 @@
-import sharp from "sharp";
+import { createRequire } from "node:module";
+import type SharpModule from "sharp";
 import { MEDIA_WIDTHS } from "./url";
+
+// sharp's CommonJS entry, loaded synchronously. A static `import` resolves its ESM entry, which Turbopack treats as
+// an async module; that alone adds Turbopack's async-module code to the browser runtime chunk of every page
+// (+449 B gzip on the public pages, measured in Task 10).
+const sharp = createRequire(import.meta.url)("sharp") as typeof SharpModule;
 
 export type ProcessedImage = {
   width: number;

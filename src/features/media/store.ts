@@ -2,8 +2,9 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { and, eq, notExists, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { media } from "@/db/schema";
+import { factories, media } from "@/db/schema";
 import { uploadDir } from "@/lib/env";
 import { processImage, UnsupportedFormatError } from "./process";
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES } from "./url";
@@ -41,4 +42,23 @@ export async function saveImage(file: File): Promise<SaveResult> {
     throw e;
   }
   return { id };
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * Deletes an image (its `media` row and `<UPLOAD_DIR>/<id>/`) unless something still references it.
+ * One statement checks and deletes, so a reference saved meanwhile keeps the row. Returns whether it was deleted.
+ * New columns that point at `media` must be added to the NOT EXISTS checks below.
+ */
+export async function deleteImage(id: string): Promise<boolean> {
+  if (!UUID.test(id)) return false;
+  const referenced = db.select({ one: sql`1` }).from(factories).where(eq(factories.coverId, id));
+  const deleted = await db
+    .delete(media)
+    .where(and(eq(media.id, id), notExists(referenced)))
+    .returning({ id: media.id });
+  if (deleted.length === 0) return false;
+  await rm(path.join(uploadDir, id), { recursive: true, force: true });
+  return true;
 }
