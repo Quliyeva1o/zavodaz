@@ -5,12 +5,13 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import { findNode, getNodes } from "../../scripts/figma/api.mts";
-import { WS_SOURCE, findBlocks, isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveText } from "./geometry-lib.mjs";
+import { cropHeight, runOpen, selectTargets, textsInCrop } from "./target-lib.mjs";
+import { WS_SOURCE, relayout, findBlocks, isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveText } from "./geometry-lib.mjs";
 
 const TOLERANCE = 1;
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, mobile: { width: 320, height: 568 } };
-const targets = JSON.parse(await readFile("tests/visual/targets.json", "utf8"));
+const targets = selectTargets(JSON.parse(await readFile("tests/visual/targets.json", "utf8")), process.env.VISUAL_ONLY);
 
 // Figma nodes: live /nodes API first, the local file copy (design/.cache/file.json) as fallback.
 let figma, source;
@@ -89,16 +90,19 @@ const browser = await chromium.launch({ channel: "chrome" });
 const report = { source, tolerance: TOLERANCE, targets: [] };
 let failed = false;
 for (const t of targets) {
-  const root = figma[t.node];
+  if (t.relayout && !t.relayoutReason) throw new Error(`${t.bp}/${t.name}: relayout requires relayoutReason`);
+  // relayout: Figma's stored boxes of instance children can be stale; its render lays them out again (geometry-lib).
+  const root = t.relayout ? relayout(figma[t.node]) : figma[t.node];
   const fb = root.absoluteBoundingBox;
   const page = await browser.newPage({ viewport: VIEWPORTS[t.bp], deviceScaleFactor: 1 });
   await page.goto(base + t.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
-  if (t.open) await page.click(t.open);
+  await runOpen(page, t.open);
   if (t.waitFor) await page.locator(t.waitFor).first().waitFor({ state: "visible" });
   await page.locator(t.selector).first().waitFor({ state: "visible" });
   const site = await page.evaluate(siteTexts, [t.selector, WS_SOURCE]);
-  const allTexts = figmaTexts(root);
+  const crop = cropHeight(t.crop);
+  const allTexts = textsInCrop(figmaTexts(root), crop);
   const fTexts = allTexts.filter((f) => !isIgnored(f.raw, t.ignore));
   const ignored = allTexts.length - fTexts.length;
   const aliases = t.aliases ?? {};
@@ -107,8 +111,8 @@ for (const t of targets) {
   await page.close();
 
   const size = {
-    figma: `${figmaPx(fb.width)}x${figmaPx(fb.height)}`,
-    site: `${sitePx(site.left, site.width)}x${sitePx(site.top, site.height)}`,
+    figma: `${figmaPx(fb.width)}x${crop ?? figmaPx(fb.height)}`,
+    site: `${sitePx(site.left, site.width)}x${crop ?? sitePx(site.top, site.height)}`,
   };
   size.ok = size.figma === size.site;
 
@@ -140,6 +144,7 @@ for (const t of targets) {
   if (!ok) failed = true;
   console.log(`${t.bp}/${t.name} — size figma ${size.figma}, site ${size.site} ${size.ok ? "ok" : "FAIL"}, max |Δ| ${r2(maxDelta)}px — ${ok ? "OK" : "FAIL"}`);
   if (countError) console.log(`  FAIL: ${countError}`);
+  if (t.relayout) console.log(`  relayout (${t.relayoutReason})`);
   for (const [from, to] of Object.entries(aliases)) console.log(`  alias: "${from}" -> "${to}"${t.aliasReason ? ` (${t.aliasReason})` : ""}`);
   if (ignored) console.log(`  ignored ${ignored} Figma text(s): ${t.ignore.map((s) => `"${s}"`).join(", ")}${t.ignoreReason ? ` (${t.ignoreReason})` : ""}`);
   console.table(rows, ["text", "figma", "site", "delta", "ok"]);

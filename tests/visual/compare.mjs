@@ -5,6 +5,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
+import { cropHeight, cropImage, cropImageTop, refOffset, selectTargets } from "./target-lib.mjs";
 
 const MAX_DIFF_PERCENT = 2.5; // spec 1.1 item 6b
 const MAX_EXCEPTION_PERCENT = 7; // ceiling for a per-target maxDiff (spec 1.1 item 6b)
@@ -20,7 +21,7 @@ function onWhite(png) {
   }
   return png;
 }
-const targets = JSON.parse(await readFile("tests/visual/targets.json", "utf8"));
+const targets = selectTargets(JSON.parse(await readFile("tests/visual/targets.json", "utf8")), process.env.VISUAL_ONLY);
 const rows = [];
 const pending = [];
 let failed = false;
@@ -29,6 +30,7 @@ const exists = (f) => access(f).then(() => true, () => false);
 // Per-target exception (approved 2026-11-16) only for dense text or a deliberate content
 // difference; it must state why and stays at the measured value + ~0.5, never above 7%.
 for (const t of targets) {
+  if (t.refOffset !== undefined && !t.refOffsetReason) throw new Error(`${t.bp}/${t.name}: refOffset requires refOffsetReason`);
   if (t.maxDiff === undefined) continue;
   if (!t.maxDiffReason) throw new Error(`${t.bp}/${t.name}: maxDiff requires maxDiffReason`);
   if (!(typeof t.maxDiff === "number" && t.maxDiff > 0 && t.maxDiff <= MAX_EXCEPTION_PERCENT)) {
@@ -44,8 +46,12 @@ for (const t of targets) {
     failed = true;
     continue;
   }
-  const figma = onWhite(PNG.sync.read(await readFile(ref)));
   const site = onWhite(PNG.sync.read(await readFile(`test-results/visual/${t.bp}/${t.name}.png`)));
+  // refOffset: the node's box inside a larger export (overflowing effects) → that region, at the site's size;
+  // crop: the reference is the whole Figma node, only its top `crop` rows are compared (the capture is already cropped).
+  const full = onWhite(PNG.sync.read(await readFile(ref)));
+  const at = refOffset(t.refOffset);
+  const figma = t.refOffset ? cropImage(full, { ...at, width: site.width, height: cropHeight(t.crop) ?? site.height }) : cropImageTop(full, cropHeight(t.crop));
   const row = { target: `${t.bp}/${t.name}`, figma: `${figma.width}x${figma.height}`, site: `${site.width}x${site.height}` };
   if (figma.width !== site.width || figma.height !== site.height) {
     rows.push({ ...row, diff: "SIZE", ok: false });
