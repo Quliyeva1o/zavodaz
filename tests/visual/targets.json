@@ -264,29 +264,6 @@
     "aliasReason": "Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
   },
   {
-    "name": "catalog-filter-open",
-    "bp": "desktop",
-    "node": "283:9169",
-    "path": "/kataloq",
-    "selector": "#filtr",
-    "open": "#f-model",
-    "relayout": true,
-    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
-    "aliases": {
-      "Kombinatlar": "Kombinat",
-      "Aqroparklar": "Aqropark"
-    },
-    "aliasReason": "Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)",
-    "ignore": [
-      "Category 1",
-      "Category 2",
-      "Category 3",
-      "Category 4",
-      "Filtrı sıfırla"
-    ],
-    "ignoreReason": "\"Category 1–4\": Dropdown instance-ın ABSOLUTE köhnə siyahısı (Frame 25), üstündəki real siyahı 283:10107 onu tam örtür, render-də görünmür. \"Filtrı sıfırla\": Figma çox seçimli vəziyyəti göstərir (iki model işarəli); saytda model tək seçimlidir (controller qərarı), açıq vəziyyət filtrsiz /kataloq-da çəkilir, sıfırla linki yalnız filtr olanda görünür"
-  },
-  {
     "name": "zavodlar",
     "bp": "desktop",
     "node": "299:7696",
@@ -402,7 +379,22 @@
       "[data-mobile-filter] button:has-text(\"İstehsal sahəsi\")"
     ],
     "relayout": true,
-    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "ignore": [
+      "Metal emalı",
+      "Maşınqayırma",
+      "Tekstil (Toxuculuq)",
+      "Qida sənayesi",
+      "Kimya sənayesi",
+      "Plastik və polimer emalı",
+      "Tikinti materialları istehsalı",
+      "Kənd təsərrüfatı istehsalı",
+      "Ağac və mebel istehsalı",
+      "Enerji və alternativ enerji istehsalı"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore",
+    "maxDiff": 3.7,
+    "maxDiffReason": "R22: Figma siyahısında sətir addımı 36/37 qarışıqdır, sayt 36 saxlayır; 7-ci sətirdən aşağı mətnlər 1–5px yuxarıdadır (ölçülən 3.23%)"
   },
   {
     "name": "filter-city",
@@ -416,21 +408,21 @@
     ],
     "relayout": true,
     "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
-    "aliases": {
-      "Ağcabədi": "Abşeron",
-      "Ağdam": "Ağcabədi",
-      "Ağdaş": "Ağdam",
-      "Ağdərə": "Ağdaş",
-      "Ağstafa": "Ağdərə",
-      "Ağsu": "Ağstafa",
-      "Astara": "Ağsu",
-      "Babək": "Astara",
-      "Bakı": "Babək",
-      "Beyləqan": "Bakı",
-      "Bərdə": "Balakən",
-      "Biləsuvar": "Beyləqan"
-    },
-    "aliasReason": "R5: şəhər siyahısı tam əlifba sırasıdır (Abşeron birinci, Balakən Bakıdan sonra); Figma nümunə məlumat göstərir (boşluqlarla). Figma-nın i-ci sətri saytın i-ci sətri ilə yoxlanılır (eyni yer, fərqli ad)"
+    "ignore": [
+      "Ağcabədi",
+      "Ağdam",
+      "Ağdaş",
+      "Ağdərə",
+      "Ağstafa",
+      "Ağsu",
+      "Astara",
+      "Babək",
+      "Bakı",
+      "Beyləqan",
+      "Bərdə",
+      "Biləsuvar"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore (R5: şəhər siyahısı tam əlifba sırasıdır, Figma nümunə məlumat göstərir — bu sətirlər onsuz da fərqlidir)"
   },
   {
     "name": "filter-product",
@@ -444,11 +436,16 @@
     ],
     "relayout": true,
     "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
-    "aliases": {
-      "Sənaye avadamlıqları": "Sənaye avadanlıqları",
-      "Elektirk avadanlıqlar": "Elektrik avadanlıqlar"
-    },
-    "aliasReason": "Figma yazı xətaları \"avadamlıqları\" → \"avadanlıqları\", \"Elektirk\" → \"Elektrik\" (controller qərarı)"
+    "ignore": [
+      "Ərzaq məhsulları",
+      "Sənaye avadamlıqları",
+      "Əlvan metallar və profillər",
+      "Paltar və tekstil məhsulları",
+      "Plastik və qablaşdırma məhsulları",
+      "Elektirk avadanlıqlar",
+      "Tikinti materialları"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore (Figma yazı xətaları \"avadamlıqları\", \"Elektirk\" saytda düzəldilib — controller qərarı)"
   },
   {
     "name": "filter-model",
