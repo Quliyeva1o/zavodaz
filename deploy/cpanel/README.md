@@ -36,6 +36,9 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    env `NODE_OPTIONS=--max-old-space-size=768 --v8-pool-size=2` → Create → Start. ("Run NPM Install" basma.)
 8. **.htaccess:** `~/zavod-public/.htaccess`-in ən yuxarısına `htaccess.txt`-dəki qaydalar (`zavod.az` əvəzinə `new.zavod.az`).
 9. **Backup cron:** `45 3 * * * bash $HOME/zavod-src/deploy/cpanel/backup.sh >> $HOME/backups/zavod/backup.log 2>&1`
+   **Şəkil təmizləmə cron-u:** admin formunda yüklənib saxlanmayan (tərk edilmiş) şəkilləri 24 saatdan sonra silir:
+   `30 4 * * * cd $HOME/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH UPLOAD_DIR=$HOME/zavod-app/shared/uploads npm run --silent media:sweep >> $HOME/zavod-app/shared/media-sweep.log 2>&1`
+   (`UPLOAD_DIR` `.env`-dəkindən fərqlidirsə, burada da eynisini yaz.)
 10. **Yoxla:** https://new.zavod.az — header/footer, dillər, /admin girişi, robots.txt `Disallow: /`.
 
 ## B. Yeniləmə
