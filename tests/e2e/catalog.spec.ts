@@ -239,7 +239,7 @@ test.describe("mobile filter dialog (Figma Mob/Filtr)", () => {
 
 const crumbItems = (page: Page) => page.getByRole("navigation", { name: "Naviqasiya" }).first().locator(":scope > span");
 
-test("/fabrikler: h1 'Fabriklər', 3-step breadcrumb, only fabrik cards", async ({ page }) => {
+test("/fabrikler: h1 'Fabriklər', 2-step breadcrumb, only fabrik cards", async ({ page }) => {
   const res = await page.goto(`/fabrikler${CITY}`);
   expect(res?.status()).toBe(200);
   await expect(page.locator("h1")).toHaveText("Fabriklər");
@@ -254,7 +254,7 @@ test("/en/factories: English heading", async ({ page }) => {
   await expect(cards(page).first().getByRole("link")).toHaveAttribute("href", "/en/factory/e2e-vip");
 });
 
-test("landing /fabrikler/e2e-city: h1, 4-step breadcrumb, canonical + hreflang, indexable", async ({ page }) => {
+test("landing /fabrikler/e2e-city: h1, 3-step breadcrumb, canonical + hreflang, indexable", async ({ page }) => {
   const res = await page.goto(`/fabrikler/${E2E_CITY}`);
   expect(res?.status()).toBe(200);
   await expect(page.locator("h1")).toHaveText("Fabriklər — E2E şəhər");

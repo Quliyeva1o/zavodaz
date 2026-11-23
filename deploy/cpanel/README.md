@@ -47,6 +47,8 @@ Build 1 CPU-da bir neçə dəqiqə çəkir — yeniləmələri axşam/gecə et.
 
 ## Bilmək lazım olanlar
 - **Yüklənmiş şəkillər** `UPLOAD_DIR`-dədir (`app.js` default olaraq `~/zavod-app/shared/uploads` verir; başqa yer lazımdırsa app qovluğundan kənarda mütləq yol yaz, məs. `~/zavod-uploads`). Production-da bu dəyişən məcburidir. `deploy.sh` və `rollback.sh` bu qovluğu silmir və əvəz etmir; əl ilə də `releases/` altına qoyma. `deploy.sh`-dakı `~/zavod-public/media` symlink-i və `media.htaccess` `shared/uploads`-a işarə edir: `UPLOAD_DIR` köçürülsə, onlar da (symlink hədəfi və `.htaccess` surəti) birlikdə köçürülməlidir. `backup.sh` yalnız `shared/uploads`-u yedəkləyir, başqa yol seçsən yedəyi də ona uyğunlaşdır.
+- **Lüğət (şəhər, sahə, məhsul tipi, istehsalat modeli) tamamilə boşaldılsa**, növbəti `deploy.sh` seed-i onu yenidən doldurur (R6): boş lüğət səhv deyil, ilkin siyahı qayıdır. Qəsdən boş saxlamaq mümkün deyil; lazımsız yazıları ayrı-ayrı sil.
+- **Host body limiti**: `/api/admin/media` (örtük şəkli yükləmə) 8 MB faylı + multipart başlığını qəbul edir, yəni LiteSpeed/Apache body limiti ≥ 8,1 MB olmalıdır (`LimitRequestBody`, LiteSpeed "Max Request Body Size"). İlk deploy-dan sonra admin paneldən bir real örtük şəkli yükləyib yoxla; 413 gəlirsə limiti qaldır.
 - Yaddaş limiti 768 MB-dır (marketinq 1024): hesabda 4 GB RAM 3+ Node tətbiqi arasında bölünür.
 - Thread limiti 150-dir: `deploy.sh` thread hovuzlarını kiçildir; `check-server.sh` cari istifadəni göstərir.
 
