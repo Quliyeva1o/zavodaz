@@ -19,6 +19,7 @@
     "db:seed-admin": "node --env-file-if-exists=.env.local --import tsx scripts/seed/admin.mts",
     "db:seed-content": "node --env-file-if-exists=.env.local --import tsx scripts/seed/content.mts",
     "db:seed-dictionaries": "node --env-file-if-exists=.env.local --import tsx scripts/seed/dictionaries.mts",
+    "db:seed-figma": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/seed/figma-fixture.mts",
     "db:seed-load": "node --env-file-if-exists=.env.local --import tsx scripts/seed/load.mts",
     "media:sweep": "node --env-file-if-exists=.env.local --import tsx scripts/media/sweep-orphans.mts",
     "figma:inspect": "node --env-file-if-exists=.env.local --import tsx scripts/figma/inspect.mts",
