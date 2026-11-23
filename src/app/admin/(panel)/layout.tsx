@@ -6,6 +6,8 @@ import { logout } from "../actions";
 
 const MENU = [
   { label: "Dashboard", href: "/admin" },
+  { label: "Zavodlar", href: "/admin/factories" },
+  { label: "Lüğətlər", href: "/admin/dictionaries" },
   { label: "Sayt ayarları", href: "/admin/settings" },
   { label: "Səhifələr", href: "/admin/pages" },
   { label: "FAQ (Yardım)", href: "/admin/faq" },
