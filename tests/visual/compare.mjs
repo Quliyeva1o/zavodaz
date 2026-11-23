@@ -5,7 +5,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
-import { cropHeight, cropImage, cropImageTop, refOffset, selectTargets } from "./target-lib.mjs";
+import { cropHeight, cropImage, cropImageTop, refOffset, loadTargets } from "./target-lib.mjs";
 
 const MAX_DIFF_PERCENT = 2.5; // spec 1.1 item 6b
 const MAX_EXCEPTION_PERCENT = 7; // ceiling for a per-target maxDiff (spec 1.1 item 6b)
@@ -21,7 +21,7 @@ function onWhite(png) {
   }
   return png;
 }
-const targets = selectTargets(JSON.parse(await readFile("tests/visual/targets.json", "utf8")), process.env.VISUAL_ONLY);
+const targets = loadTargets(JSON.parse(await readFile("tests/visual/targets.json", "utf8")), process.env.VISUAL_ONLY);
 const rows = [];
 const pending = [];
 let failed = false;
@@ -30,7 +30,6 @@ const exists = (f) => access(f).then(() => true, () => false);
 // Per-target exception (approved 2026-11-16) only for dense text or a deliberate content
 // difference; it must state why and stays at the measured value + ~0.5, never above 7%.
 for (const t of targets) {
-  if (t.refOffset !== undefined && !t.refOffsetReason) throw new Error(`${t.bp}/${t.name}: refOffset requires refOffsetReason`);
   if (t.maxDiff === undefined) continue;
   if (!t.maxDiffReason) throw new Error(`${t.bp}/${t.name}: maxDiff requires maxDiffReason`);
   if (!(typeof t.maxDiff === "number" && t.maxDiff > 0 && t.maxDiff <= MAX_EXCEPTION_PERCENT)) {

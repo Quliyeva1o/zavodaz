@@ -53,8 +53,7 @@ await db.insert(factories).values(
     tariffRank: r.tariffRank,
     ratingAvg: r.ratingAvg,
     ratingCount: 12,
-    createdAt: r.createdAt,
-    updatedAt: r.createdAt,
+    createdAt: r.createdAt, // 2099-dan geri: sıra üçün; updatedAt indiki an (sitemap lastmod gələcəkdə olmasın)
   })),
 );
 

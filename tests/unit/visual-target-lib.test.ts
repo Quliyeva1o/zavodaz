@@ -81,3 +81,43 @@ test("cropImage: (x, y) nöqtəsindən verilən ölçüdə hissə; kənara çıx
   assert.equal(cropImage(img, { x: 0, y: 0, width: 3, height: 2 }), img);
   assert.throws(() => cropImage(img, { x: 2, y: 0, width: 2, height: 2 }), /outside/);
 });
+
+test("selectTargets: VISUAL_ONLY heç bir hədəfə uyğun gəlmirsə xəta", async () => {
+  const { selectTargets } = await import("../visual/target-lib.mjs");
+  assert.throws(() => selectTargets([{ bp: "desktop", name: "catalog" }], "yoxdur"), /matches no target/);
+});
+
+test("validateTarget: crop/refOffset/relayout səbəbsiz rədd olunur, səbəblə qəbul olunur", async () => {
+  const { validateTarget } = await import("../visual/target-lib.mjs");
+  const base = { bp: "mobile", name: "x" };
+  assert.throws(() => validateTarget({ ...base, crop: 422 }), /crop requires cropReason/);
+  assert.throws(() => validateTarget({ ...base, crop: 0, cropReason: "r" }), /crop must be/);
+  assert.throws(() => validateTarget({ ...base, refOffset: [24, 0] }), /refOffset requires refOffsetReason/);
+  assert.throws(() => validateTarget({ ...base, relayout: true }), /relayout requires relayoutReason/);
+  assert.throws(() => validateTarget({ ...base, relayout: false, relayoutReason: "r" }), /relayout must be true/);
+  assert.throws(() => validateTarget({ ...base, open: [] }), /open:/);
+  assert.doesNotThrow(() => validateTarget({ ...base, crop: 422, cropReason: "r", refOffset: [24, 0], refOffsetReason: "r", relayout: true, relayoutReason: "r", open: ["a"] }));
+  assert.doesNotThrow(() => validateTarget(base));
+});
+
+test("loadTargets: hamısını yoxlayır (seçilməyəni də), qismən işdə banner çap edir", async () => {
+  const { loadTargets } = await import("../visual/target-lib.mjs");
+  const ok = [
+    { bp: "desktop", name: "catalog" },
+    { bp: "mobile", name: "header" },
+  ];
+  const lines: string[] = [];
+  assert.equal(loadTargets(ok, undefined, (l: string) => lines.push(l)).length, 2);
+  assert.equal(lines.length, 0);
+  assert.equal(loadTargets(ok, "catalog", (l: string) => lines.push(l)).length, 1);
+  assert.match(lines[0], /PARTIAL RUN.*1 of 2/);
+  assert.throws(() => loadTargets([...ok, { bp: "mobile", name: "bad", crop: 10 }], "catalog", () => {}), /crop requires cropReason/);
+});
+
+test("cropSizeError: element crop-dan qısadırsa xəta, əks halda null", async () => {
+  const { cropSizeError } = await import("../visual/target-lib.mjs");
+  assert.equal(cropSizeError(null, 10), null);
+  assert.equal(cropSizeError(422, 2846), null);
+  assert.equal(cropSizeError(422, 422), null);
+  assert.match(cropSizeError(422, 300) ?? "", /300px high, shorter than crop 422px/);
+});

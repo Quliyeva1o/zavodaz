@@ -61,12 +61,13 @@ export type FixtureRow = {
 
 /**
  * 150 zavod, default sıra ilə (VIP → Premium; təsdiqlənmiş; ən yeni əvvəl):
- * - 1–15: Figma kartları (VIP, təsdiqlənib, ən yeni) — kataloq və tövsiyə edilənlərin 1-ci səhifəsi;
+ * - 1–15: Figma kartları (VIP, təsdiqlənib, ən yeni: 2099-01-01-dən geri — qalıq VIP sətirlər onları qabaqlaya bilməz)
+ *   — kataloq və tövsiyə edilənlərin 1-ci səhifəsi;
  * - 16–27: VIP zavod doldurucular (Figma kartı kimi) — Zavodlar 1-ci səhifəsi (3 Figma zavodundan sonra);
  * - 28–150: Premium zavod doldurucular (şəkilsiz, köhnə tarix).
  * Hamısı Premium/VIP və ən azı 136-sı zavoddur: üç siyahının hər birində 10 səhifə olur.
  */
-export function figmaFixtureRows(newest = new Date(Date.UTC(2026, 10, 1))): FixtureRow[] {
+export function figmaFixtureRows(newest = new Date(Date.UTC(2099, 0, 1))): FixtureRow[] {
   const at = (i: number) => new Date(newest.getTime() - i * 60_000);
   const card = { name: FIGMA_CARD_NAME, about: FIGMA_CARD_ABOUT, verified: true, ratingAvg: FIGMA_CARD_RATING };
   const rows: FixtureRow[] = FIGMA_CARDS.map((c, i) => ({

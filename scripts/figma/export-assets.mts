@@ -34,12 +34,20 @@ const LOGOS: Record<string, string> = {
 };
 
 // Card photos: design/manual-export/catalog/<imageRef> (no extension: JPEG/PNG/WebP is sniffed when seeding).
-const fills = await getImageFills();
-const missing = FIGMA_PHOTOS.filter((ref) => !fills[ref]);
-if (missing.length) throw new Error(`Figma image fills not found: ${missing.join(", ")}`);
-for (const ref of FIGMA_PHOTOS) await download(fills[ref]!, `${PHOTO_DIR}/${ref}`);
-console.log(`card photos: ${FIGMA_PHOTOS.length} → ${PHOTO_DIR}/`);
-if (process.argv.includes("--photos")) process.exit(0);
+// A failure here is reported and the icon/logo export still runs (it uses other endpoints); with --photos it fails the run.
+const photosOnly = process.argv.includes("--photos");
+try {
+  const fills = await getImageFills();
+  const missing = FIGMA_PHOTOS.filter((ref) => !fills[ref]);
+  if (missing.length) throw new Error(`Figma image fills not found: ${missing.join(", ")}`);
+  for (const ref of FIGMA_PHOTOS) await download(fills[ref]!, `${PHOTO_DIR}/${ref}`);
+  console.log(`card photos: ${FIGMA_PHOTOS.length} → ${PHOTO_DIR}/`);
+} catch (error) {
+  console.error(`card photos FAILED: ${(error as Error).message.split("\n")[0]}`);
+  if (photosOnly) process.exit(1);
+  process.exitCode = 1;
+}
+if (photosOnly) process.exit(0);
 
 const svgUrls = await exportImages(Object.values(ICONS), { format: "svg" });
 for (const [name, id] of Object.entries(ICONS)) {

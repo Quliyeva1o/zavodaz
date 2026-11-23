@@ -59,8 +59,45 @@ export function cropImage(img, { x, y, width, height }) {
   return { ...img, width, height, data };
 }
 
-/** VISUAL_ONLY="catalog,mobile/filter-" runs only the targets whose "<bp>/<name>" contains one of the parts. */
+/** VISUAL_ONLY="catalog,mobile/filter-" runs only the targets whose "<bp>/<name>" contains one of the parts; none matching is an error. */
 export function selectTargets(targets, only) {
   const parts = (only ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  return parts.length ? targets.filter((t) => parts.some((p) => `${t.bp}/${t.name}`.includes(p))) : targets;
+  if (!parts.length) return targets;
+  const picked = targets.filter((t) => parts.some((p) => `${t.bp}/${t.name}`.includes(p)));
+  if (!picked.length) throw new Error(`VISUAL_ONLY="${only}" matches no target`);
+  return picked;
+}
+
+/** Options that narrow or reinterpret what is checked must say why (crop, refOffset, relayout). Throws on the first violation. */
+export function validateTarget(t) {
+  const id = `${t.bp}/${t.name}`;
+  if (t.crop !== undefined) {
+    cropHeight(t.crop);
+    if (!t.cropReason) throw new Error(`${id}: crop requires cropReason`);
+  }
+  if (t.refOffset !== undefined) {
+    refOffset(t.refOffset);
+    if (!t.refOffsetReason) throw new Error(`${id}: refOffset requires refOffsetReason`);
+  }
+  if (t.relayout !== undefined) {
+    if (t.relayout !== true) throw new Error(`${id}: relayout must be true when set`);
+    if (!t.relayoutReason) throw new Error(`${id}: relayout requires relayoutReason`);
+  }
+  openSteps(t.open);
+}
+
+/**
+ * All targets validated, then the VISUAL_ONLY selection. A partial run prints a banner (`log`), so a green
+ * partial result is never mistaken for the full check.
+ */
+export function loadTargets(all, only, log = console.log) {
+  for (const t of all) validateTarget(t);
+  const picked = selectTargets(all, only);
+  if (picked.length !== all.length) log(`*** PARTIAL RUN: VISUAL_ONLY="${only}" — ${picked.length} of ${all.length} targets ***`);
+  return picked;
+}
+
+/** Geometry size under `crop`: the site element must be at least `crop` high (else the crop hides a short page). */
+export function cropSizeError(crop, siteHeight) {
+  return crop !== null && siteHeight < crop ? `site element is ${siteHeight}px high, shorter than crop ${crop}px` : null;
 }
