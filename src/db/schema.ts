@@ -174,12 +174,19 @@ export const factories = pgTable(
   (t) => [
     // Default order (user decision 2026-11-17): VIP → Premium → rest, verified first, newest first.
     index("factories_pub_default_idx")
-      .on(t.tariffRank.desc(), t.verified.desc(), t.createdAt.desc(), t.id.desc())
+      .on(t.tariffRank.desc().nullsFirst(), t.verified.desc().nullsFirst(), t.createdAt.desc().nullsFirst(), t.id.desc().nullsFirst())
       .where(sql`${t.status} = 'published'`),
     index("factories_pub_type_idx")
-      .on(t.type, t.tariffRank.desc(), t.verified.desc(), t.createdAt.desc(), t.id.desc())
+      .on(t.type, t.tariffRank.desc().nullsFirst(), t.verified.desc().nullsFirst(), t.createdAt.desc().nullsFirst(), t.id.desc().nullsFirst())
       .where(sql`${t.status} = 'published'`),
-    index("factories_pub_rating_idx").on(t.ratingAvg, t.ratingCount).where(sql`${t.status} = 'published'`),
+    // Must match ORDER BY exactly (catalog-sql.ts). Postgres: DESC means NULLS FIRST in ORDER BY, so DESC index columns
+    // are declared NULLS FIRST (drizzle defaults to NULLS LAST, which the planner cannot use for ORDER BY ... DESC).
+    index("factories_pub_rating_desc_idx")
+      .on(t.ratingAvg.desc().nullsFirst(), t.ratingCount.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
+    index("factories_pub_rating_asc_idx")
+      .on(t.ratingAvg, t.ratingCount.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
     index("factories_city_idx").on(t.cityId),
     index("factories_industry_idx").on(t.industryId),
     index("factories_product_type_idx").on(t.productTypeId),
