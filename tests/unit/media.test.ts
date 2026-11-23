@@ -19,6 +19,18 @@ test("a small image still gets one variant at its own width", async () => {
   assert.deepEqual(out.files.map((f) => f.width), [200]);
 });
 
+test("EXIF orientation 6 (90° turn): width/height and the variants are the displayed (rotated) ones", async () => {
+  // stored 400x200 landscape with orientation 6 → displayed 200x400 portrait
+  const rotated = await sharp({ create: { width: 400, height: 200, channels: 3, background: "#888" } }).jpeg().withMetadata({ orientation: 6 }).toBuffer();
+  const out = await processImage(rotated);
+  assert.equal(out.width, 200);
+  assert.equal(out.height, 400);
+  assert.deepEqual(out.files.map((f) => f.width), [200]);
+  const meta = await sharp(out.files[0].data).metadata();
+  assert.equal(meta.width, 200);
+  assert.equal(meta.height, 400);
+});
+
 test("URLs and the strict path check", () => {
   const m = { id: "0b8f7a7e-0000-4000-8000-000000000001", variants: [320, 640, 960] };
   assert.equal(mediaSrc(m, 600), "/media/0b8f7a7e-0000-4000-8000-000000000001/640.webp");

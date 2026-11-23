@@ -21,24 +21,28 @@ export class UnsupportedFormatError extends Error {}
 
 export const isAllowedFormat = (format: string | undefined): boolean => format !== undefined && ALLOWED_FORMATS.includes(format);
 
+// Small shared host (768 MB, 1 CPU): one libvips thread, and every variant is its own decode → resize → encode pipeline
+// run one after another, so the peak memory is one image's worth (no full-size decoded copy kept between steps).
+sharp.concurrency(1);
+
+const LIMIT_INPUT_PIXELS = 25_000_000; // decompression-bomb guard
+
 /** Re-encodes an upload as WebP variants (never upscaled) and a tiny blur placeholder. EXIF rotation is applied. */
 export async function processImage(input: Buffer): Promise<ProcessedImage> {
-  const source = sharp(input, { limitInputPixels: 40_000_000 }); // decompression-bomb guard
-  const { format } = await source.metadata();
+  const open = () => sharp(input, { limitInputPixels: LIMIT_INPUT_PIXELS }).rotate(); // rotate() with no angle = EXIF auto-orient
+  const { format, width: rawWidth, height: rawHeight, orientation } = await sharp(input, { limitInputPixels: LIMIT_INPUT_PIXELS }).metadata();
   if (!isAllowedFormat(format)) throw new UnsupportedFormatError(format ?? "unknown");
-  const base = source.rotate();
-  const { data: oriented, info } = await base.toBuffer({ resolveWithObject: true });
-  const { width, height } = info;
+  if (!rawWidth || !rawHeight) throw new UnsupportedFormatError("unknown");
+  // EXIF orientations 5–8 turn the image by 90°: the displayed width/height are swapped.
+  const [width, height] = orientation !== undefined && orientation >= 5 ? [rawHeight, rawWidth] : [rawWidth, rawHeight];
 
   const fitting: number[] = MEDIA_WIDTHS.filter((w) => w <= width);
   const widths = fitting.length > 0 ? fitting : [width]; // narrower than the smallest variant: keep its own width
 
-  const files = await Promise.all(
-    widths.map(async (w) => ({
-      width: w,
-      data: await sharp(oriented).resize({ width: w, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer(),
-    })),
-  );
-  const blurBuf = await sharp(oriented).resize(16).webp({ quality: 40 }).toBuffer();
+  const files: ProcessedImage["files"] = [];
+  for (const w of widths) {
+    files.push({ width: w, data: await open().resize({ width: w, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer() });
+  }
+  const blurBuf = await open().resize(16).webp({ quality: 40 }).toBuffer();
   return { width, height, blur: `data:image/webp;base64,${blurBuf.toString("base64")}`, files };
 }
