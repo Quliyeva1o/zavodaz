@@ -55,6 +55,7 @@
   --color-whatsapp-border: #C3EFD1;
   --color-whatsapp-text: #1C4B2E;
   --color-photo-placeholder: #D9D9D9;
+  --color-overlay: rgba(0, 0, 0, 0.2);
 
   /* Figma DROP_SHADOW 0,16,40,0 #8289AE @0.15 — factory card (281:7099) */
   --shadow-card: 0 16px 40px 0 rgba(130, 137, 174, 0.15);
@@ -194,4 +195,9 @@
   --text-subtitle-2s-medium--line-height: 20.8px;
   --text-subtitle-2s-medium--letter-spacing: 0px;
   --text-subtitle-2s-medium--font-weight: 500;
+  /* Body Text/Medium|16|-0.16, line 23px (checkbox label) */
+  --text-checkbox-label: 16px;
+  --text-checkbox-label--line-height: 23px;
+  --text-checkbox-label--letter-spacing: -0.16px;
+  --text-checkbox-label--font-weight: 400;
 }

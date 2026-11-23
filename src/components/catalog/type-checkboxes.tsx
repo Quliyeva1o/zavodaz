@@ -41,7 +41,7 @@ export function ChoiceBox({
           <Icon name="check-brand" size={18} className="hidden max-w-none shrink-0 group-has-checked:block" />
         </span>
       </span>
-      <span className="min-w-0 flex-1 truncate text-[16px] leading-[23px] tracking-[-0.16px]">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-checkbox-label">{label}</span>
     </label>
   );
 }

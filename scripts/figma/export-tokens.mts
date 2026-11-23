@@ -2,7 +2,7 @@
 // text style used anywhere in the file. Run again whenever the design changes.
 import { writeFile } from "node:fs/promises";
 import { findNode, getFile, walk, type FigmaNode } from "./api.mts";
-import { buildThemeCss, parsePalette, resolveTextTokens, type FigmaTextStyle } from "./tokens-lib.mts";
+import { buildThemeCss, parsePalette, resolveTextTokens, type FigmaTextStyle, type TextToken } from "./tokens-lib.mts";
 
 const PALETTE_FRAME = "2:43";
 /** Scales in the order they appear in the frame (Santas Gray, East Bay, red, green). */
@@ -15,6 +15,7 @@ const EXTRA_COLORS: Record<string, string> = {
   "whatsapp-border": "#C3EFD1",
   "whatsapp-text": "#1C4B2E",
   "photo-placeholder": "#D9D9D9", // factory card image fill when there is no cover (Figma 281:7099)
+  overlay: "rgba(0, 0, 0, 0.2)", // dialog ::backdrop behind the mobile filter (no Figma token: the sheet is full-screen)
 };
 /** Figma style (name|size|letter-spacing) → token. New styles must be added here on purpose. */
 const TEXT_MAP: Record<string, string> = {
@@ -47,6 +48,12 @@ const TEXT_MAP: Record<string, string> = {
   "Overline|10|-0.1": "overline",
 };
 
+/** Text styles that are not a Figma style as such (a text box with its own line height); named on purpose. */
+const EXTRA_TEXT: TextToken[] = [
+  // Figma 281:7007: the type-checkbox label is a 23px-high text box (Body Text/Medium 16/-0.16 has a 24px line)
+  { token: "checkbox-label", figma: "Body Text/Medium|16|-0.16, line 23px (checkbox label)", fontSize: 16, lineHeightPx: 23, letterSpacing: -0.16, fontWeight: 400 },
+];
+
 const file = await getFile();
 const frame = findNode(file.document, PALETTE_FRAME);
 if (!frame) throw new Error(`Palette frame ${PALETTE_FRAME} not found`);
@@ -69,5 +76,5 @@ if (unknown.length) {
   process.exit(1);
 }
 
-await writeFile("src/styles/tokens.css", buildThemeCss(colors, tokens));
-console.log(`tokens.css: ${Object.keys(colors).length} colours, ${tokens.length} text styles (Figma ${file.lastModified})`);
+await writeFile("src/styles/tokens.css", buildThemeCss(colors, [...tokens, ...EXTRA_TEXT]));
+console.log(`tokens.css: ${Object.keys(colors).length} colours, ${tokens.length + EXTRA_TEXT.length} text styles (Figma ${file.lastModified})`);

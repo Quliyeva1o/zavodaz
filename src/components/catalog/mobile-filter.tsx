@@ -89,7 +89,7 @@ export default function MobileFilter({ open, onClose, title, groups, filter, sco
     const multi = g.key === "type";
     const next = withValue(sel, g.key, value, multi && !selected(sel, g.key).includes(value));
     const search = catalogSearch(next, scope);
-    pushed.current = search;
+    pushed.current = search === propKey ? null : search; // same URL as the current one: the prop never "catches up", do not wait for it
     setSel(next);
     router.push(basePath + search, { scroll: false });
     if (!multi) setScreen(null);
@@ -107,7 +107,7 @@ export default function MobileFilter({ open, onClose, title, groups, filter, sco
         setScreen(null);
         onClose();
       }}
-      className="m-0 h-full max-h-none w-full max-w-none overflow-y-auto overscroll-contain bg-white p-0 backdrop:bg-black/20"
+      className="m-0 h-full max-h-none w-full max-w-none overflow-y-auto overscroll-contain bg-white p-0 backdrop:bg-overlay"
     >
       <div className="flex min-h-full flex-col items-start gap-[26px] px-4 py-5">
         <div className="flex w-full flex-col gap-4">
@@ -134,7 +134,7 @@ export default function MobileFilter({ open, onClose, title, groups, filter, sco
                       role={multi ? "checkbox" : "radio"}
                       aria-checked={on}
                       onClick={() => choose(group, o.value)}
-                      className={`-my-2 flex min-h-9 w-full items-center gap-1 py-[7.6px] text-left text-[16px] leading-[20.8px] ${on ? "text-brand-950" : "text-gray-700"}`}
+                      className={`-my-2 flex min-h-9 w-full items-center gap-1 py-[7.6px] text-left text-subtitle-2s ${on ? "text-brand-950" : "text-gray-700"}`}
                     >
                       <span className="min-w-0 flex-1">{o.label}</span>
                       <span aria-hidden className="flex size-5 shrink-0 items-center justify-center">
