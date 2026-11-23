@@ -37,9 +37,21 @@ test("figma fixture: slug-lar unikaldır və figma- prefikslidir; şəkillər 6 
 });
 
 test("assertLocalDb: yalnız localhost / 127.0.0.1, mesajda sirr yoxdur", () => {
-  assert.doesNotThrow(() => assertLocalDb("postgres://u:p@localhost:5442/zavod"));
-  assert.doesNotThrow(() => assertLocalDb("postgres://u:p@127.0.0.1:5442/zavod"));
+  assert.doesNotThrow(() => assertLocalDb("postgres://u:p@localhost:5442/zavod", {}));
+  assert.doesNotThrow(() => assertLocalDb("postgres://u:p@127.0.0.1:5442/zavod", { NODE_ENV: "development" }));
   for (const url of ["postgres://u:topsecret@db.example.com:5432/zavod", "postgres://u:p@localhost.evil.com/zavod", "", "x"]) {
-    assert.throws(() => assertLocalDb(url), (e: Error) => /yalnız lokal bazada/.test(e.message) && !/topsecret/.test(e.message), url);
+    assert.throws(() => assertLocalDb(url, {}), (e: Error) => /yalnız lokal bazada/.test(e.message) && !/topsecret/.test(e.message), url);
   }
+});
+
+test("assertLocalDb: cPanel prod-u da @localhost-dur — NODE_ENV=production və ya dev adı olmayan baza rədd olunur", () => {
+  const prodLike = "postgres://cpuser_zavod:topsecret@localhost:5432/cpuser_zavod";
+  assert.throws(() => assertLocalDb(prodLike, { NODE_ENV: "production" }), (e: Error) => /lokal bazada/.test(e.message) && !/topsecret/.test(e.message));
+  // NODE_ENV qoyulmasa belə, baza adı 'zavod' deyil → rədd
+  assert.throws(() => assertLocalDb(prodLike, {}), (e: Error) => /baza adı/.test(e.message) && !/topsecret/.test(e.message));
+  // dev adı 'zavod' olan baza belə NODE_ENV=production ilə rədd olunur
+  assert.throws(() => assertLocalDb("postgres://u:p@localhost:5432/zavod", { NODE_ENV: "production", FIGMA_FIXTURE_DB_OK: "1" }), /NODE_ENV=production/);
+  // açıq razılıq başqa adlı lokal baza üçün işləyir, ancaq prod-da yox
+  assert.doesNotThrow(() => assertLocalDb(prodLike, { FIGMA_FIXTURE_DB_OK: "1" }));
+  assert.throws(() => assertLocalDb(prodLike, { FIGMA_FIXTURE_DB_OK: "0" }), /baza adı/);
 });

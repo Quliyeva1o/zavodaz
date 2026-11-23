@@ -47,6 +47,7 @@ for (const t of targets) {
   }
   const site = onWhite(PNG.sync.read(await readFile(`test-results/visual/${t.bp}/${t.name}.png`)));
   // refOffset: the node's box inside a larger export (overflowing effects) → that region, at the site's size;
+  // NOTE: with refOffset the reference is cut to the site's size, so a size mismatch cannot show up here — only `visual:geometry` catches it.
   // crop: the reference is the whole Figma node, only its top `crop` rows are compared (the capture is already cropped).
   const full = onWhite(PNG.sync.read(await readFile(ref)));
   const at = refOffset(t.refOffset);

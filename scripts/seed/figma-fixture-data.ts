@@ -95,13 +95,24 @@ export function figmaFixtureRows(newest = new Date(Date.UTC(2099, 0, 1))): Fixtu
   return rows;
 }
 
-/** Fixture yalnız lokal bazada işləyir (localhost / 127.0.0.1); xəta mesajında URL yoxdur (sirr sızmasın). */
-export function assertLocalDb(url: string): void {
+/**
+ * Fixture yalnız dev bazasında işləyir. cPanel-də prod baza da `@localhost`-dur, ona görə host kifayət deyil:
+ * host localhost/127.0.0.1, NODE_ENV production deyil və baza adı dev adı (`zavod`) və ya FIGMA_FIXTURE_DB_OK=1 olmalıdır.
+ * Xəta mesajında URL yoxdur (sirr sızmasın).
+ */
+export function assertLocalDb(url: string, env: Record<string, string | undefined> = process.env): void {
   let host = "";
+  let dbName = "";
   try {
-    host = new URL(url).hostname;
+    const u = new URL(url);
+    host = u.hostname;
+    dbName = decodeURIComponent(u.pathname.replace(/^\//, ""));
   } catch {
     // aşağıda rədd olunur
   }
   if (host !== "localhost" && host !== "127.0.0.1") throw new Error("Figma fixture yalnız lokal bazada işləyir (localhost)");
+  if (env.NODE_ENV === "production") throw new Error("Figma fixture yalnız lokal bazada işləyir: NODE_ENV=production ilə işləmir");
+  if (dbName !== "zavod" && env.FIGMA_FIXTURE_DB_OK !== "1") {
+    throw new Error("Figma fixture yalnız lokal bazada işləyir: baza adı 'zavod' deyil (başqa lokal baza üçün FIGMA_FIXTURE_DB_OK=1 yazın)");
+  }
 }

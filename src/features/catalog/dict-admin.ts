@@ -13,10 +13,13 @@ export const DICT_KINDS = {
 export type DictKind = keyof typeof DICT_KINDS;
 export const isDictKind = (v: string): v is DictKind => Object.hasOwn(DICT_KINDS, v);
 
+/** Same rule as the factory SLUG_RE (features/factories/admin.ts): no leading/trailing dash, no `--`. */
+const DICT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const NAME_MAX = "Ən çox 80 simvol";
 
 export const dictFormSchema = z.object({
-  slug: z.string().regex(/^[a-z0-9-]{1,80}$/, "Yalnız kiçik latın hərfləri, rəqəm və tire (1–80)"),
+  slug: z.string().max(80, "Ən çox 80 simvol").regex(DICT_SLUG_RE, "Yalnız kiçik latın hərfləri, rəqəm və tire; əvvəldə, sonda və ardıcıl tire olmaz"),
   name: z.object({
     az: z.string().trim().min(1, "Ad (AZ) məcburidir").max(80, NAME_MAX),
     en: z.string().trim().max(80, NAME_MAX),

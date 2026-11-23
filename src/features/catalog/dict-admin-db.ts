@@ -12,7 +12,7 @@ export const DICT_TABLES = {
   "production-models": dictProductionModels,
 } as unknown as Record<DictKind, typeof dictCities>;
 
-/** Cities and industries share the landing URL segment (`/kataloq/<slug>`): their slugs must not collide. */
+/** Cities and industries share the landing URL segment (`/<type>/<slug>`): their slugs must not collide. */
 export const LANDING_PEER: Partial<Record<DictKind, DictKind>> = { cities: "industries", industries: "cities" };
 
 /** Condition "factory uses dictionary entry `id`". */

@@ -114,6 +114,11 @@ test("dictionary form: slug pattern, AZ name required, EN/RU ≤ 80, integer sor
   assert.match(msgs, /name\.en: Ən çox 80 simvol/);
   assert.match(msgs, /sort: Tam ədəd yazın/);
   assert.equal(dictFormSchema.safeParse({ slug: "a".repeat(81), name: { az: "A", en: "", ru: "" }, sort: 0 }).success, false);
+  // Same strictness as the factory SLUG_RE: no leading/trailing dash, no "--", no empty slug.
+  for (const bad of ["-baki", "baki-", "a--b", "", "-"]) {
+    assert.equal(dictFormSchema.safeParse({ slug: bad, name: { az: "A", en: "", ru: "" }, sort: 0 }).success, false, bad);
+  }
+  assert.equal(dictFormSchema.safeParse({ slug: "ab-cd-1", name: { az: "A", en: "", ru: "" }, sort: 0 }).success, true);
 });
 
 test("parseDictEntry: raw strings → entry; empty slug comes from the AZ name", () => {
