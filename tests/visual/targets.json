@@ -241,7 +241,256 @@
       "Müraciət et"
     ],
     "ignoreReason": "\"Type here...\", \"Mesajınızı daxil edin\": input/textarea placeholder-i ::placeholder-dədir, DOM mətni deyil (R11). \"0/200\", \"Müraciət et\": Figma JSON-da instance daxili həndəsəsi köhnədir (komponent eni 303 ilə hesablanıb: mobil Dropdown/Textarea Frame 8 288-lik instance içində 303 en; Button 153:4674/692:19345 cross=CENTER olduğu halda mətn sol padding-dədir) — real 605/288 en üçün hesablanan yer saytdakı ilə eynidir (sayğac mobil 225 vs 225.64; düymə 1035 vs 1035.59); vizual referansla yoxlanılacaq",
-    "maxDiff": 3.0,
+    "maxDiff": 3,
     "maxDiffReason": "Figma placeholder-ləri \"Type here...\" saytda real placeholder-lərdir (R11), \"Movzu\"→\"Mövzu\" alias; qalanı mətn rasterizasiyası"
+  },
+  {
+    "name": "catalog",
+    "bp": "desktop",
+    "node": "273:6507",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "KOMBİNAT": "Kombinat",
+      "fabrİk": "Fabrik",
+      "AQROPARK": "Aqropark",
+      "emalatxana": "Emalatxana",
+      "SEX": "Sex",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "catalog-filter-open",
+    "bp": "desktop",
+    "node": "283:9169",
+    "path": "/kataloq",
+    "selector": "#filtr",
+    "open": "#f-model",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)",
+    "ignore": [
+      "Category 1",
+      "Category 2",
+      "Category 3",
+      "Category 4",
+      "Filtrı sıfırla"
+    ],
+    "ignoreReason": "\"Category 1–4\": Dropdown instance-ın ABSOLUTE köhnə siyahısı (Frame 25), üstündəki real siyahı 283:10107 onu tam örtür, render-də görünmür. \"Filtrı sıfırla\": Figma çox seçimli vəziyyəti göstərir (iki model işarəli); saytda model tək seçimlidir (controller qərarı), açıq vəziyyət filtrsiz /kataloq-da çəkilir, sıfırla linki yalnız filtr olanda görünür"
+  },
+  {
+    "name": "zavodlar",
+    "bp": "desktop",
+    "node": "299:7696",
+    "path": "/zavodlar",
+    "selector": "[data-figma=catalog]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Kataloq": "Zavodlar",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "H1 = səhifənin öz adı \"Zavodlar\" (R17; Figma 299:7704 \"Kataloq\" kataloqdan köçürülmə qalıb). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "recommended",
+    "bp": "desktop",
+    "node": "449:14064",
+    "path": "/kataloq/tovsiyye-edilenler",
+    "selector": "[data-figma=catalog]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Tövsiyyə edilənlər": "Tövsiyə edilənlər",
+      "KOMBİNAT": "Kombinat",
+      "fabrİk": "Fabrik",
+      "AQROPARK": "Aqropark",
+      "emalatxana": "Emalatxana",
+      "SEX": "Sex",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Figma yazı xətası \"Tövsiyyə\" → \"Tövsiyə\" (R17). Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "catalog-crumbs",
+    "bp": "mobile",
+    "node": "736:23865",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-crumbs]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
+  },
+  {
+    "name": "catalog-top",
+    "bp": "mobile",
+    "node": "736:23868",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-body]",
+    "crop": 422,
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "KOMBİNAT": "Kombinat",
+      "Lorem ipsum dolor sit amet, consectetur...": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor..."
+    },
+    "aliasReason": "Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Mobil təsvir: Figma 1 sətrə sığdırıb \"...\" əl ilə yazıb; saytda tam mətn CSS line-clamp-1 ilə kəsilir",
+    "refOffset": [
+      24,
+      0
+    ],
+    "refOffsetReason": "Figma export-u kartların kölgəsini (DROP_SHADOW 0/16/40) çərçivədən kənara çıxarır: 368 = 320 + 2×24; node qutusu export-da x=24-dən başlayır"
+  },
+  {
+    "name": "catalog-pagination",
+    "bp": "mobile",
+    "node": "736:24508",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-pagination]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
+  },
+  {
+    "name": "filter-list",
+    "bp": "mobile",
+    "node": "737:22004",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Filtrı sıfırla": "Filtri sıfırla"
+    },
+    "aliasReason": "Figma yazı xətası \"Filtrı\" → \"Filtri\""
+  },
+  {
+    "name": "filter-type",
+    "bp": "mobile",
+    "node": "758:22171",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsalın tipi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "filter-industry",
+    "bp": "mobile",
+    "node": "759:22238",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsal sahəsi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
+  },
+  {
+    "name": "filter-city",
+    "bp": "mobile",
+    "node": "761:22414",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Şəhər / Region\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Ağcabədi": "Abşeron",
+      "Ağdam": "Ağcabədi",
+      "Ağdaş": "Ağdam",
+      "Ağdərə": "Ağdaş",
+      "Ağstafa": "Ağdərə",
+      "Ağsu": "Ağstafa",
+      "Astara": "Ağsu",
+      "Babək": "Astara",
+      "Bakı": "Babək",
+      "Beyləqan": "Bakı",
+      "Bərdə": "Balakən",
+      "Biləsuvar": "Beyləqan"
+    },
+    "aliasReason": "R5: şəhər siyahısı tam əlifba sırasıdır (Abşeron birinci, Balakən Bakıdan sonra); Figma nümunə məlumat göstərir (boşluqlarla). Figma-nın i-ci sətri saytın i-ci sətri ilə yoxlanılır (eyni yer, fərqli ad)"
+  },
+  {
+    "name": "filter-product",
+    "bp": "mobile",
+    "node": "761:22520",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Məhsul tipi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Sənaye avadamlıqları": "Sənaye avadanlıqları",
+      "Elektirk avadanlıqlar": "Elektrik avadanlıqlar"
+    },
+    "aliasReason": "Figma yazı xətaları \"avadamlıqları\" → \"avadanlıqları\", \"Elektirk\" → \"Elektrik\" (controller qərarı)"
+  },
+  {
+    "name": "filter-model",
+    "bp": "mobile",
+    "node": "761:22666",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsalat Modeli\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)",
+    "aliases": {
+      "Paltar və tekstil məhsulları": "Hazır məhsul istehsalçısı"
+    },
+    "aliasReason": "Mobil \"İstehsalat Modeli\" siyahısında səhvən \"Paltar və tekstil məhsulları\" var; desktop-dakı \"Hazır məhsul istehsalçısı\" götürülür (controller qərarı)"
+  },
+  {
+    "name": "filter-coop",
+    "bp": "mobile",
+    "node": "761:22725",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Əməkdaşlıq imkanı\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
+  },
+  {
+    "name": "filter-sort",
+    "bp": "mobile",
+    "node": "761:22772",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Reytinqinə görə\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Figma-nın saxlanmış instance uşaq qutuları köhnəlib (komponent dəyişəndən sonra yenilənməyib: Dropdown-da gizli label-in yeri 27px, Mob/Filtr seçimlərində köhnə 12/10 padding); Figma render-i onları auto-layout-dan yenidən düzür (yoxlanıb: Əlaqə 'Müraciət et' referans PNG-də ortadadır, saxlanmış x=26)"
   }
 ]
