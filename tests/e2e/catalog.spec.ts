@@ -357,3 +357,15 @@ test("sitemap: catalog, recommended, 6 types, non-empty landings in 3 languages 
   expect(entry).toContain(`/ru/fabriki/${E2E_CITY}"`);
   expect(entry).toContain('hreflang="x-default"');
 });
+
+// R9: the mobile filter chunk's fallback (and the no-JS "Filtr" link) is the #filtr anchor, shown by :target.
+test("mobile: #filtr anchor shows the filter panel without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 375, height: 812 } });
+  const page = await context.newPage();
+  await page.goto("/kataloq");
+  await expect(page.locator("aside#filtr")).toBeHidden();
+  await page.getByRole("link", { name: "Filtr" }).click();
+  await expect(page).toHaveURL(/#filtr$/);
+  await expect(page.locator("aside#filtr")).toBeVisible();
+  await context.close();
+});
