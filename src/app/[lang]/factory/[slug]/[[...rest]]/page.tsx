@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { cache, type ReactNode } from "react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { defaultLocale, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
@@ -9,6 +9,7 @@ import { getFactoryBySlug, getFactoryPreview, getFactoryVacancies, resolveRedire
 import type { FactoryPage, Paged, VacancyCard } from "@/features/factory/types";
 import { factoryDescription, factoryTitle, organizationJsonLd, parsePageParam } from "@/features/factory/view";
 import { mediaSrc } from "@/features/media/url";
+import { SITE_NAME } from "@/features/pages/seo-title";
 import { getSessionUser } from "@/lib/auth";
 import { localizedPaths } from "@/lib/catalog-seo";
 import { siteUrl } from "@/lib/seo";
@@ -31,14 +32,18 @@ function tabOf(rest: string[] | undefined): FactoryTab | null {
   return rest.length === 1 && SUB_TABS.has(rest[0] as FactoryTab) ? (rest[0] as FactoryTab) : null;
 }
 
-/** Admin "Önizlə" (`?preview=1` + admin session): any status, never cached. Everyone else: published only (cached). */
-async function loadFactory(slug: string, sp: SearchParams): Promise<{ factory: FactoryPage | null; preview: boolean }> {
-  if (sp.preview === "1") {
+/**
+ * Admin "Önizlə" (`?preview=1` + admin session): any status, never cached. Everyone else: published only (cached).
+ * React cache: metadata and page share one session check and one preview query per request.
+ */
+const loadFactoryFor = cache(async (slug: string, wantsPreview: boolean): Promise<{ factory: FactoryPage | null; preview: boolean }> => {
+  if (wantsPreview) {
     const user = await getSessionUser();
     if (user?.role === "admin") return { factory: await getFactoryPreview(slug), preview: true };
   }
   return { factory: await getFactoryBySlug(slug), preview: false };
-}
+});
+const loadFactory = (slug: string, sp: SearchParams) => loadFactoryFor(slug, sp.preview === "1");
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang: l, slug, rest } = await params;
@@ -63,7 +68,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     robots: noindex ? { index: false, follow: true } : undefined,
     openGraph: {
       type: "website",
-      siteName: "Zavod.az",
+      siteName: SITE_NAME,
       title,
       description: description || undefined,
       url: urls[lang],

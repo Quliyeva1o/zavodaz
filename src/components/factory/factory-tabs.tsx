@@ -4,10 +4,14 @@ import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { factoryHref } from "@/i18n/routes";
 import type { Dictionaries } from "@/features/catalog/types";
+import { youtubeVideoId } from "@/features/factory/content-admin";
 import type { FactoryPage, Paged, VacancyCard as Vacancy } from "@/features/factory/types";
 import { factoryFeatures } from "@/features/factory/view";
+import { CertificateGrid } from "./certificate-grid";
 import { FeatureCards } from "./feature-cards";
+import { MediaGallery } from "./media-gallery";
 import { VacancyCard } from "./vacancy-card";
+import { VideoFacade } from "./video-facade";
 
 /** Section title: Subtitle 3 Medium (desktop and mobile alike). */
 function Title({ id, children }: { id: string; children: ReactNode }) {
@@ -21,6 +25,10 @@ function Title({ id, children }: { id: string; children: ReactNode }) {
 /** Desktop card (pad 20, r10, gray-200 stroke); on mobile Figma draws the same blocks without a frame. */
 const card = "lg:rounded-[10px] lg:border lg:border-gray-200 lg:p-5";
 
+function lightboxLabels(lang: Locale) {
+  return dict(lang).factory.lightbox;
+}
+
 /** Plain text with the admin's line breaks (about, equipment). */
 function Prose({ text }: { text: string }) {
   return <p className="whitespace-pre-line text-body-md text-gray-700 [overflow-wrap:anywhere]">{text}</p>;
@@ -32,6 +40,8 @@ function Prose({ text }: { text: string }) {
  */
 export function AboutTab({ lang, factory: f, dicts }: { lang: Locale; factory: FactoryPage; dicts: Dictionaries }) {
   const t = dict(lang).factory;
+  const video = youtubeVideoId(f.youtubeUrl);
+  const hasMedia = Boolean(video) || f.images.length > 0;
   return (
     <div className="flex flex-col gap-4 lg:gap-6">
       <div className="flex flex-col gap-4">
@@ -43,13 +53,56 @@ export function AboutTab({ lang, factory: f, dicts }: { lang: Locale; factory: F
         )}
         <FeatureCards items={factoryFeatures(f, dicts, lang)} />
       </div>
+      {hasMedia && (
+        <section aria-labelledby="factory-media" className={`flex flex-col gap-2.5 lg:gap-4 ${card}`}>
+          <Title id="factory-media">
+            <Link href={factoryHref(f.slug, lang, "media")} prefetch={false} className="hover:underline">
+              {t.media}
+            </Link>
+          </Title>
+          <div className={`flex flex-col gap-6 ${video && f.images.length ? "lg:grid lg:grid-cols-[462fr_367fr]" : ""}`}>
+            {video && (
+              <VideoFacade
+                id={video}
+                label={t.play.replace("{name}", f.name)}
+                className="aspect-[288/186] lg:aspect-[462/323]"
+                playClass="size-[38px] lg:size-[60px]"
+              />
+            )}
+            <MediaGallery images={f.images} name={f.name} photoLabel={t.photo} labels={lightboxLabels(lang)} variant="preview" />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
 /** Media, Figma 368:12677 / 773:24897: "Video" (893×510, Play 90; mobile 288×186, Play 38), then "Şəkillər" 24 below. */
-export function MediaTab({ lang }: { lang: Locale; factory: FactoryPage }) {
-  return <Empty>{dict(lang).factory.noMedia}</Empty>;
+export function MediaTab({ lang, factory: f }: { lang: Locale; factory: FactoryPage }) {
+  const t = dict(lang).factory;
+  const video = youtubeVideoId(f.youtubeUrl);
+  return (
+    <div className="flex flex-col gap-6 lg:gap-[23px]">
+      {video && (
+        <section aria-labelledby="factory-video" className="flex flex-col gap-2.5 lg:gap-4">
+          <Title id="factory-video">{t.video}</Title>
+          <VideoFacade
+            id={video}
+            label={t.play.replace("{name}", f.name)}
+            className="aspect-[288/186] lg:aspect-[893/510]"
+            playClass="size-[38px] lg:size-[90px]"
+          />
+        </section>
+      )}
+      {f.images.length > 0 && (
+        <section aria-labelledby="factory-photos" className="flex flex-col gap-2.5 lg:gap-4">
+          <Title id="factory-photos">{t.photos}</Title>
+          <MediaGallery images={f.images} name={f.name} photoLabel={t.photo} labels={lightboxLabels(lang)} variant="full" />
+        </section>
+      )}
+      {!video && f.images.length === 0 && <Empty>{t.noMedia}</Empty>}
+    </div>
+  );
 }
 
 /** Texniki imkanlar, Figma 361:10752 / 773:24643: the equipment list (line breaks kept), then the certificates 24 below. */
@@ -61,6 +114,12 @@ export function CapabilitiesTab({ lang, factory: f }: { lang: Locale; factory: F
         <Title id="factory-equipment">{t.equipment}</Title>
         <Prose text={f.equipmentText.trim() || "-"} />
       </section>
+      {f.certificates.length > 0 && (
+        <section aria-labelledby="factory-certificates" className={`flex flex-col gap-3 lg:gap-6 ${card}`}>
+          <Title id="factory-certificates">{t.certificates}</Title>
+          <CertificateGrid certificates={f.certificates} labels={lightboxLabels(lang)} />
+        </section>
+      )}
     </div>
   );
 }

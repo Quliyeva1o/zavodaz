@@ -8,7 +8,10 @@ import { chromium } from "@playwright/test";
 
 const BASE = process.env.PERF_BASE_URL ?? "http://localhost:3100";
 const BUDGET = 150_000;
-const PAGES = ["/", "/kataloq", "/elaqe"];
+// Factory page: about (media preview) and the media tab — the YouTube facade and the lightbox trigger are client
+// components; the lightbox itself must not be in the initial JS. PERF_FACTORY = a published factory with a video and photos.
+const FACTORY = process.env.PERF_FACTORY ?? "figma-001";
+const PAGES = ["/", "/kataloq", "/elaqe", `/fabrik/${FACTORY}`, `/fabrik/${FACTORY}/media`];
 const WIDTHS = [1440, 320];
 
 const browser = await chromium.launch({ channel: "chrome" });
@@ -46,9 +49,9 @@ for (const width of WIDTHS) {
 await browser.close();
 
 console.log(`initial JS, gzip -9, polyfill excluded — budget ${BUDGET.toLocaleString("en")} B`);
-console.log("page        width  files   total (B)    html (B)");
+console.log("page                       width  files   total (B)    html (B)");
 for (const r of rows) {
   const n = (v) => v.toLocaleString("en").padStart(11);
-  console.log(`${r.page.padEnd(10)} ${String(r.width).padStart(6)} ${String(r.files).padStart(6)} ${n(r.bytes)} ${n(r.htmlBytes)}  ${r.ok ? "ok" : "OVER"}`);
+  console.log(`${r.page.padEnd(25)} ${String(r.width).padStart(6)} ${String(r.files).padStart(6)} ${n(r.bytes)} ${n(r.htmlBytes)}  ${r.ok ? "ok" : "OVER"}`);
 }
 process.exit(rows.every((r) => r.ok) ? 0 : 1);
