@@ -133,9 +133,9 @@ export async function factorySlugTaken(slug: string, exceptId: string | null): P
   return !!row;
 }
 
-/** An uploaded image may become this factory's cover: it exists and no other factory uses it. */
+/** An uploaded image may become this factory's cover: it exists, is an image (not a PDF) and no other factory uses it. */
 export async function coverUploadUsable(mediaId: string, factoryId: string | null): Promise<boolean> {
-  const [m] = await db.select({ id: media.id }).from(media).where(eq(media.id, mediaId));
+  const [m] = await db.select({ id: media.id }).from(media).where(and(eq(media.id, mediaId), eq(media.kind, "image")));
   if (!m) return false;
   const [other] = await db
     .select({ id: factories.id })

@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import sharp from "sharp";
 import { processImage, UnsupportedFormatError } from "../../src/features/media/process.ts";
-import { mediaSrc, mediaSrcSet, isMediaPath } from "../../src/features/media/url.ts";
+import { isPdf } from "../../src/features/media/pdf.ts";
+import { isMediaPath, MAX_PDF_BYTES, mediaFileType, mediaSrc, mediaSrcSet, pdfSrc } from "../../src/features/media/url.ts";
 
 test("processImage makes WebP variants no wider than the original, plus a tiny blur", async () => {
   const out = await processImage(await readFile("tests/fixtures/sample.jpg"));
@@ -62,4 +63,25 @@ test("content that is not JPEG/PNG/WebP is rejected whatever the MIME type said"
 test("oversized pixel counts are rejected (decompression bomb guard)", async () => {
   const huge = await sharp({ create: { width: 7000, height: 6000, channels: 3, background: "#000" } }).png({ compressionLevel: 9 }).toBuffer();
   await assert.rejects(processImage(huge));
+});
+
+test("PDF: only content that starts with the %PDF- magic bytes is accepted", () => {
+  assert.equal(isPdf(Buffer.from("%PDF-1.7\n%âãÏÓ\n1 0 obj")), true);
+  assert.equal(isPdf(Buffer.from("%PDF")), false); // too short: no dash
+  assert.equal(isPdf(Buffer.from(" %PDF-1.7")), false); // must be at offset 0
+  assert.equal(isPdf(Buffer.from("<html>%PDF-1.7")), false);
+  assert.equal(isPdf(new Uint8Array(0)), false);
+  assert.equal(MAX_PDF_BYTES, 20 * 1024 * 1024);
+});
+
+test("PDF media path: /media/<id>/file.pdf, served inline as application/pdf", () => {
+  const id = "0b8f7a7e-0000-4000-8000-000000000001";
+  assert.equal(pdfSrc(id), `/media/${id}/file.pdf`);
+  assert.equal(isMediaPath([id, "file.pdf"]), true);
+  assert.equal(mediaFileType([id, "file.pdf"]), "application/pdf");
+  assert.equal(mediaFileType([id, "640.webp"]), "image/webp");
+  for (const bad of [[id, "x.pdf"], [id, "file.PDF"], [id, "file.pdf.webp"], ["../x", "file.pdf"], [id, "file.pdf", "x"]]) {
+    assert.equal(isMediaPath(bad), false, bad.join("/"));
+    assert.equal(mediaFileType(bad), null, bad.join("/"));
+  }
 });

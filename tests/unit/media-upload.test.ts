@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BodyTooLargeError, isSameOrigin, readCapped, UPLOAD_BODY_LIMIT } from "../../src/features/media/upload-body.ts";
-import { MAX_UPLOAD_BYTES } from "../../src/features/media/url.ts";
+import { BodyTooLargeError, isSameOrigin, readCapped, UPLOAD_BODY_LIMIT, uploadBodyLimit } from "../../src/features/media/upload-body.ts";
+import { MAX_PDF_BYTES, MAX_UPLOAD_BYTES } from "../../src/features/media/url.ts";
 
 const stream = (sizes: number[]) =>
   new ReadableStream<Uint8Array>({
@@ -14,6 +14,12 @@ const stream = (sizes: number[]) =>
 test("upload body limit is 8 MB plus a small multipart overhead", () => {
   assert.ok(UPLOAD_BODY_LIMIT > MAX_UPLOAD_BYTES);
   assert.ok(UPLOAD_BODY_LIMIT - MAX_UPLOAD_BYTES <= 128 * 1024);
+});
+
+test("each upload kind has its own body limit: images 8 MB, PDF catalogues 20 MB (plus multipart overhead)", () => {
+  assert.equal(uploadBodyLimit("image"), UPLOAD_BODY_LIMIT);
+  assert.ok(uploadBodyLimit("pdf") > MAX_PDF_BYTES);
+  assert.ok(uploadBodyLimit("pdf") - MAX_PDF_BYTES <= 128 * 1024);
 });
 
 test("readCapped returns the whole body under the cap", async () => {

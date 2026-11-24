@@ -174,6 +174,38 @@ test("upload route: signed out → 401; foreign or missing Origin → 403; too l
   expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(200);
 });
 
+test("upload route ?kind=pdf: a PDF → 201 { id, kind, size }, served inline; non-PDF content → 415; unknown kind → 415", async ({ page, request, baseURL }) => {
+  await loginAsAdmin(page);
+  const post = (file: { name: string; mimeType: string; buffer: Buffer }, kind = "pdf") =>
+    page.request.post(`/api/admin/media?kind=${kind}`, { multipart: { file }, headers: { origin: baseURL! } });
+  const pdf = Buffer.from("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n");
+
+  const ok = await post({ name: "kataloq.pdf", mimeType: "application/pdf", buffer: pdf });
+  expect(ok.status()).toBe(201);
+  const body = (await ok.json()) as { id: string; kind: string; size: number };
+  expect(body.id).toMatch(UUID);
+  seenMedia.add(body.id);
+  expect(body).toEqual({ id: body.id, kind: "pdf", size: pdf.length });
+  const served = await request.get(`/media/${body.id}/file.pdf`);
+  expect(served.status()).toBe(200);
+  expect(served.headers()["content-type"]).toBe("application/pdf");
+  expect(served.headers()["content-disposition"]).toBe("inline");
+  expect(Buffer.from(await served.body()).equals(pdf)).toBe(true);
+  // The route only serves the file shape of the kind on disk: no image variant of a PDF.
+  expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(404);
+
+  // Content decides, not the MIME type or the name.
+  const fake = await post({ name: "fake.pdf", mimeType: "application/pdf", buffer: await readFile(SAMPLE) });
+  expect(fake.status()).toBe(415);
+  expect(await fake.json()).toEqual({ error: "type" });
+  // An image field does not take a PDF (sharp cannot decode it: 422), and an unknown kind is refused.
+  expect((await post({ name: "kataloq.pdf", mimeType: "image/jpeg", buffer: pdf }, "image")).status()).toBe(422);
+  expect((await post({ name: "kataloq.pdf", mimeType: "application/pdf", buffer: pdf }, "cv")).status()).toBe(415);
+  // 20 MB cap for PDFs (Content-Length check before the body is read).
+  const huge = { name: "big.pdf", mimeType: "application/pdf", buffer: Buffer.concat([Buffer.from("%PDF-"), Buffer.alloc(20 * 1024 * 1024 + 100 * 1024)]) };
+  expect((await post(huge)).status()).toBe(413);
+});
+
 test("factory list: name search treats % and _ literally; type and status filters", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto(`/admin/factories?q=${encodeURIComponent("E2E Admin")}&status=hidden`);
