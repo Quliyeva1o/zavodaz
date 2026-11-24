@@ -22,10 +22,16 @@ export function MobileFilterButton({ label, ...dialog }: { label: string } & Omi
         type="button"
         aria-haspopup="dialog"
         onClick={() =>
-          void import("./mobile-filter").then((m) => {
-            setDialog({ C: m.default });
-            setOpen(true);
-          })
+          import("./mobile-filter")
+            .then((m) => {
+              setDialog({ C: m.default });
+              setOpen(true);
+            })
+            // The chunk failed to load: log, and fall back to the no-JS anchor (the sidebar, shown with :target).
+            .catch((error) => {
+              console.error("filter dialog chunk failed to load", error);
+              location.hash = "filtr";
+            })
         }
         className="relative flex h-10 items-center justify-center gap-1.5 rounded-[4px] border border-gray-200 px-[9px] text-body-md text-brand-950 after:absolute after:inset-x-0 after:-inset-y-1 lg:hidden"
       >

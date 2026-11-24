@@ -21,10 +21,16 @@ export function MobileMenu(props: MobileMenuProps) {
         type="button"
         onClick={() => {
           if (matchMedia("(min-width: 1024px)").matches) return;
-          void import("./mobile-menu-dialog").then((m) => {
-            setDialog({ C: m.default });
-            setOpen((n) => n + 1);
-          });
+          import("./mobile-menu-dialog")
+            .then((m) => {
+              setDialog({ C: m.default });
+              setOpen((n) => n + 1);
+            })
+            // The chunk failed to load: log, and jump to the footer links (the page has no other no-JS menu).
+            .catch((error) => {
+              console.error("menu dialog chunk failed to load", error);
+              location.hash = "footer";
+            });
         }}
         aria-haspopup="dialog"
         aria-label={props.labels.open}

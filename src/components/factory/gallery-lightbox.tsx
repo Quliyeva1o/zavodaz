@@ -23,10 +23,17 @@ export function GalleryLightbox({ images, labels, className, children }: { image
         if (!link || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
         const i = Number(link.dataset.index);
-        void import("./lightbox").then((m) => {
-          setBox({ Lightbox: m.Lightbox });
-          setIndex(i);
-        });
+        const href = (link as HTMLAnchorElement).href;
+        import("./lightbox")
+          .then((m) => {
+            setBox({ Lightbox: m.Lightbox });
+            setIndex(i);
+          })
+          // The chunk failed to load (offline, new deploy): behave like the plain link and open the image file.
+          .catch((error) => {
+            console.error("lightbox chunk failed to load", error);
+            location.href = href;
+          });
       }}
     >
       {children}

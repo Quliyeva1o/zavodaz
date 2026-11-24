@@ -40,7 +40,7 @@ export async function Footer({ lang }: { lang: Locale }) {
   const socials = SOCIALS.filter((k) => s.socials[k]);
 
   return (
-    <footer data-figma="footer" className="bg-brand-950 pt-8 pb-6 text-white lg:pt-10">
+    <footer id="footer" data-figma="footer" className="bg-brand-950 pt-8 pb-6 text-white lg:pt-10">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 lg:gap-[37px]">
         {/* Logo + links */}
         <div className="flex flex-col gap-8 px-4 lg:flex-row lg:items-start lg:justify-between lg:px-[60px]">
