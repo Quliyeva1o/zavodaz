@@ -11,10 +11,25 @@ import { Icon } from "./icon";
 export const fieldBox =
   "w-full rounded-[4px] border border-gray-200 bg-white px-[11px] text-brand-950 outline-none placeholder:text-gray-500 hover:bg-gray-50 focus:border-brand-950 focus-visible:border-brand-950 disabled:text-gray-700 aria-invalid:border-red-700 aria-invalid:text-red-700 aria-invalid:placeholder:text-red-700";
 
-/** Label row (52:2200): Subtitle 2/Regular 16/20.8, brand-950; the red asterisk (52:2202) is hidden in the contact form. */
-export function FieldLabel({ id, htmlFor, label, requiredMark }: { id?: string; htmlFor: string; label: string; requiredMark?: boolean }) {
+/**
+ * Label row (52:2200): Subtitle 2/Regular 16/20.8, brand-950; the red asterisk (52:2202) is hidden in the contact form.
+ * `className` replaces the look (catalog filter headings).
+ */
+export function FieldLabel({
+  id,
+  htmlFor,
+  label,
+  requiredMark,
+  className = "flex min-h-[21px] gap-1 text-subtitle-2s text-brand-950",
+}: {
+  id?: string;
+  htmlFor: string;
+  label: string;
+  requiredMark?: boolean;
+  className?: string;
+}) {
   return (
-    <label id={id} htmlFor={htmlFor} className="flex min-h-[21px] gap-1 text-subtitle-2s text-brand-950">
+    <label id={id} htmlFor={htmlFor} className={className}>
       {label}
       {requiredMark && (
         <span aria-hidden className="text-red-700">

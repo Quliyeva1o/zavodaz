@@ -3,7 +3,7 @@ import { revalidateTag, updateTag } from "next/cache";
 import { db } from "@/db";
 import { recordTagInvalidations } from "./tag-store";
 
-export { CONTACT_TAG, FAQ_TAG, pageTag, SETTINGS_TAG, TARIFFS_TAG } from "./tag-store";
+export { CONTACT_TAG, DICTIONARIES_TAG, FACTORIES_TAG, FAQ_TAG, pageTag, SETTINGS_TAG, TARIFFS_TAG } from "./tag-store";
 
 /**
  * Invalidates cache tags in this process (Next.js) and records them in the database, so

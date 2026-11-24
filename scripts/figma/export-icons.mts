@@ -42,6 +42,13 @@ export const ICONS: Record<string, string> = {
   notches: "I153:4673;52:2353",
   "x-brand": "244:9727",
   "check-brand": "I52:2337;9:571",
+  // Catalog (Task 6). Star is 24×24 in the card (mobile 20×20 — same file, scaled). Figma has no empty-star variant
+  // (its 5th star is a filled sample), so the empty star reuses star.svg as a mask.
+  "seal-check": "I281:7099;1054:41911",
+  star: "I281:7099;1054:41920",
+  "star-half": "I281:7099;1054:41926",
+  funnel: "I736:23890;12:481",
+  "caret-left": "737:22008",
 };
 
 const hex = (p: Paint) => {

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { locales, type Locale } from "@/i18n/config";
-import { switchLocalePath } from "@/i18n/routes";
 import { Icon } from "@/components/ui/icon";
 
 type Props = { lang: Locale; labels: Record<Locale, string>; languageLabel: string };
@@ -24,10 +23,13 @@ export function LangSwitcher({ lang, labels, languageLabel }: Props) {
     };
   }, [open]);
 
-  const toggle = () => {
-    // The public URL is only known in the browser (the proxy rewrites it internally).
+  const toggle = async () => {
+    if (open) return setOpen(false);
+    // The public URL is only known in the browser (the proxy rewrites it internally). The route tables are
+    // loaded on the first click, not with the page (R13: JS budget).
+    const { switchLocalePath } = await import("@/i18n/routes");
     setHrefs(Object.fromEntries(locales.map((l) => [l, switchLocalePath(location.pathname, l)])) as Record<Locale, string>);
-    setOpen((v) => !v);
+    setOpen(true);
   };
 
   return (

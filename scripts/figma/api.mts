@@ -85,6 +85,12 @@ export async function exportImages(ids: string[], opts: { format: "png" | "svg";
   return res.images as Record<string, string>;
 }
 
+/** Raw image fills of the file (GET /files/:key/images): imageRef → short-lived download URL. Lower API tier than /images renders. */
+export async function getImageFills() {
+  const res = await figma<{ meta: { images: Record<string, string | null> } }>(`/files/${FILE_KEY}/images`);
+  return res.meta.images;
+}
+
 export async function download(url: string, file: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Download failed ${res.status}: ${url}`);

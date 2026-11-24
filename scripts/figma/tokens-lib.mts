@@ -79,6 +79,9 @@ export function buildThemeCss(colors: Record<string, string>, texts: TextToken[]
   ];
   for (const [name, hex] of Object.entries(colors)) lines.push(`  --color-${name}: ${hex};`);
   lines.push("");
+  lines.push("  /* Figma DROP_SHADOW 0,16,40,0 #8289AE @0.15 — factory card (281:7099) */");
+  lines.push("  --shadow-card: 0 16px 40px 0 rgba(130, 137, 174, 0.15);");
+  lines.push("");
   for (const t of texts) {
     lines.push(`  /* ${t.figma} */`);
     lines.push(`  --text-${t.token}: ${t.fontSize}px;`);
