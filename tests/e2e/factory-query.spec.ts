@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { factories, factoryCertificates, factoryFiles, factoryImages, media, productImages, products, redirects, vacancies } from "../../src/db/schema";
 import { findFactoryBySlug, findProduct, listFactoryProducts, listFactoryVacancies, listSimilarProducts } from "../../src/features/factory/factory-sql";
-import { findRedirect, recordLandingSlugChange, recordSlugChange } from "../../src/features/factory/slug-redirect";
+import { findRedirect, recordLandingSlugChange, recordSlugChange, releaseFactorySlug, releaseLandingSlug } from "../../src/features/factory/slug-redirect";
 
 // Database only (no browser): everything runs inside a transaction that is rolled back (R1/R9: "e2e-f-" rows).
 const client = postgres(process.env.DATABASE_URL!, { max: 1 });
@@ -205,5 +205,20 @@ test("dictionary slug redirects: the landing under every type and language", asy
     expect(await findRedirect(tx, "/fabrikler/e2e-f-city")).toBe("/fabrikler/e2e-f-city-2");
     expect(await findRedirect(tx, "/en/agroparks/e2e-f-city")).toBe("/en/agroparks/e2e-f-city-2");
     expect(await findRedirect(tx, "/ru/zavody/e2e-f-city")).toBe("/ru/zavody/e2e-f-city-2");
+  });
+});
+
+test("a new factory / landing that takes an old slug back releases its redirect rows (the proxy would hide the page)", async () => {
+  await inRolledBackTx(async (tx) => {
+    await recordSlugChange(tx, "e2e-f-old", "e2e-f-new");
+    await recordLandingSlugChange(tx, "e2e-f-town", "e2e-f-town-2");
+    expect(await findRedirect(tx, "/fabrik/e2e-f-old/mehsullar/1519494-ad")).toBe("/fabrik/e2e-f-new/mehsullar/1519494-ad");
+    expect(await releaseFactorySlug(tx, "e2e-f-old")).toBe(true);
+    expect(await findRedirect(tx, "/fabrik/e2e-f-old")).toBeNull();
+    expect(await findRedirect(tx, "/en/factory/e2e-f-old/media")).toBeNull();
+    expect(await findRedirect(tx, "/fabrik/e2e-f-old/mehsullar/1519494-ad")).toBeNull();
+    expect(await releaseFactorySlug(tx, "e2e-f-old")).toBe(false);
+    expect(await releaseLandingSlug(tx, "e2e-f-town")).toBe(true);
+    expect(await findRedirect(tx, "/ru/zavody/e2e-f-town")).toBeNull();
   });
 });

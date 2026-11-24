@@ -33,3 +33,29 @@ test("redirect lookup candidates: the path itself, then its parents (so product 
   assert.deepEqual(redirectCandidates("/x"), []);
   assert.deepEqual(redirectCandidates("/"), []);
 });
+
+test("lookupRedirect: the longest stored prefix wins and the rest of the path is kept", async () => {
+  const { lookupRedirect } = await import("../../src/features/factory/slug-redirect.ts");
+  const map = new Map([
+    ["/fabrik/kohne", "/fabrik/yeni"],
+    ["/fabrik/kohne/mehsullar", "/fabrik/yeni/mehsullar"],
+    ["/en/factory/a/media", "/en/factory/b/media"],
+  ]);
+  assert.equal(lookupRedirect(map, "/fabrik/kohne"), "/fabrik/yeni");
+  assert.equal(lookupRedirect(map, "/fabrik/kohne/"), "/fabrik/yeni");
+  assert.equal(lookupRedirect(map, "/fabrik/kohne/mehsullar/1519494-ad"), "/fabrik/yeni/mehsullar/1519494-ad");
+  assert.equal(lookupRedirect(map, "/en/factory/a/media"), "/en/factory/b/media");
+  assert.equal(lookupRedirect(map, "/en/factory/a"), null);
+  assert.equal(lookupRedirect(map, "/fabrik/basqa"), null);
+  assert.equal(lookupRedirect(map, "/"), null);
+});
+
+test("releasedPaths: the public paths a new factory / landing slug takes back from old redirects", async () => {
+  const { factorySlugPaths, landingSlugPaths } = await import("../../src/features/factory/slug-redirect.ts");
+  const f = factorySlugPaths("e2e-x");
+  assert.equal(f.length, 15);
+  assert.ok(f.includes("/fabrik/e2e-x") && f.includes("/ru/fabrika/e2e-x/vakansii"));
+  const l = landingSlugPaths("baki");
+  assert.equal(l.length, 18);
+  assert.ok(l.includes("/fabrikler/baki") && l.includes("/en/plants/baki"));
+});

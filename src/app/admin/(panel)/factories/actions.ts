@@ -9,7 +9,7 @@ import { FACTORIES_TAG, factoryTag, invalidateTags, REDIRECTS_TAG } from "@/lib/
 import { uniqueSlug } from "@/features/catalog/slug";
 import { factoryRawFromForm, factoryToRaw, parseFactory, tariffRankOf, type FactoryRaw } from "@/features/factories/admin";
 import { coverRef, coverUploadUsable, factorySlugTaken, missingDictRefs, type CoverRef } from "@/features/factories/admin-db";
-import { recordSlugChange } from "@/features/factory/slug-redirect";
+import { recordSlugChange, releaseFactorySlug } from "@/features/factory/slug-redirect";
 import { uploadUsable } from "@/features/factory/admin-content-db";
 import { deleteImage } from "@/features/media/store";
 
@@ -120,7 +120,11 @@ export async function saveFactory(_prev: FactoryState, form: FormData): Promise<
       });
       savedId = id;
     } else {
-      [{ id: savedId }] = await db.insert(factories).values(row).returning({ id: factories.id });
+      // A slug an older factory was renamed away from is live again: its redirect rows go in the same transaction.
+      [savedId, redirectsChanged] = await db.transaction(async (tx) => {
+        const [{ id: newId }] = await tx.insert(factories).values(row).returning({ id: factories.id });
+        return [newId, await releaseFactorySlug(tx, slug)] as const;
+      });
     }
   } catch (e) {
     // The write failed: the new upload would be an orphan. Its cleanup must never hide the original error.

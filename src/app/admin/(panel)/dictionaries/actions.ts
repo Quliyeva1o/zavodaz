@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { DICTIONARIES_TAG, FACTORIES_TAG, invalidateTags, REDIRECTS_TAG } from "@/lib/cache/tags";
 import { DICT_KINDS, dictRawFromForm, isDictKind, parseDictEntry, type DictRaw } from "@/features/catalog/dict-admin";
 import { DICT_TABLES, deleteUnusedDictEntry, LANDING_PEER, usageCount } from "@/features/catalog/dict-admin-db";
-import { recordLandingSlugChange } from "@/features/factory/slug-redirect";
+import { recordLandingSlugChange, releaseLandingSlug } from "@/features/factory/slug-redirect";
 
 export type DictState = { ok?: boolean; error?: string; errors?: Record<string, string>; values?: DictRaw } | undefined;
 
@@ -27,6 +27,7 @@ export async function saveDictEntry(_prev: DictState, form: FormData): Promise<D
   const { slug, name, sort } = parsed.data;
   const table = DICT_TABLES[kind];
   const peer = LANDING_PEER[kind];
+  /** Redirect rows changed (a rename, or a new entry taking back an old landing slug): REDIRECTS_TAG is invalidated. */
   let renamed = false;
 
   try {
@@ -46,7 +47,8 @@ export async function saveDictEntry(_prev: DictState, form: FormData): Promise<D
       }
       if (id === null) {
         await tx.insert(table).values({ slug, name, sort });
-        return "ok" as const;
+        // A landing slug an older city / industry was renamed away from is live again (its redirect rows go).
+        return peer && (await releaseLandingSlug(tx, slug)) ? ("renamed" as const) : ("ok" as const);
       }
       const [before] = await tx.select({ slug: table.slug }).from(table).where(eq(table.id, id)).for("update");
       if (!before) return "missing" as const;

@@ -244,14 +244,16 @@ test("dictionary: a renamed city slug makes its old landings redirect, under eve
   await page.getByRole("button", { name: "Yadda saxla" }).click();
   await expect(page.getByRole("row", { name: /E2E köhnə şəhər/ })).toContainText("e2e-adm-new");
 
-  // With Cache Components the landing check runs after the shell is sent, so the permanent redirect is streamed
-  // (status 200 + NEXT_REDIRECT, which the browser follows), like the R11 soft 404. See the task-1 report.
+  // R2: the proxy answers from its redirect map with a real 301 (refreshed when the redirects tag changes), the query kept.
   for (const [from, to] of [
     ["/fabrikler/e2e-adm-old", "/fabrikler/e2e-adm-new"],
     ["/en/plants/e2e-adm-old", "/en/plants/e2e-adm-new"],
     ["/ru/agroparki/e2e-adm-old", "/ru/agroparki/e2e-adm-new"],
   ]) {
-    expect(await (await request.get(from, { maxRedirects: 0 })).text(), from).toContain(`NEXT_REDIRECT;replace;${to};308;`);
+    const res = await request.get(`${from}?page=2`, { maxRedirects: 0 });
+    expect(res.status(), from).toBe(301);
+    const location = new URL(res.headers().location, "http://localhost");
+    expect(location.pathname + location.search, from).toBe(`${to}?page=2`);
     await page.goto(from);
     await expect(page, from).toHaveURL((url) => url.pathname === to);
   }

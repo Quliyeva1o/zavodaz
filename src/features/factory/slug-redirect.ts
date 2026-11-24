@@ -21,6 +21,25 @@ export function landingSlugRedirects(oldSlug: string, newSlug: string): Redirect
   return locales.flatMap((l) => FACTORY_TYPES.map((t) => ({ from: typeHref(t, l, oldSlug), to: typeHref(t, l, newSlug) })));
 }
 
+/** The redirect sources a factory slug owns (3 languages × factory URL and tabs). */
+export const factorySlugPaths = (slug: string): string[] => locales.flatMap((l) => FACTORY_TABS.map((tab) => factoryHref(slug, l, tab)));
+
+/** The redirect sources a city / industry slug owns (its landing under every type, 3 languages). */
+export const landingSlugPaths = (slug: string): string[] => locales.flatMap((l) => FACTORY_TYPES.map((t) => typeHref(t, l, slug)));
+
+/**
+ * A new factory (or city / industry) takes a slug that an old one was renamed away from: its paths are live again,
+ * so those redirect rows go — the proxy redirects before any page renders and would hide the new page.
+ * Returns whether a row was removed (the caller then invalidates REDIRECTS_TAG).
+ */
+async function releasePaths(db: AnyPgDb, paths: string[]): Promise<boolean> {
+  const gone = await db.delete(redirects).where(inArray(redirects.fromPath, paths)).returning({ from: redirects.fromPath });
+  return gone.length > 0;
+}
+
+export const releaseFactorySlug = (db: AnyPgDb, slug: string) => releasePaths(db, factorySlugPaths(slug));
+export const releaseLandingSlug = (db: AnyPgDb, slug: string) => releasePaths(db, landingSlugPaths(slug));
+
 /**
  * Stores redirects and keeps every chain one hop long:
  * - a path that becomes live again (rename back B → A) stops redirecting;
@@ -75,15 +94,25 @@ export function redirectCandidates(path: string): string[] {
   return out;
 }
 
+/**
+ * Current path for an old one from an in-memory `from → to` map (the proxy's copy of the table). Candidates come
+ * longest first, so the first hit is the longest stored prefix; the rest of the path is kept.
+ */
+export function lookupRedirect(map: ReadonlyMap<string, string>, path: string): string | null {
+  for (const from of redirectCandidates(path)) {
+    const to = map.get(from);
+    // Candidates are whole-segment prefixes of the normalised path, so the rest starts with "/" (or is empty).
+    if (to !== undefined) return to + normalizePath(path).slice(from.length);
+  }
+  return null;
+}
+
 /** Current path for an old one (the longest stored prefix wins, the rest of the path is kept), or null. */
 export async function findRedirect(db: AnyPgDb, path: string): Promise<string | null> {
   const candidates = redirectCandidates(path);
   if (candidates.length === 0) return null;
   const rows = await db.select({ from: redirects.fromPath, to: redirects.toPath }).from(redirects).where(inArray(redirects.fromPath, candidates));
-  if (rows.length === 0) return null;
-  const best = rows.reduce((a, b) => (b.from.length > a.from.length ? b : a));
-  // Candidates are whole-segment prefixes of the normalised path, so the rest starts with "/" (or is empty).
-  return best.to + normalizePath(path).slice(best.from.length);
+  return lookupRedirect(new Map(rows.map((r) => [r.from, r.to])), path);
 }
 
 const normalizePath = (path: string) => "/" + path.split("/").filter(Boolean).join("/");
