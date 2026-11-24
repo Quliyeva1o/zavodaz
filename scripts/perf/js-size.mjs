@@ -11,7 +11,9 @@ const BUDGET = 150_000;
 // Factory page: about (media preview) and the media tab — the YouTube facade and the lightbox trigger are client
 // components; the lightbox itself must not be in the initial JS. PERF_FACTORY = a published factory with a video and photos.
 const FACTORY = process.env.PERF_FACTORY ?? "figma-001";
-const PAGES = ["/", "/kataloq", "/elaqe", `/fabrik/${FACTORY}`, `/fabrik/${FACTORY}/media`];
+// PERF_PRODUCT = "<code>-<slug>" of a published product of that factory (the product page has the gallery trigger).
+const PRODUCT = process.env.PERF_PRODUCT;
+const PAGES = ["/", "/kataloq", "/elaqe", `/fabrik/${FACTORY}`, `/fabrik/${FACTORY}/media`, `/fabrik/${FACTORY}/mehsullar`, ...(PRODUCT ? [`/fabrik/${FACTORY}/mehsullar/${PRODUCT}`] : [])];
 const WIDTHS = [1440, 320];
 
 const browser = await chromium.launch({ channel: "chrome" });
@@ -49,9 +51,9 @@ for (const width of WIDTHS) {
 await browser.close();
 
 console.log(`initial JS, gzip -9, polyfill excluded — budget ${BUDGET.toLocaleString("en")} B`);
-console.log("page                       width  files   total (B)    html (B)");
+console.log("page                                              width  files   total (B)    html (B)");
 for (const r of rows) {
   const n = (v) => v.toLocaleString("en").padStart(11);
-  console.log(`${r.page.padEnd(25)} ${String(r.width).padStart(6)} ${String(r.files).padStart(6)} ${n(r.bytes)} ${n(r.htmlBytes)}  ${r.ok ? "ok" : "OVER"}`);
+  console.log(`${r.page.padEnd(48)} ${String(r.width).padStart(6)} ${String(r.files).padStart(6)} ${n(r.bytes)} ${n(r.htmlBytes)}  ${r.ok ? "ok" : "OVER"}`);
 }
 process.exit(rows.every((r) => r.ok) ? 0 : 1);

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { locales } from "@/i18n/config";
 import { resolvePublicPath } from "@/i18n/routes";
+import { productRedirectFor } from "@/lib/cache/product-proxy";
 import { redirectFor } from "@/lib/cache/redirect-proxy";
 
 // Internal routes whose slugs can be renamed: a factory (with its tabs and products) and a catalog landing.
@@ -21,6 +22,12 @@ export async function proxy(request: NextRequest) {
         const to = await redirectFor(request.nextUrl.pathname);
         if (to) {
           url.pathname = to;
+          return NextResponse.redirect(url, 301);
+        }
+        // A product URL whose slug part is not the product's current one → 301 to the canonical URL.
+        const canonical = await productRedirectFor(resolved.internal);
+        if (canonical) {
+          url.pathname = canonical;
           return NextResponse.redirect(url, 301);
         }
       }

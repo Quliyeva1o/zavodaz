@@ -198,3 +198,14 @@ export async function listFactoryVacancies(db: AnyPgDb, factoryId: string, page:
   ]);
   return { items, total: n, pageCount: pageCountOf(n, size) };
 }
+
+/** Current slug of a published product of a published factory (by factory slug and product code), or null. The proxy's 301 check. */
+export async function findProductSlug(db: AnyPgDb, factorySlug: string, code: number): Promise<string | null> {
+  const [row] = await db
+    .select({ slug: products.slug })
+    .from(products)
+    .innerJoin(factories, eq(factories.id, products.factoryId))
+    .where(and(eq(products.id, code), eq(products.status, "published"), eq(factories.slug, factorySlug), eq(factories.status, "published")))
+    .limit(1);
+  return row?.slug ?? null;
+}

@@ -5,8 +5,11 @@ import {
   factoryFeatures,
   factoryTitle,
   formatDay,
+  formatFileSize,
   organizationJsonLd,
   parsePageParam,
+  productJsonLd,
+  productTitle,
   salaryText,
   websiteLabel,
 } from "../../src/features/factory/view.ts";
@@ -123,4 +126,36 @@ test("Organization JSON-LD: name, url, logo, contacts and socials; no rating (se
   assert.ok(!("aggregateRating" in data));
   const bare = organizationJsonLd(base, { url: "u", origin: "o", description: "" });
   assert.ok(!("logo" in bare) && !("telephone" in bare) && !("sameAs" in bare) && !("description" in bare));
+});
+
+// ---------- Task 4: products ----------
+
+test("formatFileSize: MB per language, one decimal, never 0", () => {
+  assert.equal(formatFileSize(5 * 1024 * 1024, "en"), "5 MB");
+  assert.equal(formatFileSize(Math.round(2.46 * 1024 * 1024), "en"), "2.5 MB");
+  assert.equal(formatFileSize(1_000, "en"), "0.1 MB");
+  assert.match(formatFileSize(Math.round(2.5 * 1024 * 1024), "az"), /^2[,.]5\s?MB$/);
+  assert.match(formatFileSize(Math.round(2.5 * 1024 * 1024), "ru"), /^2,5\s?МБ$/);
+});
+
+test("productTitle names the product and its factory", () => {
+  assert.equal(productTitle("Süd 1 L", "Agro"), "Süd 1 L — Agro | Zavod.az");
+});
+
+test("productJsonLd: Product with name, image, description and the factory as brand; no offers, no rating", () => {
+  const ld = productJsonLd(
+    { id: 1519494, slug: "sud", name: "Süd", description: "Təbii süd", image: null, images: [{ id: "a", variants: [320, 960], blur: "", width: 960, height: 600 }], factoryId: "f1", updatedAt: new Date(0) },
+    { name: "Agro" },
+    { url: "https://zavod.az/fabrik/agro/mehsullar/1519494-sud", origin: "https://zavod.az" },
+  ) as Record<string, unknown>;
+  assert.equal(ld["@type"], "Product");
+  assert.equal(ld.name, "Süd");
+  assert.deepEqual(ld.image, ["https://zavod.az/media/a/960.webp"]);
+  assert.equal(ld.description, "Təbii süd");
+  assert.deepEqual(ld.brand, { "@type": "Brand", name: "Agro" });
+  assert.equal(ld.offers, undefined);
+  assert.equal(ld.aggregateRating, undefined);
+  const bare = productJsonLd({ id: 1, slug: "x", name: "X", description: "", image: null, images: [], factoryId: "f", updatedAt: new Date(0) }, { name: "Agro" }, { url: "u", origin: "o" }) as Record<string, unknown>;
+  assert.equal(bare.image, undefined);
+  assert.equal(bare.description, undefined);
 });

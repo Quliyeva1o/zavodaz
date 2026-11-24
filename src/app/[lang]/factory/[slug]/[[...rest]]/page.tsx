@@ -3,11 +3,19 @@ import { cache, type ReactNode } from "react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { defaultLocale, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
-import { factoryHref, type FactoryTab } from "@/i18n/routes";
+import { factoryHref, productHref, productKey, type FactoryTab } from "@/i18n/routes";
 import { getDictionaries } from "@/features/catalog/queries";
-import { getFactoryBySlug, getFactoryPreview, getFactoryVacancies, resolveRedirect } from "@/features/factory/queries";
+import {
+  getFactoryBySlug,
+  getFactoryPreview,
+  getFactoryProducts,
+  getFactoryVacancies,
+  getProduct,
+  getSimilarProducts,
+  resolveRedirect,
+} from "@/features/factory/queries";
 import type { FactoryPage, Paged, VacancyCard } from "@/features/factory/types";
-import { factoryDescription, factoryTitle, organizationJsonLd, parsePageParam } from "@/features/factory/view";
+import { factoryDescription, factoryTitle, organizationJsonLd, parsePageParam, productJsonLd, productTitle } from "@/features/factory/view";
 import { mediaSrc } from "@/features/media/url";
 import { SITE_NAME } from "@/features/pages/seo-title";
 import { getSessionUser } from "@/lib/auth";
@@ -16,6 +24,7 @@ import { siteUrl } from "@/lib/seo";
 import { JsonLd } from "@/lib/structured-data";
 import { FactoryShell } from "@/components/factory/factory-shell";
 import { AboutTab, CapabilitiesTab, MediaTab, VacanciesTab } from "@/components/factory/factory-tabs";
+import { ProductsTab, ProductView } from "@/components/factory/products";
 
 // Blocking render (R12): `?page` (vacancies) and `?preview=1` are request-time data, and the page must work
 // without JavaScript (content streamed into a Suspense boundary needs JS to show). Data comes from `use cache` queries.
@@ -26,10 +35,12 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 const SUB_TABS = new Set<FactoryTab>(["media", "products", "capabilities", "vacancies"]);
 
-/** Internal rest (proxy rewrite, routes.ts) → tab. The product page (`products/<code>`) arrives with Task 4. */
-function tabOf(rest: string[] | undefined): FactoryTab | null {
-  if (!rest || rest.length === 0) return "about";
-  return rest.length === 1 && SUB_TABS.has(rest[0] as FactoryTab) ? (rest[0] as FactoryTab) : null;
+/** Internal rest (proxy rewrite, routes.ts) → the tab, plus the product code on a product page (`products/<code>-<slug>`). */
+function routeOf(rest: string[] | undefined): { tab: FactoryTab; code?: number } | null {
+  if (!rest || rest.length === 0) return { tab: "about" };
+  if (rest.length === 1) return SUB_TABS.has(rest[0] as FactoryTab) ? { tab: rest[0] as FactoryTab } : null;
+  const code = rest.length === 2 && rest[0] === "products" ? productKey(rest[1]) : null;
+  return code === null ? null : { tab: "products", code };
 }
 
 /**
@@ -48,19 +59,42 @@ const loadFactory = (slug: string, sp: SearchParams) => loadFactoryFor(slug, sp.
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { lang: l, slug, rest } = await params;
   const lang = l as Locale;
-  const tab = tabOf(rest);
-  if (!tab) return {};
+  const route = routeOf(rest);
+  if (!route) return {};
+  const { tab } = route;
   const sp = await searchParams;
   const { factory, preview } = await loadFactory(slug, sp);
   if (!factory) return {};
   const t = dict(lang);
+  if (route.code !== undefined) {
+    const product = await getProduct(factory.id, route.code);
+    if (!product) return {};
+    const urls = localizedPaths((x) => productHref(factory.slug, product, x));
+    const description = factoryDescription(product.description);
+    const title = productTitle(product.name, factory.name);
+    return {
+      title,
+      description: description || undefined,
+      alternates: { canonical: urls[lang], languages: preview ? undefined : { ...urls, "x-default": urls[defaultLocale] } },
+      robots: preview ? { index: false, follow: true } : undefined,
+      openGraph: {
+        type: "website",
+        siteName: SITE_NAME,
+        title,
+        description: description || undefined,
+        url: urls[lang],
+        images: product.images[0] ? [mediaSrc(product.images[0], 960)] : undefined,
+      },
+    };
+  }
   const title = factoryTitle(factory.name, t.factoryType[factory.type], tab === "about" ? undefined : t.factory.tabs[tab]);
   const description = factoryDescription(factory.about);
-  // Every tab is its own canonical URL; "Daha çox göstər" pages (vacancies ?page=N) repeat the first ones: noindex.
-  const page = tab === "vacancies" ? parsePageParam(sp.page) : 1;
+  // Every tab is its own canonical URL. "Daha çox göstər" pages (vacancies ?page=N) repeat the first ones: noindex.
+  // Product list pages (?page=N) are distinct content: indexed, each its own canonical.
+  const page = tab === "vacancies" || tab === "products" ? parsePageParam(sp.page) : 1;
   const query = page > 1 ? `?page=${page}` : "";
   const urls = localizedPaths((x) => factoryHref(factory.slug, x, tab) + query);
-  const noindex = preview || page > 1;
+  const noindex = preview || (tab === "vacancies" && page > 1);
   return {
     title,
     description: description || undefined,
@@ -94,14 +128,30 @@ async function vacanciesUpTo(factoryId: string, page: number): Promise<Paged<Vac
 export default async function FactoryRoute({ params, searchParams }: Props) {
   const { lang: l, slug, rest } = await params;
   const lang = l as Locale;
-  const tab = tabOf(rest);
-  if (!tab) notFound();
+  const route = routeOf(rest);
+  if (!route) notFound();
+  const { tab } = route;
   const sp = await searchParams;
   const { factory, preview } = await loadFactory(slug, sp);
   if (!factory) {
     const to = await resolveRedirect(factoryHref(slug, lang, tab));
     if (to) permanentRedirect(to);
     notFound();
+  }
+  if (route.code !== undefined) {
+    // A product with a wrong slug part never gets here: the proxy answers it with a 301 (and if the proxy could not
+    // check, the page renders and its canonical link names the right URL). Hidden/draft/foreign products: soft 404.
+    const [product, similar] = await Promise.all([getProduct(factory.id, route.code), getSimilarProducts(factory.id, route.code)]);
+    if (!product) notFound();
+    const url = siteUrl + productHref(factory.slug, product, lang);
+    return (
+      <>
+        <JsonLd data={productJsonLd(product, factory, { url, origin: siteUrl })} />
+        <FactoryShell lang={lang} factory={factory} tab={tab} preview={preview} leaf={{ label: product.name, href: productHref(factory.slug, product, lang) }}>
+          <ProductView lang={lang} factory={factory} product={product} similar={similar} />
+        </FactoryShell>
+      </>
+    );
   }
 
   let body: ReactNode = null;
@@ -122,9 +172,13 @@ export default async function FactoryRoute({ params, searchParams }: Props) {
       body = <VacanciesTab lang={lang} factory={factory} list={list} page={page} />;
       break;
     }
-    case "products":
-      // Task 4: PDF catalogues + product grid.
+    case "products": {
+      const page = parsePageParam(sp.page);
+      const list = await getFactoryProducts(factory.id, page);
+      if (page > Math.max(list.pageCount, 1)) notFound();
+      body = <ProductsTab lang={lang} factory={factory} list={list} page={page} />;
       break;
+    }
   }
 
   return (

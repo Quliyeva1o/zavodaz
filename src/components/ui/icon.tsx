@@ -29,7 +29,10 @@ export type IconName =
   | "globe-simple"
   | "map-pin"
   | "star-outline"
-  | "play";
+  | "play"
+  // Products tab: Phosphor "regular" FilePdf / DownloadSimple (hand-placed like the icons above; replace by exports in Task 6).
+  | "file-pdf"
+  | "download-simple";
 export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube" | "tiktok";
 
 export function Icon({ name, size, className }: { name: IconName; size: number; className?: string }) {

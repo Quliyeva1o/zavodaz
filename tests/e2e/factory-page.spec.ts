@@ -341,7 +341,7 @@ test("draft, hidden and unknown factories are not found (soft 404 + noindex); an
   }
   await page.goto("/en/factory/e2e-fp-nope");
   await notFoundShown(page, "Page not found");
-  // A product page arrives with Task 4; an unknown sub path is a real 404 from the proxy.
+  // An unknown sub path is a real 404 from the proxy.
   expect((await page.request.get(`/fabrik/${SLUG}/yox`)).status()).toBe(404);
 
   await loginAsAdmin(page);

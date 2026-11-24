@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { factories, factoryCertificates, factoryFiles, factoryImages, media, productImages, products, redirects, vacancies } from "../../src/db/schema";
-import { findFactoryBySlug, findProduct, listFactoryProducts, listFactoryVacancies, listSimilarProducts } from "../../src/features/factory/factory-sql";
+import { findFactoryBySlug, findProduct, findProductSlug, listFactoryProducts, listFactoryVacancies, listSimilarProducts } from "../../src/features/factory/factory-sql";
 import { findRedirect, recordLandingSlugChange, recordSlugChange, releaseFactorySlug, releaseLandingSlug } from "../../src/features/factory/slug-redirect";
 
 // Database only (no browser): everything runs inside a transaction that is rolled back (R1/R9: "e2e-f-" rows).
@@ -134,6 +134,18 @@ test("product by code: this factory's published one with all images; draft, hidd
     expect(await findProduct(tx, f.id, bySlug("e2e-f-hidden").id)).toBeNull();
     expect(await findProduct(tx, f.id, bySlug("e2e-f-foreign").id)).toBeNull();
     expect(await findProduct(tx, other.id, bySlug("e2e-f-foreign").id)).not.toBeNull();
+  });
+});
+
+test("findProductSlug (proxy 301): the slug of a published product under its own published factory; draft, hidden, foreign factory → null", async () => {
+  await inRolledBackTx(async (tx) => {
+    const { bySlug } = await seed(tx);
+    expect(await findProductSlug(tx, "e2e-f-agro", bySlug("e2e-f-p14").id)).toBe("e2e-f-p14");
+    expect(await findProductSlug(tx, "e2e-f-other", bySlug("e2e-f-p14").id)).toBeNull();
+    expect(await findProductSlug(tx, "e2e-f-agro", bySlug("e2e-f-draft").id)).toBeNull();
+    expect(await findProductSlug(tx, "e2e-f-agro", bySlug("e2e-f-hidden").id)).toBeNull();
+    expect(await findProductSlug(tx, "e2e-f-agro", bySlug("e2e-f-foreign").id)).toBeNull();
+    expect(await findProductSlug(tx, "e2e-f-agro", 1)).toBeNull();
   });
 });
 

@@ -14,7 +14,7 @@ import { VacancyCard } from "./vacancy-card";
 import { VideoFacade } from "./video-facade";
 
 /** Section title: Subtitle 3 Medium (desktop and mobile alike). */
-function Title({ id, children }: { id: string; children: ReactNode }) {
+export function Title({ id, children }: { id: string; children: ReactNode }) {
   return (
     <h2 id={id} className="text-subtitle-3-medium text-brand-950">
       {children}
@@ -163,6 +163,6 @@ export function VacanciesTab({
 }
 
 /** Empty state: the catalog's "nothing found" text style (not in Figma). */
-function Empty({ children }: { children: ReactNode }) {
+export function Empty({ children }: { children: ReactNode }) {
   return <p className="py-[60px] text-center text-subtitle-3 text-gray-500 lg:text-subtitle-1">{children}</p>;
 }

@@ -21,6 +21,7 @@ export function FactoryShell({
   factory,
   tab,
   preview = false,
+  leaf,
   children,
 }: {
   lang: Locale;
@@ -28,6 +29,8 @@ export function FactoryShell({
   tab: FactoryTab;
   /** Admin "Önizlə": tab links keep `?preview=1`. */
   preview?: boolean;
+  /** A page below the factory (a product): the last breadcrumb, and the factory's name becomes a link. */
+  leaf?: { label: string; href: string };
   children: ReactNode;
 }) {
   const t = dict(lang);
@@ -36,16 +39,17 @@ export function FactoryShell({
     { label: t.nav.home, href: href("home", lang) },
     { label: typeLabel, href: typeHref(factory.type, lang) },
   ];
+  const factoryCrumb = { label: factory.name, href: factoryHref(factory.slug, lang) };
+  const visible = leaf ? [...crumbs, factoryCrumb, { label: leaf.label }] : [...crumbs, { label: factory.name }];
+  const structured = [...crumbs, factoryCrumb, ...(leaf ? [leaf] : [])];
   return (
     <main data-figma="factory" className="container-site mt-5 mb-[60px] flex flex-col gap-8 lg:mt-[30px] lg:mb-[120px] lg:gap-[30px]">
-      <JsonLd
-        data={breadcrumbJsonLd([...crumbs.map((c) => ({ name: c.label, url: c.href })), { name: factory.name, url: factoryHref(factory.slug, lang) }])}
-      />
+      <JsonLd data={breadcrumbJsonLd(structured.map((c) => ({ name: c.label, url: c.href })))} />
       <div data-figma="factory-crumbs">
-        <Breadcrumb items={[...crumbs, { label: factory.name }]} label={t.breadcrumb} />
+        <Breadcrumb items={visible} label={t.breadcrumb} />
       </div>
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,893fr)_minmax(0,397fr)] lg:items-start lg:gap-x-[30px] lg:gap-y-0">
-        <FactoryHeader lang={lang} factory={factory} className="lg:col-start-1 lg:row-start-1" />
+        <FactoryHeader lang={lang} factory={factory} heading={!leaf} className="lg:col-start-1 lg:row-start-1" />
         <ContactCard lang={lang} factory={factory} className="lg:col-start-2 lg:row-span-3 lg:row-start-1" />
         <TabNav lang={lang} slug={factory.slug} current={tab} preview={preview} className="lg:col-start-1 lg:row-start-2 lg:mt-8" />
         <div data-figma="factory-content" className="min-w-0 lg:col-start-1 lg:row-start-3 lg:mt-6">

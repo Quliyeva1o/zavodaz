@@ -5,7 +5,7 @@ import { SITE_NAME } from "@/features/pages/seo-title";
 import { mediaSrc } from "@/features/media/url";
 import { SOCIALS } from "@/features/settings/links";
 import type { Dict, Dictionaries } from "@/features/catalog/types";
-import type { FactoryPage } from "./types";
+import type { FactoryPage, ProductPage } from "./types";
 
 /** Figma shows an empty feature as "-". */
 export const EMPTY = "-";
@@ -85,5 +85,29 @@ export function organizationJsonLd(f: FactoryPage, opts: { url: string; origin: 
     ...(f.email ? { email: f.email } : {}),
     ...(f.address ? { address: f.address } : {}),
     ...(sameAs.length ? { sameAs } : {}),
+  };
+}
+
+const MEGABYTE = 1024 * 1024;
+
+/** "2.5 MB" in the page language (Intl, unit megabyte); a tiny file shows "0.1 MB", never "0 MB". */
+export function formatFileSize(bytes: number, lang: Locale): string {
+  return new Intl.NumberFormat(lang, { style: "unit", unit: "megabyte", unitDisplay: "short", maximumFractionDigits: 1 }).format(Math.max(0.1, bytes / MEGABYTE));
+}
+
+/** "Məhsulun adı — Zavod | Zavod.az" */
+export const productTitle = (name: string, factoryName: string) => `${name} — ${factoryName} | ${SITE_NAME}`;
+
+/** schema.org Product (controller: name, image, description, brand = the factory; no offers, no ratings). */
+export function productJsonLd(p: ProductPage, factory: { name: string }, opts: { url: string; origin: string }) {
+  const images = p.images.map((m) => opts.origin + mediaSrc(m, 960));
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    url: opts.url,
+    ...(images.length ? { image: images } : {}),
+    ...(p.description.trim() ? { description: p.description.trim() } : {}),
+    brand: { "@type": "Brand", name: factory.name },
   };
 }

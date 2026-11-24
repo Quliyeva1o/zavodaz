@@ -15,7 +15,8 @@ import { RateButton } from "./rate-button";
  * Figma's DiamondsFour badge (tariff) is not shown: the tariff badge belongs to step 5.
  * The heading is the legal name when there is one ("Agro Trade Supply MMC"; the breadcrumb shows the short name).
  */
-export function FactoryHeader({ lang, factory, className = "" }: { lang: Locale; factory: FactoryPage; className?: string }) {
+export function FactoryHeader({ lang, factory, heading = true, className = "" }: { lang: Locale; factory: FactoryPage; /** false on a page whose own title is the h1 (a product): the name is plain text. */ heading?: boolean; className?: string }) {
+  const Name = heading ? "h1" : "p";
   const t = dict(lang);
   const { cover, logo } = factory;
   const rating = factory.ratingAvg.toFixed(1);
@@ -64,9 +65,9 @@ export function FactoryHeader({ lang, factory, className = "" }: { lang: Locale;
             )}
           </div>
           <div className="flex flex-col gap-1 lg:gap-2">
-            <h1 id="factory-name" className="text-mob-subtitle-2 text-brand-950 [overflow-wrap:anywhere] lg:text-h4">
+            <Name id="factory-name" className="text-mob-subtitle-2 text-brand-950 [overflow-wrap:anywhere] lg:text-h4">
               {factory.legalName || factory.name}
-            </h1>
+            </Name>
             <p className="text-caption-tight text-gray-700 lg:text-subtitle-1">{t.factoryType[factory.type]}</p>
           </div>
         </div>
