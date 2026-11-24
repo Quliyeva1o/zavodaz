@@ -4,6 +4,7 @@ import { mediaSrc, mediaSrcSet } from "@/features/media/url";
 import type { FactoryPage } from "@/features/factory/types";
 import { Stars } from "@/components/catalog/stars";
 import { Icon } from "@/components/ui/icon";
+import { href } from "@/i18n/routes";
 import { RateButton } from "./rate-button";
 
 /**
@@ -78,7 +79,7 @@ export function FactoryHeader({ lang, factory, heading = true, className = "" }:
             </span>
             <Stars rating={factory.ratingAvg} label={t.catalog.rating.replace("{r}", rating)} />
           </div>
-          <RateButton label={t.factory.rate} />
+          <RateButton label={t.factory.rate} slug={factory.slug} labels={t.factory.rating} homeHref={href("home", lang)} />
         </div>
       </div>
     </section>

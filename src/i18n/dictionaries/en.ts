@@ -66,6 +66,23 @@ export const en: Dictionary = {
     sections: "Factory sections",
     tabs: { about: "About", media: "Media", products: "Products", capabilities: "Capabilities", vacancies: "Vacancies" },
     rate: "Rate",
+    rating: {
+      title: "Rate the factory",
+      group: "Rating",
+      star: "{n} star(s)",
+      submit: "Confirm",
+      close: "Close",
+      thanksTitle: "Thank you!",
+      thanksText: "We appreciate your feedback. We keep improving to serve you better — thank you for your support and for taking the time to share your opinion!",
+      home: "To the home page",
+      errors: {
+        invalid: "The score must be from 1 to 5.",
+        rateLimited: "Too many votes. Please try again a little later.",
+        notFound: "This factory cannot be rated.",
+        server: "Something went wrong, please try again.",
+        load: "The window could not be opened, please try again.",
+      },
+    },
     logo: "{name} logo",
     aboutTitle: "About",
     features: {

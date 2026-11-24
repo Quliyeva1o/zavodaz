@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { factories, factoryCertificates, factoryFiles, factoryImages, media, productImages, products, redirects, vacancies } from "../../src/db/schema";
+import { castVote, findVote } from "../../src/features/factory/rating-sql";
 import { findFactoryBySlug, findProduct, findProductSlug, listFactoryProducts, listFactoryVacancies, listSimilarProducts } from "../../src/features/factory/factory-sql";
 import { findRedirect, recordLandingSlugChange, recordSlugChange, releaseFactorySlug, releaseLandingSlug } from "../../src/features/factory/slug-redirect";
 
@@ -232,5 +233,27 @@ test("a new factory / landing that takes an old slug back releases its redirect 
     expect(await releaseFactorySlug(tx, "e2e-f-old")).toBe(false);
     expect(await releaseLandingSlug(tx, "e2e-f-town")).toBe(true);
     expect(await findRedirect(tx, "/ru/zavody/e2e-f-town")).toBeNull();
+  });
+});
+
+test("castVote: the same voter twice → count 1 and the average follows; another voter adds; unpublished is refused", async () => {
+  await inRolledBackTx(async (tx) => {
+    await seed(tx);
+    const one = await castVote(tx, "e2e-f-agro", "voter-a", 2);
+    expect(one).toMatchObject({ avg: 2, count: 1 });
+    const changed = await castVote(tx, "e2e-f-agro", "voter-a", 5);
+    expect(changed).toMatchObject({ avg: 5, count: 1 });
+    expect(await findVote(tx, "e2e-f-agro", "voter-a")).toBe(5);
+    expect(await findVote(tx, "e2e-f-agro", "voter-b")).toBeNull();
+    const two = await castVote(tx, "e2e-f-agro", "voter-b", 4);
+    expect(two).toMatchObject({ avg: 4.5, count: 2 });
+    const [row] = await tx.select({ avg: factories.ratingAvg, count: factories.ratingCount }).from(factories).where(eq(factories.slug, "e2e-f-agro"));
+    expect(row).toEqual({ avg: 4.5, count: 2 });
+    // Hidden and unknown factories cannot be rated.
+    expect(await castVote(tx, "e2e-f-hidden", "voter-a", 3)).toBeNull();
+    expect(await castVote(tx, "e2e-f-nope", "voter-a", 3)).toBeNull();
+    expect(await findVote(tx, "e2e-f-hidden", "voter-a")).toBeNull();
+    // The CHECK constraint is the last line of defence.
+    await expect(castVote(tx, "e2e-f-other", "voter-a", 6)).rejects.toThrow();
   });
 });

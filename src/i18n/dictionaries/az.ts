@@ -64,6 +64,23 @@ export const az = {
     sections: "Zavod bölmələri",
     tabs: { about: "Haqqında", media: "Media", products: "Məhsullar", capabilities: "Texniki imkanlar", vacancies: "Vakansiyalar" },
     rate: "Qiymətləndir",
+    rating: {
+      title: "Fabriki qiymətləndirin",
+      group: "Reytinq",
+      star: "{n} ulduz",
+      submit: "Təsdiqlə",
+      close: "Bağla",
+      thanksTitle: "Təşəkkür edirik!",
+      thanksText: "Rəy bildirdiyiniz üçün minnətdarıq. Sizə daha yaxşı xidmət göstərmək üçün daim inkişaf edirik — dəstəyiniz və vaxt ayırıb dəyərli fikrinizi bildirdiyiniz üçün təşəkkür edirik!",
+      home: "Ana səhifəyə",
+      errors: {
+        invalid: "Qiymət 1-dən 5-ə qədər olmalıdır.",
+        rateLimited: "Çox səs verildi. Bir az sonra yenidən yoxlayın.",
+        notFound: "Bu zavod qiymətləndirilə bilməz.",
+        server: "Xəta baş verdi, yenidən cəhd edin.",
+        load: "Pəncərəni açmaq mümkün olmadı, yenidən cəhd edin.",
+      },
+    },
     logo: "{name} loqosu",
     aboutTitle: "Haqqında məlumat",
     features: {
