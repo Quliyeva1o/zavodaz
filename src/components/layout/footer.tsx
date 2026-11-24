@@ -5,11 +5,9 @@ import { dict } from "@/i18n/dictionaries";
 import { href } from "@/i18n/routes";
 import { getSiteSettings } from "@/features/settings/queries";
 import { SOCIALS } from "@/features/settings/schema";
-import { telHref } from "@/features/settings/links";
+import { SOCIAL_LABELS, telHref } from "@/features/settings/links";
 import { SocialIcon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
-
-const SOCIAL_LABELS = { facebook: "Facebook", instagram: "Instagram", linkedin: "LinkedIn", x: "X", youtube: "YouTube", tiktok: "TikTok" };
 
 export async function Footer({ lang }: { lang: Locale }) {
   const s = await getSiteSettings();

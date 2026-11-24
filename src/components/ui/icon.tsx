@@ -23,7 +23,13 @@ export type IconName =
   | "star"
   | "star-half"
   | "funnel"
-  | "caret-left";
+  | "caret-left"
+  // Factory page (step 3). The Figma API was rate-limited (export-icons needs it): globe-simple, map-pin and
+  // star-outline are the Phosphor "regular" icons the Figma file uses, play is the Figma "Play" circle redrawn.
+  | "globe-simple"
+  | "map-pin"
+  | "star-outline"
+  | "play";
 export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube" | "tiktok";
 
 export function Icon({ name, size, className }: { name: IconName; size: number; className?: string }) {
