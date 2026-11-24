@@ -28,6 +28,7 @@
     "figma:icons": "node --env-file-if-exists=.env.local --import tsx scripts/figma/export-icons.mts",
     "figma:references": "node --env-file-if-exists=.env.local --import tsx scripts/figma/export-references.mts",
     "perf:catalog": "node --env-file-if-exists=.env.local --import tsx scripts/perf/catalog.mts",
+    "perf:factory": "node --env-file-if-exists=.env.local --import tsx scripts/perf/factory.mts",
     "perf:js": "node scripts/perf/js-size.mjs",
     "visual:capture": "node tests/visual/capture.mjs",
     "visual:geometry": "node --env-file-if-exists=.env.local --import tsx tests/visual/geometry.mjs",
