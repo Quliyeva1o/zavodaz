@@ -11,7 +11,7 @@ test("signed-out visitor is sent to the login page", async ({ page }) => {
 });
 
 test("every admin section sends a signed-out visitor to the login page", async ({ page }) => {
-  for (const path of ["/admin", "/admin/pages", "/admin/pages/terms", "/admin/faq", "/admin/tariffs", "/admin/contact", "/admin/submissions", "/admin/settings"]) {
+  for (const path of ["/admin", "/admin/pages", "/admin/pages/terms", "/admin/faq", "/admin/tariffs", "/admin/contact", "/admin/submissions", "/admin/settings", "/admin/factories", "/admin/factories/new", "/admin/factories/00000000-0000-4000-8000-000000000000", "/admin/dictionaries", "/admin/dictionaries/cities"]) {
     await page.context().clearCookies();
     await page.goto(path);
     await expect(page, path).toHaveURL(/\/admin\/login$/);

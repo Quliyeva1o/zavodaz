@@ -1,4 +1,5 @@
-import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, real, serial, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import type { Localized } from "@/i18n/config";
 import type { RichDoc } from "@/features/pages/types";
 
@@ -112,4 +113,84 @@ export const contactMessages = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("contact_messages_created_idx").on(t.createdAt)],
+);
+
+// ---------- Catalog: filter dictionaries, media, factories (step 2) ----------
+
+export const factoryType = pgEnum("factory_type", ["zavod", "fabrik", "sex", "emalatxana", "kombinat", "aqropark"]);
+export const factoryStatus = pgEnum("factory_status", ["draft", "published", "hidden"]);
+
+const dictColumns = () => ({
+  id: serial("id").primaryKey(),
+  /** Same in every language (spec §5), unique per dictionary. */
+  slug: text("slug").notNull().unique(),
+  name: jsonb("name").$type<Localized>().notNull(),
+  sort: integer("sort").notNull().default(0),
+});
+export const dictCities = pgTable("dict_cities", dictColumns());
+export const dictIndustries = pgTable("dict_industries", dictColumns());
+export const dictProductTypes = pgTable("dict_product_types", dictColumns());
+export const dictProductionModels = pgTable("dict_production_models", dictColumns());
+
+/** Uploaded images (spec §6.5): WebP variants + blur placeholder, files under UPLOAD_DIR/<id>/. */
+export const media = pgTable("media", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  kind: text("kind").notNull(), // image
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  /** Widths that exist as `<id>/<w>.webp`, ascending. */
+  variants: jsonb("variants").$type<number[]>().notNull(),
+  blur: text("blur").notNull(), // data:image/webp;base64,…
+  size: integer("size").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const factories = pgTable(
+  "factories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }), // step 6
+    type: factoryType("type").notNull(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    /** Figma anket "Haqqında 0/400"; the card shows the first two lines. */
+    about: text("about").notNull().default(""),
+    industryId: integer("industry_id").references(() => dictIndustries.id, { onDelete: "set null" }),
+    productTypeId: integer("product_type_id").references(() => dictProductTypes.id, { onDelete: "set null" }),
+    cityId: integer("city_id").references(() => dictCities.id, { onDelete: "set null" }),
+    productionModelIds: integer("production_model_ids").array().notNull().default(sql`'{}'::int[]`),
+    cooperation: text("cooperation").array().notNull().default(sql`'{}'::text[]`),
+    coverId: uuid("cover_id").references(() => media.id, { onDelete: "set null" }),
+    verified: boolean("verified").notNull().default(false),
+    status: factoryStatus("status").notNull().default("draft"),
+    tariffCode: text("tariff_code").notNull().default("standart"),
+    tariffUntil: timestamp("tariff_until", { withTimezone: true }),
+    /** 2 vip, 1 premium, 0 otherwise — set on save; step 9 cron resets expired ones. */
+    tariffRank: smallint("tariff_rank").notNull().default(0),
+    ratingAvg: real("rating_avg").notNull().default(0),
+    ratingCount: integer("rating_count").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [
+    // Default order (user decision 2026-11-17): VIP → Premium → rest, verified first, newest first.
+    index("factories_pub_default_idx")
+      .on(t.tariffRank.desc().nullsFirst(), t.verified.desc().nullsFirst(), t.createdAt.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
+    index("factories_pub_type_idx")
+      .on(t.type, t.tariffRank.desc().nullsFirst(), t.verified.desc().nullsFirst(), t.createdAt.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
+    // Must match ORDER BY exactly (catalog-sql.ts). Postgres: DESC means NULLS FIRST in ORDER BY, so DESC index columns
+    // are declared NULLS FIRST (drizzle defaults to NULLS LAST, which the planner cannot use for ORDER BY ... DESC).
+    index("factories_pub_rating_desc_idx")
+      .on(t.ratingAvg.desc().nullsFirst(), t.ratingCount.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
+    index("factories_pub_rating_asc_idx")
+      .on(t.ratingAvg, t.ratingCount.desc().nullsFirst(), t.id.desc().nullsFirst())
+      .where(sql`${t.status} = 'published'`),
+    index("factories_city_idx").on(t.cityId),
+    index("factories_industry_idx").on(t.industryId),
+    index("factories_product_type_idx").on(t.productTypeId),
+    index("factories_models_gin").using("gin", t.productionModelIds),
+    index("factories_coop_gin").using("gin", t.cooperation),
+  ],
 );

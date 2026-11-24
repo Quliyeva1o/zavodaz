@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   experimental: buildCpus ? { cpus: buildCpus, staticGenerationMaxConcurrency: 2 } : {},
   output: "standalone",
   outputFileTracingRoot: process.cwd(),
+  // src/lib/env.ts builds the upload dir from process.cwd() ("uploads"): the tracer would pull the local files into standalone.
+  outputFileTracingExcludes: { "/*": ["./uploads/**/*"] },
   poweredByHeader: false,
   cacheComponents: true,
   // Images are resized once at upload (sharp); the server never resizes per request (1 CPU).

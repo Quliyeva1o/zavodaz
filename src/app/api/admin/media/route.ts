@@ -1,0 +1,52 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { getSessionUser } from "@/lib/auth";
+import { siteUrl } from "@/lib/env";
+import { saveImage } from "@/features/media/store";
+import { BodyTooLargeError, isSameOrigin, readCapped, UPLOAD_BODY_LIMIT } from "@/features/media/upload-body";
+
+/**
+ * POST /api/admin/media — admin cover upload (R18). Multipart, a single `file` field.
+ * 201 { id, variants } | 401 { error: "auth" } | 403 { error: "origin" } |
+ * 413 { error: "size" } | 415 { error: "type" } | 422 { error: "decode" } | 400 { error: "decode" } (bad multipart).
+ *
+ * Kept out of server actions, so the action body limit stays at Next's default 1 MB for every action
+ * (the public contact form included). Not under the proxy matcher (/api is skipped), so nothing buffers the body first.
+ */
+export async function POST(request: NextRequest) {
+  // Same check as requireAdmin(), but a fetch() caller gets 401 JSON instead of a redirect to the login HTML.
+  const user = await getSessionUser();
+  if (!user || user.role !== "admin") return json({ error: "auth" }, 401);
+
+  // CSRF: a non-action route has no built-in Origin check (the session cookie is SameSite as well).
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!isSameOrigin(request.headers.get("origin"), host, new URL(siteUrl).origin)) return json({ error: "origin" }, 403);
+
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > UPLOAD_BODY_LIMIT) return json({ error: "size" }, 413);
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("multipart/form-data")) return json({ error: "type" }, 415);
+
+  let body: Uint8Array;
+  try {
+    // Counts the bytes actually received: a missing or false Content-Length cannot get past the limit.
+    body = await readCapped(request.body, UPLOAD_BODY_LIMIT);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return json({ error: "size" }, 413);
+    throw e;
+  }
+
+  let form: FormData;
+  try {
+    form = await new Response(body as BodyInit, { headers: { "content-type": contentType } }).formData();
+  } catch {
+    return json({ error: "decode" }, 400);
+  }
+  const files = form.getAll("file");
+  if (files.length !== 1 || !(files[0] instanceof File)) return json({ error: "type" }, 415);
+
+  const saved = await saveImage(files[0]);
+  if ("error" in saved) return json(saved, saved.error === "size" ? 413 : saved.error === "type" ? 415 : 422);
+  return json(saved, 201);
+}
+
+const json = (data: unknown, status: number) => NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });

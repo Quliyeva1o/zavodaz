@@ -36,6 +36,9 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    env `NODE_OPTIONS=--max-old-space-size=768 --v8-pool-size=2` → Create → Start. ("Run NPM Install" basma.)
 8. **.htaccess:** `~/zavod-public/.htaccess`-in ən yuxarısına `htaccess.txt`-dəki qaydalar (`zavod.az` əvəzinə `new.zavod.az`).
 9. **Backup cron:** `45 3 * * * bash $HOME/zavod-src/deploy/cpanel/backup.sh >> $HOME/backups/zavod/backup.log 2>&1`
+   **Şəkil təmizləmə cron-u:** admin formunda yüklənib saxlanmayan (tərk edilmiş) şəkilləri 24 saatdan sonra silir:
+   `30 4 * * * cd $HOME/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH UPLOAD_DIR=$HOME/zavod-app/shared/uploads npm run --silent media:sweep >> $HOME/zavod-app/shared/media-sweep.log 2>&1`
+   (`UPLOAD_DIR` `.env`-dəkindən fərqlidirsə, burada da eynisini yaz.)
 10. **Yoxla:** https://new.zavod.az — header/footer, dillər, /admin girişi, robots.txt `Disallow: /`.
 
 ## B. Yeniləmə
@@ -43,6 +46,9 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
 Build 1 CPU-da bir neçə dəqiqə çəkir — yeniləmələri axşam/gecə et.
 
 ## Bilmək lazım olanlar
+- **Yüklənmiş şəkillər** `UPLOAD_DIR`-dədir (`app.js` default olaraq `~/zavod-app/shared/uploads` verir; başqa yer lazımdırsa app qovluğundan kənarda mütləq yol yaz, məs. `~/zavod-uploads`). Production-da bu dəyişən məcburidir. `deploy.sh` və `rollback.sh` bu qovluğu silmir və əvəz etmir; əl ilə də `releases/` altına qoyma. `deploy.sh`-dakı `~/zavod-public/media` symlink-i və `media.htaccess` `shared/uploads`-a işarə edir: `UPLOAD_DIR` köçürülsə, onlar da (symlink hədəfi və `.htaccess` surəti) birlikdə köçürülməlidir. `backup.sh` yalnız `shared/uploads`-u yedəkləyir, başqa yol seçsən yedəyi də ona uyğunlaşdır.
+- **Lüğət (şəhər, sahə, məhsul tipi, istehsalat modeli) tamamilə boşaldılsa**, növbəti `deploy.sh` seed-i onu yenidən doldurur (R6): boş lüğət səhv deyil, ilkin siyahı qayıdır. Qəsdən boş saxlamaq mümkün deyil; lazımsız yazıları ayrı-ayrı sil.
+- **Host body limiti**: `/api/admin/media` (örtük şəkli yükləmə) 8 MB faylı + multipart başlığını qəbul edir, yəni LiteSpeed/Apache body limiti ≥ 8,1 MB olmalıdır (`LimitRequestBody`, LiteSpeed "Max Request Body Size"). İlk deploy-dan sonra admin paneldən bir real örtük şəkli yükləyib yoxla; 413 gəlirsə limiti qaldır.
 - Yaddaş limiti 768 MB-dır (marketinq 1024): hesabda 4 GB RAM 3+ Node tətbiqi arasında bölünür.
 - Thread limiti 150-dir: `deploy.sh` thread hovuzlarını kiçildir; `check-server.sh` cari istifadəni göstərir.
 

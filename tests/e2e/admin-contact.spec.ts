@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
-import { loginAsAdmin } from "./db";
+import { gotoHydrated, loginAsAdmin } from "./db";
 
 const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
 test.afterAll(() => sql.end());
@@ -11,7 +11,7 @@ test.use({ viewport: { width: 1440, height: 900 } });
 
 test("admin changes the Premium price; the tariffs page shows it", async ({ page }) => {
   await loginAsAdmin(page);
-  await page.goto("/admin/tariffs");
+  await gotoHydrated(page, "/admin/tariffs");
   const price = page.getByLabel("Premium — aylıq qiymət (₼)");
   const original = await price.inputValue();
   try {
@@ -21,7 +21,7 @@ test("admin changes the Premium price; the tariffs page shows it", async ({ page
     await page.goto("/tarifler");
     await expect(page.getByText("8.49₼")).toBeVisible();
   } finally {
-    await page.goto("/admin/tariffs");
+    await gotoHydrated(page, "/admin/tariffs");
     await page.getByLabel("Premium — aylıq qiymət (₼)").fill(original);
     await page.getByRole("button", { name: "Premium — yadda saxla" }).click();
     await expect(page.getByText("Yadda saxlanıldı")).toBeVisible();
@@ -30,7 +30,7 @@ test("admin changes the Premium price; the tariffs page shows it", async ({ page
 
 test("an invalid price keeps the typed values and shows the error", async ({ page }) => {
   await loginAsAdmin(page);
-  await page.goto("/admin/tariffs");
+  await gotoHydrated(page, "/admin/tariffs");
   await page.getByLabel("Premium — aylıq qiymət (₼)").fill("abc");
   await page.getByRole("button", { name: "Premium — yadda saxla" }).click();
   await expect(page.getByText("Qiymət formatı: 7.99").first()).toBeVisible();
@@ -39,7 +39,7 @@ test("an invalid price keeps the typed values and shows the error", async ({ pag
 
 test("notify email gets the contact message (Mailpit) and admin sees it unread", async ({ page, request }) => {
   await loginAsAdmin(page);
-  await page.goto("/admin/contact");
+  await gotoHydrated(page, "/admin/contact");
   const originalEmails = await page.getByLabel("Bildiriş e-mailləri").inputValue();
   await page.getByLabel("Bildiriş e-mailləri").fill("admin@zavod.test");
   try {
@@ -48,7 +48,7 @@ test("notify email gets the contact message (Mailpit) and admin sees it unread",
 
     await request.delete("http://localhost:8027/api/v1/messages");
     const email = `mail-${Date.now()}@test.az`;
-    await page.goto("/elaqe");
+    await gotoHydrated(page, "/elaqe");
     await page.getByLabel("Adınız", { exact: true }).fill("Rəşad");
     await page.getByLabel("Soyadınız").fill("Əliyev");
     await page.getByLabel("E-mail").fill(email);
@@ -65,7 +65,7 @@ test("notify email gets the contact message (Mailpit) and admin sees it unread",
       .poll(async () => (await (await request.get("http://localhost:8027/api/v1/messages")).json()).total, { timeout: 10_000 })
       .toBeGreaterThan(0);
 
-    await page.goto("/admin/submissions");
+    await gotoHydrated(page, "/admin/submissions");
     const row = page.getByRole("row", { name: new RegExp(email) });
     await expect(row).toContainText("Əməkdaşlıq");
     await expect(row.getByText("Yeni")).toBeVisible();
@@ -81,7 +81,7 @@ test("notify email gets the contact message (Mailpit) and admin sees it unread",
     await page.getByRole("button", { name: "Bəli, sil" }).click();
     await expect(page.getByRole("row", { name: new RegExp(email) })).toHaveCount(0);
   } finally {
-    await page.goto("/admin/contact");
+    await gotoHydrated(page, "/admin/contact");
     await page.getByLabel("Bildiriş e-mailləri").fill(originalEmails);
     await page.getByRole("button", { name: "Yadda saxla" }).click();
     await expect(page.getByText("Yadda saxlanıldı")).toBeVisible();
@@ -90,7 +90,7 @@ test("notify email gets the contact message (Mailpit) and admin sees it unread",
 
 test("a new topic keeps its generated id when renamed and saved again", async ({ page }) => {
   await loginAsAdmin(page);
-  await page.goto("/admin/contact");
+  await gotoHydrated(page, "/admin/contact");
   const n = Number(await page.locator('input[name="topics.count"]').inputValue()) + 1;
   const storedIds = async () =>
     (await sql`select value->'topics' as t from site_settings where key = 'contact'`)[0].t.map((x: { id: string }) => x.id) as string[];
@@ -113,7 +113,7 @@ test("a new topic keeps its generated id when renamed and saved again", async ({
     expect(ids[n - 1]).toBe("sinaq-movzusu"); // renamed, id unchanged
     expect(new Set(ids).size).toBe(ids.length);
   } finally {
-    await page.goto("/admin/contact");
+    await gotoHydrated(page, "/admin/contact");
     if (Number(await page.locator('input[name="topics.count"]').inputValue()) >= n) {
       await page.getByRole("button", { name: `Mövzu ${n} — sil` }).click();
       await page.getByRole("button", { name: "Yadda saxla" }).click();
@@ -124,7 +124,7 @@ test("a new topic keeps its generated id when renamed and saved again", async ({
 
 test("contact settings reject an invalid notify email and keep the typed value", async ({ page }) => {
   await loginAsAdmin(page);
-  await page.goto("/admin/contact");
+  await gotoHydrated(page, "/admin/contact");
   await page.getByLabel("Bildiriş e-mailləri").fill("yanlis");
   await page.getByRole("button", { name: "Yadda saxla" }).click();
   await expect(page.getByText("E-mail düzgün deyil: yanlis")).toBeVisible();

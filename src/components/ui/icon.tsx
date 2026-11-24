@@ -18,7 +18,12 @@ export type IconName =
   | "warning-circle"
   | "notches"
   | "x-brand"
-  | "check-brand";
+  | "check-brand"
+  | "seal-check"
+  | "star"
+  | "star-half"
+  | "funnel"
+  | "caret-left";
 export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube" | "tiktok";
 
 export function Icon({ name, size, className }: { name: IconName; size: number; className?: string }) {

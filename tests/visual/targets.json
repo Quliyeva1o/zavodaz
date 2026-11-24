@@ -241,7 +241,249 @@
       "Müraciət et"
     ],
     "ignoreReason": "\"Type here...\", \"Mesajınızı daxil edin\": input/textarea placeholder-i ::placeholder-dədir, DOM mətni deyil (R11). \"0/200\", \"Müraciət et\": Figma JSON-da instance daxili həndəsəsi köhnədir (komponent eni 303 ilə hesablanıb: mobil Dropdown/Textarea Frame 8 288-lik instance içində 303 en; Button 153:4674/692:19345 cross=CENTER olduğu halda mətn sol padding-dədir) — real 605/288 en üçün hesablanan yer saytdakı ilə eynidir (sayğac mobil 225 vs 225.64; düymə 1035 vs 1035.59); vizual referansla yoxlanılacaq",
-    "maxDiff": 3.0,
+    "maxDiff": 3,
     "maxDiffReason": "Figma placeholder-ləri \"Type here...\" saytda real placeholder-lərdir (R11), \"Movzu\"→\"Mövzu\" alias; qalanı mətn rasterizasiyası"
+  },
+  {
+    "name": "catalog",
+    "bp": "desktop",
+    "node": "273:6507",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog]",
+    "relayout": true,
+    "relayoutReason": "Dropdown instance-larında (281:7018, 281:7021, 281:7024, 281:7027) gizli label hələ də yer tutur: saxlanmış qutu və \"Hamısı\" mətni 27px aşağıdadır, halbuki instance 40px HUG-dur; relayout onları −27px qaldırır (render-də belədir, 449:14064-də data artıq düzgündür)",
+    "aliases": {
+      "KOMBİNAT": "Kombinat",
+      "fabrİk": "Fabrik",
+      "AQROPARK": "Aqropark",
+      "emalatxana": "Emalatxana",
+      "SEX": "Sex",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "zavodlar",
+    "bp": "desktop",
+    "node": "299:7696",
+    "path": "/zavodlar",
+    "selector": "[data-figma=catalog]",
+    "relayout": true,
+    "relayoutReason": "Dropdown instance-larında (299:7719, 299:7722, 299:7725, 299:7728) gizli label hələ də yer tutur: saxlanmış qutu və \"Hamısı\" mətni 27px aşağıdadır, halbuki instance 40px HUG-dur; relayout onları −27px qaldırır (render-də belədir, 449:14064-də data artıq düzgündür)",
+    "aliases": {
+      "Kataloq": "Zavodlar",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "H1 = səhifənin öz adı \"Zavodlar\" (R17; Figma 299:7704 \"Kataloq\" kataloqdan köçürülmə qalıb). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "recommended",
+    "bp": "desktop",
+    "node": "449:14064",
+    "path": "/kataloq/tovsiyye-edilenler",
+    "selector": "[data-figma=catalog]",
+    "aliases": {
+      "Tövsiyyə edilənlər": "Tövsiyə edilənlər",
+      "KOMBİNAT": "Kombinat",
+      "fabrİk": "Fabrik",
+      "AQROPARK": "Aqropark",
+      "emalatxana": "Emalatxana",
+      "SEX": "Sex",
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Figma yazı xətası \"Tövsiyyə\" → \"Tövsiyə\" (R17). Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "catalog-crumbs",
+    "bp": "mobile",
+    "node": "736:23865",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-crumbs]"
+  },
+  {
+    "name": "catalog-top",
+    "bp": "mobile",
+    "node": "736:23868",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-body]",
+    "crop": 422,
+    "relayout": true,
+    "relayoutReason": "Filtr düyməsi 736:23890 (VERTICAL, CENTER/CENTER): içindəki HUG sətir I736:23890;12:480 (Funnel + \"Filtr\", CaretDown gizli) saxlanmış datada 102 en ilə sol kənardadır; HUG ölçüsü 55 ilə ortalanır → \"Filtr\" mətni +106.5px sağa (Əlaqə düyməsi ilə eyni hal, referans PNG ortalanmış göstərir)",
+    "aliases": {
+      "KOMBİNAT": "Kombinat",
+      "Lorem ipsum dolor sit amet, consectetur...": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor..."
+    },
+    "aliasReason": "Kart tip yazısı: DOM-da lüğət sözü (\"Fabrik\"), böyük hərf CSS uppercase ilə (R2); Figma mətni qarışıq yazılıb (\"fabrİk\", \"emalatxana\", \"KOMBİNAT\"). Mobil təsvir: Figma 1 sətrə sığdırıb \"...\" əl ilə yazıb; saytda tam mətn CSS line-clamp-1 ilə kəsilir",
+    "refOffset": [
+      24,
+      0
+    ],
+    "refOffsetReason": "Figma export-u kartların kölgəsini (DROP_SHADOW 0/16/40) çərçivədən kənara çıxarır: 368 = 320 + 2×24; node qutusu export-da x=24-dən başlayır",
+    "cropReason": "Mobil Figma 736:23868 8 kartlıq siyahı + səhifələmədir (2846px), sayt 15 kart/səhifə verir (eyni URL desktop ilə, PAGE_SIZE 15) — aşağı hissə müqayisə oluna bilməz. Yuxarı 422px: başlıq, Filtr düyməsi, ilk kart; səhifələmə ayrıca hədəfdir (catalog-pagination)"
+  },
+  {
+    "name": "catalog-pagination",
+    "bp": "mobile",
+    "node": "736:24508",
+    "path": "/kataloq",
+    "selector": "[data-figma=catalog-pagination]"
+  },
+  {
+    "name": "filter-list",
+    "bp": "mobile",
+    "node": "737:22004",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+    "aliases": {
+      "Filtrı sıfırla": "Filtri sıfırla"
+    },
+    "aliasReason": "Figma yazı xətası \"Filtrı\" → \"Filtri\""
+  },
+  {
+    "name": "filter-type",
+    "bp": "mobile",
+    "node": "758:22171",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsalın tipi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 758:22171: köhnə \"Dropdown Item\" instance-larında (761:22598…761:22602) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 5 seçim mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)",
+    "aliases": {
+      "Kombinatlar": "Kombinat",
+      "Aqroparklar": "Aqropark"
+    },
+    "aliasReason": "Tip checkbox-ları: Figma-da son ikisi cəm (\"Kombinatlar\", \"Aqroparklar\"), digərləri tək (\"Zavod\", \"Fabrik\"); sayt hamısını tək yazır (lüğət factoryType)"
+  },
+  {
+    "name": "filter-industry",
+    "bp": "mobile",
+    "node": "759:22238",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsal sahəsi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 759:22238: köhnə \"Dropdown Item\" instance-larında (761:22376, 761:22333…) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 11 seçim (ciddi yoxlanılan \"Hamısı\" daxil) mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)",
+    "ignore": [
+      "Metal emalı",
+      "Maşınqayırma",
+      "Tekstil (Toxuculuq)",
+      "Qida sənayesi",
+      "Kimya sənayesi",
+      "Plastik və polimer emalı",
+      "Tikinti materialları istehsalı",
+      "Kənd təsərrüfatı istehsalı",
+      "Ağac və mebel istehsalı",
+      "Enerji və alternativ enerji istehsalı"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore",
+    "maxDiff": 3.7,
+    "maxDiffReason": "R22: Figma siyahısında sətir addımı 36/37 qarışıqdır, sayt 36 saxlayır; 7-ci sətirdən aşağı mətnlər 1–5px yuxarıdadır (ölçülən 3.23%)",
+    "minTexts": 2
+  },
+  {
+    "name": "filter-city",
+    "bp": "mobile",
+    "node": "761:22414",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Şəhər / Region\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 761:22414: köhnə \"Dropdown Item\" instance-larında (761:22423…) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 13 seçim (ciddi yoxlanılan \"Hamısı\" daxil) mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)",
+    "ignore": [
+      "Ağcabədi",
+      "Ağdam",
+      "Ağdaş",
+      "Ağdərə",
+      "Ağstafa",
+      "Ağsu",
+      "Astara",
+      "Babək",
+      "Bakı",
+      "Beyləqan",
+      "Bərdə",
+      "Biləsuvar"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore (R5: şəhər siyahısı tam əlifba sırasıdır, Figma nümunə məlumat göstərir — bu sətirlər onsuz da fərqlidir)",
+    "minTexts": 2
+  },
+  {
+    "name": "filter-product",
+    "bp": "mobile",
+    "node": "761:22520",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Məhsul tipi\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 761:22520: köhnə \"Dropdown Item\" instance-larında (761:22529…) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 8 seçim (ciddi yoxlanılan \"Hamısı\" daxil) mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)",
+    "ignore": [
+      "Ərzaq məhsulları",
+      "Sənaye avadamlıqları",
+      "Əlvan metallar və profillər",
+      "Paltar və tekstil məhsulları",
+      "Plastik və qablaşdırma məhsulları",
+      "Elektirk avadanlıqlar",
+      "Tikinti materialları"
+    ],
+    "ignoreReason": "R22: Figma bir siyahıda 20px və 21px sətirləri qarışdırır (köhnə \"Dropdown Item\" instance-ları 20, sonrakılar 21 → addım 36/37; canlı render də belədir) — dizayn uyğunsuzluğu; sayt bütün siyahılarda eyni 36px addım saxlayır. Başlıq və ilk seçim sətri (\"Hamısı\") ciddi yoxlanılır, qalan sətirlər ignore (Figma yazı xətaları \"avadamlıqları\", \"Elektirk\" saytda düzəldilib — controller qərarı)",
+    "minTexts": 2
+  },
+  {
+    "name": "filter-model",
+    "bp": "mobile",
+    "node": "761:22666",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"İstehsalat Modeli\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 761:22666: köhnə \"Dropdown Item\" instance-larında (761:22675…761:22680) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 6 seçim mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)",
+    "aliases": {
+      "Paltar və tekstil məhsulları": "Hazır məhsul istehsalçısı"
+    },
+    "aliasReason": "Mobil \"İstehsalat Modeli\" siyahısında səhvən \"Paltar və tekstil məhsulları\" var; desktop-dakı \"Hazır məhsul istehsalçısı\" götürülür (controller qərarı)"
+  },
+  {
+    "name": "filter-coop",
+    "bp": "mobile",
+    "node": "761:22725",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Əməkdaşlıq imkanı\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 761:22725: köhnə \"Dropdown Item\" instance-larında (761:22734…761:22737) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 4 seçim mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)"
+  },
+  {
+    "name": "filter-sort",
+    "bp": "mobile",
+    "node": "761:22772",
+    "path": "/kataloq",
+    "selector": "[data-mobile-filter]",
+    "open": [
+      "[data-figma=catalog-main] button[aria-haspopup=dialog]",
+      "[data-mobile-filter] button:has-text(\"Reytinqinə görə\")"
+    ],
+    "relayout": true,
+    "relayoutReason": "Mob/Filtr 761:22772: köhnə \"Dropdown Item\" instance-larında (761:22781…761:22783) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 3 seçim mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)"
   }
 ]
