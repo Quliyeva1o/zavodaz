@@ -15,6 +15,10 @@ export const CONTACT_TAG = "contact";
 export const FACTORIES_TAG = "factories";
 /** Filter dictionaries: cities, industries, product types, production models. */
 export const DICTIONARIES_TAG = "dictionaries";
+/** One factory page with its tabs, products and vacancies (admin writes, rating votes). */
+export const factoryTag = (id: string) => `factory:${id}`;
+/** Old slug paths → current ones (features/factory/slug-redirect.ts). */
+export const REDIRECTS_TAG = "redirects";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any drizzle Postgres database or transaction
 export type AnyPgDb = PgDatabase<PgQueryResultHKT, any, any>;

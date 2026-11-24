@@ -25,9 +25,10 @@ async function cleanup() {
     await rm(path.join(uploadDir, id), { recursive: true, force: true });
   }
   await sql`delete from dict_cities where slug like 'e2e-adm%'`;
+  await sql`delete from redirects where from_path like '%/e2e-adm%'`;
   // The server applies these on its next tag sync (tag-sync.ts, every 3 s).
   const now = Date.now();
-  await sql`insert into cache_tags (tag, expired_at) values ('dictionaries', ${now}), ('factories', ${now})
+  await sql`insert into cache_tags (tag, expired_at) values ('dictionaries', ${now}), ('factories', ${now}), ('redirects', ${now})
     on conflict (tag) do update set expired_at = excluded.expired_at`;
   await new Promise((r) => setTimeout(r, 3_500));
 }
@@ -226,4 +227,34 @@ test("a city used by a factory cannot be deleted", async ({ page }) => {
   // (Next.js adds its own route announcer, also role="alert".)
   await expect(page.getByRole("alert").filter({ hasText: "zavodda" })).toHaveText("Bu dəyər 1 zavodda istifadə olunur");
   expect(await sql`select 1 from dict_cities where slug = ${CITY.slug}`).toHaveLength(1);
+});
+
+test("dictionary: a renamed city slug makes its old landings redirect, under every type and language (R19)", async ({ page, request }) => {
+  await loginAsAdmin(page);
+  await gotoHydrated(page, "/admin/dictionaries/cities");
+  await page.getByRole("button", { name: "Yeni dəyər" }).click();
+  await page.getByLabel("Ad (AZ)").fill("E2E köhnə şəhər");
+  await page.getByLabel(/^Slug/).fill("e2e-adm-old");
+  await page.getByRole("button", { name: "Yadda saxla" }).click();
+  await expect(page.getByRole("status")).toHaveText("Yadda saxlanıldı");
+  expect((await request.get("/fabrikler/e2e-adm-old")).status()).toBe(200);
+
+  await page.getByRole("button", { name: "Redaktə: E2E köhnə şəhər" }).click();
+  await page.getByLabel(/^Slug/).fill("e2e-adm-new");
+  await page.getByRole("button", { name: "Yadda saxla" }).click();
+  await expect(page.getByRole("row", { name: /E2E köhnə şəhər/ })).toContainText("e2e-adm-new");
+
+  // With Cache Components the landing check runs after the shell is sent, so the permanent redirect is streamed
+  // (status 200 + NEXT_REDIRECT, which the browser follows), like the R11 soft 404. See the task-1 report.
+  for (const [from, to] of [
+    ["/fabrikler/e2e-adm-old", "/fabrikler/e2e-adm-new"],
+    ["/en/plants/e2e-adm-old", "/en/plants/e2e-adm-new"],
+    ["/ru/agroparki/e2e-adm-old", "/ru/agroparki/e2e-adm-new"],
+  ]) {
+    expect(await (await request.get(from, { maxRedirects: 0 })).text(), from).toContain(`NEXT_REDIRECT;replace;${to};308;`);
+    await page.goto(from);
+    await expect(page, from).toHaveURL((url) => url.pathname === to);
+  }
+  await page.goto("/fabrikler/e2e-adm-new");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
