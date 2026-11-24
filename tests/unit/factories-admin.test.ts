@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { escapeLike, factoryFormSchema, parseFactory, tariffRankOf, tariffUntilFromInput, tariffUntilToInput } from "../../src/features/factories/admin.ts";
+import { EMPTY_FACTORY, escapeLike, factoryFormSchema, parseFactory, tariffRankOf, tariffUntilFromInput, tariffUntilToInput } from "../../src/features/factories/admin.ts";
 import { dictFormSchema, parseDictEntry } from "../../src/features/catalog/dict-admin.ts";
 
 test("tariff rank: vip 2, premium 1, standart/expired 0", () => {
@@ -44,6 +44,7 @@ test("factory form: about counts a CRLF line break as one character (like the te
 
 test("parseFactory: raw form strings → typed values; errors keyed by field", () => {
   const ok = parseFactory({
+    ...EMPTY_FACTORY,
     type: "zavod",
     name: " Bakı Zavodu ",
     slug: "",
@@ -70,6 +71,7 @@ test("parseFactory: raw form strings → typed values; errors keyed by field", (
   assert.equal(ok.data.tariffUntil?.toISOString(), "2026-12-31T19:59:59.999Z");
 
   const bad = parseFactory({
+    ...EMPTY_FACTORY,
     type: "zavod",
     name: "Z",
     slug: "",

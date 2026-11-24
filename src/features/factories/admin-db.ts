@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, ne, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { dictCities, dictIndustries, dictProductionModels, dictProductTypes, factories, media } from "@/db/schema";
 import type { FactoryType } from "@/features/catalog/types";
@@ -54,6 +55,7 @@ export async function listFactoriesAdmin(opts: { q: string; type: FactoryType | 
 export type CoverRef = { id: string; variants: number[] };
 
 export async function getFactoryForEdit(id: string) {
+  const logo = alias(media, "logo");
   const [row] = await db
     .select({
       id: factories.id,
@@ -70,16 +72,30 @@ export async function getFactoryForEdit(id: string) {
       status: factories.status,
       tariffCode: factories.tariffCode,
       tariffUntil: factories.tariffUntil,
+      legalName: factories.legalName,
+      equipmentText: factories.equipmentText,
+      employeeCount: factories.employeeCount,
+      capacityText: factories.capacityText,
+      phone: factories.phone,
+      email: factories.email,
+      website: factories.website,
+      address: factories.address,
+      youtubeUrl: factories.youtubeUrl,
+      socials: factories.socials,
       coverId: factories.coverId,
       coverVariants: media.variants,
+      logoId: factories.logoId,
+      logoVariants: logo.variants,
     })
     .from(factories)
     .leftJoin(media, eq(media.id, factories.coverId))
+    .leftJoin(logo, eq(logo.id, factories.logoId))
     .where(eq(factories.id, id));
   if (!row) return null;
-  const { coverId, coverVariants, ...factory } = row;
+  const { coverId, coverVariants, logoId, logoVariants, ...factory } = row;
   const cover: CoverRef | null = coverId && coverVariants ? { id: coverId, variants: coverVariants } : null;
-  return { factory, cover };
+  const logoRef: CoverRef | null = logoId && logoVariants ? { id: logoId, variants: logoVariants } : null;
+  return { factory, cover, logo: logoRef };
 }
 
 export async function coverRef(id: string | null): Promise<CoverRef | null> {

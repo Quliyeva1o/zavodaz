@@ -1,12 +1,14 @@
 "use client";
 
 import { useActionState, useId, useRef, useState, type ReactNode } from "react";
+import { SOCIALS } from "@/features/settings/links";
 import { COOPERATION, FACTORY_TYPES } from "@/features/catalog/types";
 import type { FactoryRaw } from "@/features/factories/admin";
 import type { CoverRef, DictOptions } from "@/features/factories/admin-db";
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, mediaSrc } from "@/features/media/url";
 import { saveFactory, type FactoryState } from "./actions";
-import { COOP_LABELS, STATUS_LABELS, TARIFF_LABELS, TYPE_LABELS } from "./labels";
+import { COOP_LABELS, SOCIAL_LABELS, STATUS_LABELS, TARIFF_LABELS, TYPE_LABELS } from "./labels";
+import { UploadField } from "./upload-field";
 
 const input = "h-10 w-full rounded-[4px] border border-gray-200 bg-white px-3 text-body-md focus:border-brand-700 focus:outline-none";
 const textarea = "w-full rounded-[4px] border border-gray-200 bg-white px-3 py-2 text-body-md focus:border-brand-700 focus:outline-none";
@@ -121,6 +123,52 @@ function Fields({ v, e, options }: { v: FactoryRaw; e: Record<string, string>; o
           Təsdiqlənib
         </label>
       </div>
+
+      <h2 className="text-h5 mt-2">Zavod səhifəsi</h2>
+      <div className="grid grid-cols-3 gap-4">
+        <Field label="Hüquqi ad" error={e.legalName}>
+          {(c) => <input {...c} name="legalName" defaultValue={v.legalName} maxLength={160} className={input} />}
+        </Field>
+        <Field label="İşçi sayı" error={e.employeeCount}>
+          {(c) => <input {...c} type="number" name="employeeCount" defaultValue={v.employeeCount} min={1} max={1000000} className={input} />}
+        </Field>
+        <Field label="İstehsal gücü" error={e.capacityText}>
+          {(c) => <input {...c} name="capacityText" defaultValue={v.capacityText} maxLength={200} className={input} />}
+        </Field>
+      </div>
+      <Field label="Avadanlıq və texniki imkanlar" error={e.equipmentText}>
+        {(c) => <textarea {...c} name="equipmentText" defaultValue={v.equipmentText} maxLength={4000} rows={5} className={textarea} />}
+      </Field>
+
+      <h2 className="text-h5 mt-2">Əlaqə</h2>
+      <div className="grid grid-cols-3 gap-4">
+        <Field label="Telefon" error={e.phone}>
+          {(c) => <input {...c} type="tel" name="phone" defaultValue={v.phone} maxLength={40} className={input} />}
+        </Field>
+        <Field label="E-poçt" error={e.email}>
+          {(c) => <input {...c} type="email" name="email" defaultValue={v.email} maxLength={120} className={input} />}
+        </Field>
+        <Field label="Sayt" error={e.website}>
+          {(c) => <input {...c} name="website" defaultValue={v.website} maxLength={200} placeholder="https://" className={input} />}
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Ünvan" error={e.address}>
+          {(c) => <input {...c} name="address" defaultValue={v.address} maxLength={200} className={input} />}
+        </Field>
+        <Field label="YouTube linki" error={e.youtubeUrl}>
+          {(c) => <input {...c} name="youtubeUrl" defaultValue={v.youtubeUrl} maxLength={200} placeholder="https://www.youtube.com/watch?v=" className={input} />}
+        </Field>
+      </div>
+
+      <h2 className="text-h5 mt-2">Sosial şəbəkələr</h2>
+      <div className="grid grid-cols-3 gap-4">
+        {SOCIALS.map((k) => (
+          <Field key={k} label={SOCIAL_LABELS[k]} error={e[`social_${k}`]}>
+            {(c) => <input {...c} name={`social_${k}`} defaultValue={v.socials[k]} maxLength={200} placeholder="https://" className={input} />}
+          </Field>
+        ))}
+      </div>
     </>
   );
 }
@@ -167,17 +215,21 @@ function CoverField({ current, removeDefault, upload, serverError, onPick }: { c
   );
 }
 
-export function FactoryForm({ id, initial, cover, options, saved }: { id: string | null; initial: FactoryRaw; cover: CoverRef | null; options: DictOptions; saved: boolean }) {
+export function FactoryForm({ id, initial, cover, logo, options, saved }: { id: string | null; initial: FactoryRaw; cover: CoverRef | null; logo: CoverRef | null; options: DictOptions; saved: boolean }) {
   // Outside the remounted fields: an uploaded cover survives a failed save and is sent again with the next one.
   const [upload, setUpload] = useState<Upload>({ status: "idle" });
+  const [logoKey, setLogoKey] = useState(0); // remounting the logo field forgets its upload
+  const [logoBusy, setLogoBusy] = useState(false);
   const pickSeq = useRef(0);
   const [state, action, pending] = useActionState(async (prev: FactoryState, form: FormData): Promise<FactoryState> => {
     const result = await saveFactory(prev, form);
     if (result?.ok || result?.uploadDropped) setUpload({ status: "idle" });
+    if (result?.ok || result?.logoDropped) setLogoKey((k) => k + 1);
     return { ...result, seq: (prev?.seq ?? 0) + 1 };
   }, undefined);
   const v = state?.values ?? initial;
   const currentCover = state?.cover !== undefined ? state.cover : cover;
+  const currentLogo = state?.logo !== undefined ? state.logo : logo;
   const ok = state ? state.ok : saved;
   const errors = state?.errors ?? {};
 
@@ -210,8 +262,21 @@ export function FactoryForm({ id, initial, cover, options, saved }: { id: string
       {id && <input type="hidden" name="id" value={id} />}
       <Fields key={state?.seq ?? 0} v={v} e={errors} options={options} />
       <CoverField key={`cover-${state?.seq ?? 0}`} current={currentCover} removeDefault={v.removeCover} upload={upload} serverError={errors.cover} onPick={pick} />
+      <div className="flex flex-col gap-2">
+        <UploadField key={logoKey} label="Loqo" kind="image" name="logoUploadId" error={errors.logo} onBusyChange={setLogoBusy} previewAlt="Yeni loqo" />
+        {currentLogo && (
+          <div key={`logo-${state?.seq ?? 0}`} className="flex items-end gap-4 text-body-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an already resized variant */}
+            <img src={mediaSrc(currentLogo, 320)} alt="Mövcud loqo" width={160} className="rounded-[4px]" />
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="removeLogo" defaultChecked={v.removeLogo} className="size-4" />
+              Loqonu sil
+            </label>
+          </div>
+        )}
+      </div>
       <div className="flex items-center gap-4">
-        <button type="submit" disabled={pending || upload.status === "uploading"} className="h-10 rounded-[4px] bg-brand-950 px-6 text-body-md text-white disabled:opacity-60">
+        <button type="submit" disabled={pending || upload.status === "uploading" || logoBusy} className="h-10 rounded-[4px] bg-brand-950 px-6 text-body-md text-white disabled:opacity-60">
           Yadda saxla
         </button>
         {id && v.status !== "hidden" && (
@@ -219,7 +284,7 @@ export function FactoryForm({ id, initial, cover, options, saved }: { id: string
             type="submit"
             name="hide"
             value="1"
-            disabled={pending || upload.status === "uploading"}
+            disabled={pending || upload.status === "uploading" || logoBusy}
             className="h-10 rounded-[4px] border border-gray-200 px-6 text-body-md hover:bg-gray-100 disabled:opacity-60"
           >
             Gizlət

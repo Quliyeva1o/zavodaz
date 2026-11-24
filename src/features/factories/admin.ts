@@ -2,6 +2,8 @@
 import { z } from "zod";
 import { slugify } from "@/features/catalog/slug";
 import { COOPERATION, FACTORY_TYPES, TARIFF_RANK, type FactoryType } from "@/features/catalog/types";
+import { factoryContentShape } from "@/features/factory/content-admin";
+import { SOCIALS, type SocialKey } from "@/features/settings/links";
 
 export const FACTORY_STATUSES = ["draft", "published", "hidden"] as const;
 export type FactoryStatus = (typeof FACTORY_STATUSES)[number];
@@ -87,6 +89,7 @@ export const factoryFormSchema = z
     status: z.enum(FACTORY_STATUSES, { error: "Statusu seçin" }).default("draft"),
     tariffCode: z.enum(TARIFF_CODES, { error: "Tarifi seçin" }).default("standart"),
     tariffUntil,
+    ...factoryContentShape,
   })
   .transform((d, ctx) => {
     const slug = d.slug || slugify(d.name).slice(0, 120).replace(/-+$/, "");
@@ -115,7 +118,20 @@ export type FactoryRaw = {
   tariffCode: string;
   tariffUntil: string;
   removeCover: boolean;
+  removeLogo: boolean;
+  legalName: string;
+  equipmentText: string;
+  employeeCount: string;
+  capacityText: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+  youtubeUrl: string;
+  socials: Record<SocialKey, string>;
 };
+
+const EMPTY_SOCIALS = Object.fromEntries(SOCIALS.map((k) => [k, ""])) as Record<SocialKey, string>;
 
 export const EMPTY_FACTORY: FactoryRaw = {
   type: "zavod",
@@ -132,6 +148,17 @@ export const EMPTY_FACTORY: FactoryRaw = {
   tariffCode: "standart",
   tariffUntil: "",
   removeCover: false,
+  removeLogo: false,
+  legalName: "",
+  equipmentText: "",
+  employeeCount: "",
+  capacityText: "",
+  phone: "",
+  email: "",
+  website: "",
+  address: "",
+  youtubeUrl: "",
+  socials: EMPTY_SOCIALS,
 };
 
 export function factoryRawFromForm(form: FormData): FactoryRaw {
@@ -155,6 +182,17 @@ export function factoryRawFromForm(form: FormData): FactoryRaw {
     tariffCode: get("tariffCode"),
     tariffUntil: get("tariffUntil"),
     removeCover: form.get("removeCover") === "on",
+    removeLogo: form.get("removeLogo") === "on",
+    legalName: get("legalName"),
+    equipmentText: get("equipmentText"),
+    employeeCount: get("employeeCount"),
+    capacityText: get("capacityText"),
+    phone: get("phone"),
+    email: get("email"),
+    website: get("website"),
+    address: get("address"),
+    youtubeUrl: get("youtubeUrl"),
+    socials: Object.fromEntries(SOCIALS.map((k) => [k, get("social_" + k)])) as Record<SocialKey, string>,
   };
 }
 
@@ -172,6 +210,16 @@ type FactoryRow = {
   status: FactoryStatus;
   tariffCode: string;
   tariffUntil: Date | null;
+  legalName: string;
+  equipmentText: string;
+  employeeCount: number | null;
+  capacityText: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+  youtubeUrl: string;
+  socials: Partial<Record<SocialKey, string>>;
 };
 
 export const factoryToRaw = (f: FactoryRow): FactoryRaw => ({
@@ -189,12 +237,26 @@ export const factoryToRaw = (f: FactoryRow): FactoryRaw => ({
   tariffCode: f.tariffCode,
   tariffUntil: tariffUntilToInput(f.tariffUntil),
   removeCover: false,
+  removeLogo: false,
+  legalName: f.legalName,
+  equipmentText: f.equipmentText,
+  employeeCount: f.employeeCount === null ? "" : String(f.employeeCount),
+  capacityText: f.capacityText,
+  phone: f.phone,
+  email: f.email,
+  website: f.website,
+  address: f.address,
+  youtubeUrl: f.youtubeUrl,
+  socials: { ...EMPTY_SOCIALS, ...f.socials },
 });
 
 export function parseFactory(raw: FactoryRaw): { ok: true; data: FactoryInput } | { ok: false; errors: Record<string, string> } {
-  const r = factoryFormSchema.safeParse(raw); // removeCover is not a schema key: zod strips it
+  const r = factoryFormSchema.safeParse(raw); // removeCover / removeLogo are not schema keys: zod strips them
   if (r.success) return { ok: true, data: r.data };
   const errors: Record<string, string> = {};
-  for (const i of r.error.issues) errors[String(i.path[0] ?? "form")] ??= i.message;
+  for (const i of r.error.issues) {
+    const key = i.path[0] === "socials" && typeof i.path[1] === "string" ? "social_" + i.path[1] : String(i.path[0] ?? "form");
+    errors[key] ??= i.message;
+  }
   return { ok: false, errors };
 }

@@ -54,3 +54,14 @@ export async function sweepOrphanMedia(
   for (const { id } of candidates) if (await deleteUnreferencedMedia(db, uploadDir, id)) deleted++;
   return deleted;
 }
+
+/** True when `id` is a media row nothing references yet: a fresh upload an admin form may attach (images and PDFs). */
+export async function isMediaUnreferenced(db: AnyPgDb, id: string, kind: "image" | "pdf"): Promise<boolean> {
+  if (!UUID.test(id)) return false;
+  const rows = await db
+    .select({ id: media.id })
+    .from(media)
+    .where(and(eq(media.id, id), eq(media.kind, kind), unreferenced(mediaIdColumn)))
+    .limit(1);
+  return rows.length > 0;
+}

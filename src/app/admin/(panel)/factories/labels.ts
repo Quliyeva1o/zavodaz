@@ -5,3 +5,4 @@ export const TYPE_LABELS = az.factoryType;
 export const COOP_LABELS = az.catalog.coop;
 export const STATUS_LABELS = { draft: "Qaralama", published: "Dərc olunub", hidden: "Gizlədilib" } as const;
 export const TARIFF_LABELS = { standart: "Standart", premium: "Premium", vip: "VIP" } as const;
+export const SOCIAL_LABELS = { facebook: "Facebook", instagram: "Instagram", linkedin: "LinkedIn", x: "X (Twitter)", youtube: "YouTube kanalı", tiktok: "TikTok" } as const;
