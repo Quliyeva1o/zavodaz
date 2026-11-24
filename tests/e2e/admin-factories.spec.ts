@@ -250,8 +250,9 @@ test("dictionary: a renamed city slug makes its old landings redirect, under eve
     ["/en/plants/e2e-adm-old", "/en/plants/e2e-adm-new"],
     ["/ru/agroparki/e2e-adm-old", "/ru/agroparki/e2e-adm-new"],
   ]) {
+    // Stale-while-revalidate (R8): the first lookup after the change may still use the old map while it refreshes.
+    await expect.poll(async () => (await request.get(`${from}?page=2`, { maxRedirects: 0 })).status(), { message: from, timeout: 15_000 }).toBe(301);
     const res = await request.get(`${from}?page=2`, { maxRedirects: 0 });
-    expect(res.status(), from).toBe(301);
     const location = new URL(res.headers().location, "http://localhost");
     expect(location.pathname + location.search, from).toBe(`${to}?page=2`);
     await page.goto(from);
