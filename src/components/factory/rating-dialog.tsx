@@ -28,6 +28,8 @@ const button = "flex h-12 w-full items-center justify-center rounded-[4px] bg-br
  * Desktop: centred 656 (thanks 448), padding 24, r10, title 22 + X 32, five 107 stars 17.9 apart, 48px button, gap 40.
  * Mobile: a sheet on the bottom edge (r24 on top, padding 16, top 40), 40px stars spread over the width, no X.
  * Five native radios (arrow keys, one tab stop, aria-label each) in a fieldset; the earlier vote is preselected.
+ * The dialog has no padding of its own (the padding is on the inner div), so a click on the dialog box never reaches
+ * `e.target === e.currentTarget`: only a click on the backdrop closes it.
  * Loaded on the first click of "Qiymətləndir" (RateButton); the browser's modal <dialog> traps focus and handles Escape.
  */
 export function RatingDialog({ slug, labels, homeHref, onClose }: RatingDialogProps) {
@@ -69,9 +71,9 @@ export function RatingDialog({ slug, labels, homeHref, onClose }: RatingDialogPr
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && close()}
-      className={`m-auto max-w-[calc(100%-32px)] rounded-[10px] bg-white p-6 backdrop:bg-black/20 max-lg:m-0 max-lg:mt-auto max-lg:w-full max-lg:max-w-none max-lg:rounded-b-none max-lg:rounded-t-[24px] max-lg:px-4 max-lg:pb-4 max-lg:pt-10 ${done ? "lg:w-[448px]" : "lg:w-[656px]"}`}
+      className={`m-auto max-w-[calc(100%-32px)] rounded-[10px] bg-white p-0 backdrop:bg-black/20 max-lg:m-0 max-lg:mt-auto max-lg:w-full max-lg:max-w-none max-lg:rounded-b-none max-lg:rounded-t-[24px] ${done ? "lg:w-[448px]" : "lg:w-[656px]"}`}
     >
-      <div className="flex flex-col gap-6 lg:gap-10">
+      <div className="flex flex-col gap-6 p-6 max-lg:px-4 max-lg:pb-4 max-lg:pt-10 lg:gap-10">
         <div className="flex flex-col gap-4 lg:gap-6">
           <div className="flex items-center gap-4">
             <h2 id={titleId} className="min-w-0 flex-1 text-mob-subtitle text-brand-950 lg:text-subtitle-1-medium">

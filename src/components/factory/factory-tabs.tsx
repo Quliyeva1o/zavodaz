@@ -144,6 +144,7 @@ export function VacanciesTab({
   if (list.items.length === 0) return <Empty>{t.noVacancies}</Empty>;
   return (
     <section aria-label={t.tabs.vacancies} className="flex flex-col gap-6">
+      <h2 className="sr-only">{t.tabs.vacancies}</h2>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         {list.items.map((v) => (
           <VacancyCard key={v.id} lang={lang} vacancy={v} company={f.legalName || f.name} logo={f.logo} />

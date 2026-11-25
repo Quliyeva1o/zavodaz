@@ -81,6 +81,18 @@ test("modal flow: lazy chunk, disabled confirm, choose, thanks, rating saved and
   await expect(page.getByText("4.0", { exact: true })).toBeVisible();
 });
 
+test("a click on the dialog's own padding keeps it open; only the backdrop closes it", async ({ page }) => {
+  await gotoHydrated(page, URL);
+  await openButton(page).click();
+  const box = (await dialog(page).boundingBox())!;
+  await page.mouse.click(box.x + 6, box.y + 6); // inside the 24px padding, outside every control
+  await expect(dialog(page)).toBeVisible();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height - 8);
+  await expect(dialog(page)).toBeVisible();
+  await page.mouse.click(5, 5); // the backdrop
+  await expect(dialog(page)).toHaveCount(0);
+});
+
 test("keyboard: arrow keys move the radio group, Escape closes, focus returns to the button", async ({ page }) => {
   await gotoHydrated(page, URL);
   await openButton(page).focus();

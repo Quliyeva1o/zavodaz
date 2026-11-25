@@ -310,6 +310,11 @@ test("vacancies: 8, 'Daha çox göstər' → ?page=2 shows all 10 (also without 
   await page.goto(TABS.az.base + "/vakansiyalar");
   const cards = page.locator("main article");
   await expect(cards).toHaveCount(8);
+  // Heading order h1 → h2 (sr-only tab heading) → h3 (cards): no level is skipped.
+  const levels = await page.locator("main").getByRole("heading").evaluateAll((hs) => hs.map((h) => Number(h.tagName[1])));
+  expect(levels[0]).toBe(1);
+  expect(levels).toContain(3);
+  expect(levels.every((l, i) => i === 0 || l <= levels[i - 1] + 1)).toBe(true);
   await expect(cards.first().getByRole("link", { name: "E2E vakansiya 1" })).toHaveAttribute("href", "/vakansiyalar/e2e-fp-vakansiya-1");
   await expect(cards.first()).toContainText("20.05.2025");
   await expect(cards.first()).toContainText("1000₼");
