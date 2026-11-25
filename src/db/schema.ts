@@ -212,11 +212,15 @@ export const factories = pgTable(
     index("factories_product_type_idx").on(t.productTypeId),
     index("factories_models_gin").using("gin", t.productionModelIds),
     index("factories_coop_gin").using("gin", t.cooperation),
+    // The orphan sweep (features/media/sweep.ts) asks "is this media row still referenced?" with NOT EXISTS on both columns.
+    index("factories_cover_idx").on(t.coverId).where(sql`${t.coverId} is not null`),
+    index("factories_logo_idx").on(t.logoId).where(sql`${t.logoId} is not null`),
   ],
 );
 
 // ---------- Factory page: gallery, certificates, PDF catalogues, products, vacancies, ratings (step 3) ----------
-// Every `media_id` here must also be in the reference check of features/media/sweep.ts (indexed for that NOT EXISTS).
+// Every media reference (the `media_id` columns here, plus factories.cover_id / logo_id above) must also be in the reference check of
+// features/media/sweep.ts, and each needs an index on that column for the sweep's NOT EXISTS (factories: partial indexes on the non-null ids).
 
 /** Products and vacancies: only `published` ones are public (and only while their factory is published). */
 export const contentStatus = pgEnum("content_status", ["draft", "published", "hidden"]);

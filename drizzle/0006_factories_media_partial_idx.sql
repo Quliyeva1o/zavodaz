@@ -1,0 +1,2 @@
+CREATE INDEX "factories_cover_idx" ON "factories" USING btree ("cover_id") WHERE "factories"."cover_id" is not null;--> statement-breakpoint
+CREATE INDEX "factories_logo_idx" ON "factories" USING btree ("logo_id") WHERE "factories"."logo_id" is not null;
