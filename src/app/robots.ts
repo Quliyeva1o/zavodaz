@@ -7,7 +7,7 @@ import { siteNoindex, siteUrl } from "@/lib/seo";
 // Spec 7.3: cabinet, admin and auth pages are closed to crawlers.
 const closed = ["cabinet", "login", "register"] as const;
 
-/** The split files (factories, products): /sitemaps/<kind>/sitemap/<n>.xml, one per 16 666 entities. */
+/** The split files (factories, products): /sitemaps/<kind>/sitemap/<n>.xml, one file per 16 666 factories (id boundaries) or per 16 666 product ids (id range), see sitemap-sql.ts. */
 async function splitSitemaps(): Promise<string[]> {
   const [factories, products] = await Promise.all([getFactorySitemapFiles(), getProductSitemapFiles()]);
   const urls = (kind: string, n: number) => Array.from({ length: n }, (_, i) => `${siteUrl}/sitemaps/${kind}/sitemap/${i}.xml`);

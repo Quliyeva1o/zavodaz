@@ -7,7 +7,7 @@ import postgres from "postgres";
 import { redirects } from "../../src/db/schema";
 import { findFactoryBySlug, findProduct, findProductSlug, listFactoryProducts, listFactoryVacancies, listSimilarProducts } from "../../src/features/factory/factory-sql";
 import { castVote } from "../../src/features/factory/rating-sql";
-import { countSitemapFactories, countSitemapProducts, listSitemapFactories, listSitemapProducts } from "../../src/features/factory/sitemap-sql";
+import { factoryBoundaries, listSitemapFactories, listSitemapProducts, maxProductId, productFilesFor } from "../../src/features/factory/sitemap-sql";
 import { PRODUCTS_PAGE_SIZE, SIMILAR_PRODUCTS, VACANCIES_PAGE_SIZE } from "../../src/features/factory/types";
 import type { AnyPgDb } from "../../src/lib/cache/tag-store";
 import { assertLoadDb, withDatabase } from "../seed/load-lib";
@@ -34,7 +34,9 @@ const [withVac] = await client`
   select f.id from factories f join (select factory_id from vacancies where status = 'published' group by factory_id order by count(*) desc limit 1) v on v.factory_id = f.id`;
 if (!top || !rated || !withVac) throw new Error("yük bazası boşdur: əvvəl `npm run db:seed-load` işlədin");
 const productCount = (await client`select count(*)::int n from products p join factories f on f.id = p.factory_id where p.status = 'published' and f.status = 'published'`)[0].n as number;
-const lastChunk = Math.floor((productCount - 1) / 16_666);
+const bounds = await factoryBoundaries(adb);
+const lastFactoryChunk = bounds.length - 1;
+const lastChunk = productFilesFor(await maxProductId(adb)) - 1;
 const [mid] = await client`select id from products where factory_id = ${top.id} and status = 'published' order by id offset 5 limit 1`;
 const code = Number(mid.id);
 const deepPage = Math.max(1, Math.ceil(top.n / PRODUCTS_PAGE_SIZE));
@@ -50,11 +52,12 @@ const cases: Case[] = [
   { name: "Vakansiyalar tabı, səhifə 1", run: () => listFactoryVacancies(adb, withVac.id, 1, VACANCIES_PAGE_SIZE) },
   { name: "findProductSlug (proxy)", run: () => findProductSlug(adb, top.slug, code) },
   { name: "yönləndirmə xəritəsi yükü", run: () => db.select({ from: redirects.fromPath, to: redirects.toPath }).from(redirects), allowSeq: "redirects" },
-  { name: "sitemap: zavod sayı", run: () => countSitemapFactories(adb), allowSeq: "factories" },
-  { name: "sitemap: zavod, 1-ci 16 666", run: () => listSitemapFactories(adb, 0), allowSeq: "factories" },
-  { name: "sitemap: məhsul sayı", run: () => countSitemapProducts(adb), allowSeq: "products" },
-  { name: "sitemap: məhsul, 1-ci 16 666", run: () => listSitemapProducts(adb, 0), allowSeq: "products" },
-  { name: `sitemap: məhsul, son hissə (${lastChunk})`, run: () => listSitemapProducts(adb, lastChunk), allowSeq: "products,factories", budget: 250 },
+  { name: "sitemap: zavod sərhədləri (keşlənir, saat başı)", run: () => factoryBoundaries(adb), allowSeq: "factories", budget: 250 },
+  { name: "sitemap: zavod, 1-ci hissə", run: () => listSitemapFactories(adb, bounds, 0), allowSeq: "factories" },
+  { name: `sitemap: zavod, son hissə (${lastFactoryChunk})`, run: () => listSitemapFactories(adb, bounds, lastFactoryChunk) },
+  { name: "sitemap: məhsul sayı (max id)", run: () => maxProductId(adb) },
+  { name: "sitemap: məhsul, 1-ci hissə (id aralığı)", run: () => listSitemapProducts(adb, 0), allowSeq: "factories" },
+  { name: `sitemap: məhsul, son hissə (${lastChunk})`, run: () => listSitemapProducts(adb, lastChunk), allowSeq: "factories" },
   { name: "castVote (zavod ~2000 səs, tranzaksiya)", run: () => castVote(adb, rated.slug, "load-voter-00007", 4, "load-ip-00007") },
 ];
 
