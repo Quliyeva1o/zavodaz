@@ -5,7 +5,7 @@ import { tagsManifest } from "next/dist/server/lib/incremental-cache/tags-manife
 import { db } from "@/db";
 import { findProductSlug } from "@/features/factory/factory-sql";
 import { canonicalProductPath, parseProductPath } from "@/features/factory/product-path";
-import { ProductSlugCache } from "@/features/factory/product-slug-cache";
+import { ProductSlugCache, productSlugFor } from "@/features/factory/product-slug-cache";
 import { FACTORIES_TAG, REDIRECTS_TAG } from "./tag-store";
 
 const TIMEOUT_MS = 1_500;
@@ -20,16 +20,14 @@ const cache = new ProductSlugCache({
 export async function productRedirectFor(internal: string): Promise<string | null> {
   const parsed = parseProductPath(internal);
   if (!parsed) return null;
-  const hit = cache.get(parsed.code);
-  if (hit && hit.factorySlug === parsed.factorySlug) return canonicalProductPath(parsed, hit.productSlug);
-  const snapshot = cache.snapshot();
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const slug = await Promise.race([
-      findProductSlug(db, parsed.factorySlug, parsed.code),
-      new Promise<null>((resolve) => (timer = setTimeout(() => resolve(null), TIMEOUT_MS))),
-    ]);
-    if (slug !== null) cache.set(parsed.code, { factorySlug: parsed.factorySlug, productSlug: slug }, snapshot);
+    const slug = await productSlugFor(cache, parsed.factorySlug, parsed.code, () =>
+      Promise.race([
+        findProductSlug(db, parsed.factorySlug, parsed.code),
+        new Promise<null>((resolve) => (timer = setTimeout(() => resolve(null), TIMEOUT_MS))),
+      ]),
+    );
     return slug === null ? null : canonicalProductPath(parsed, slug);
   } catch (error) {
     console.error("products: could not check the product slug", error);

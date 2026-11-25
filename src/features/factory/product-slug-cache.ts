@@ -65,3 +65,22 @@ export class ProductSlugCache {
     if (this.entries.size > this.max) this.entries.delete(this.entries.keys().next().value as number);
   }
 }
+
+/**
+ * The product's current slug for `code` under `factorySlug`: from the cache when the cached entry is for the same factory
+ * slug, otherwise from `lookup` (a miss). Only a found slug is cached: `null` (unknown product, or no answer in time)
+ * is never stored, so a product created or published a moment later is seen at once.
+ */
+export async function productSlugFor(
+  cache: ProductSlugCache,
+  factorySlug: string,
+  code: number,
+  lookup: () => Promise<string | null>,
+): Promise<string | null> {
+  const hit = cache.get(code);
+  if (hit && hit.factorySlug === factorySlug) return hit.productSlug;
+  const snapshot = cache.snapshot();
+  const slug = await lookup();
+  if (slug !== null) cache.set(code, { factorySlug, productSlug: slug }, snapshot);
+  return slug;
+}
