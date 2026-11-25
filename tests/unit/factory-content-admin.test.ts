@@ -121,3 +121,15 @@ test("limits: six images each", () => {
   assert.equal(MAX_FACTORY_IMAGES, 6);
   assert.equal(MAX_PRODUCT_IMAGES, 6);
 });
+
+test("sayt http(s) qəbul edir, sosial şəbəkələr yalnız https", () => {
+  const base = { ...EMPTY_FACTORY, name: "Bakı Zavodu", website: "http://zavod.test", socials: { ...EMPTY_FACTORY.socials, instagram: "https://instagram.com/z" } };
+  assert.equal(parseFactory(base).ok, true);
+  const r = parseFactory({ ...base, socials: { ...base.socials, facebook: "http://facebook.com/z" } });
+  assert.equal(r.ok, false);
+  if (r.ok) return;
+  assert.equal(r.errors.social_facebook, "https:// ilə başlayan link yazın");
+  const w = parseFactory({ ...base, website: "ftp://zavod.test" });
+  assert.equal(w.ok, false);
+  if (!w.ok) assert.equal(w.errors.website, "http:// və ya https:// ilə başlayan sayt ünvanı yazın");
+});

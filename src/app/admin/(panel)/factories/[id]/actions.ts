@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { factories, factoryCertificates, factoryFiles, factoryImages, productImages, products } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { factoryTag, invalidateTags } from "@/lib/cache/tags";
+import { factoryTag, invalidateTags, REDIRECTS_TAG } from "@/lib/cache/tags";
 import { uploadUsable } from "@/features/factory/admin-content-db";
 import { MAX_FACTORY_IMAGES, MAX_PRODUCT_IMAGES, moveItem, parseProduct, parseTitle, type ProductRaw } from "@/features/factory/content-admin";
 import { deleteImage } from "@/features/media/store";
@@ -120,8 +120,9 @@ export async function addCertificate(_prev: ContentState, form: FormData): Promi
 export async function deleteCertificate(form: FormData): Promise<void> {
   await requireAdmin();
   const id = uuidOf(form, "id");
-  if (!id) return;
-  const [row] = await db.delete(factoryCertificates).where(eq(factoryCertificates.id, id)).returning({ factoryId: factoryCertificates.factoryId, mediaId: factoryCertificates.mediaId });
+  const factoryId = uuidOf(form, "factoryId");
+  if (!id || !factoryId) return;
+  const [row] = await db.delete(factoryCertificates).where(and(eq(factoryCertificates.id, id), eq(factoryCertificates.factoryId, factoryId))).returning({ factoryId: factoryCertificates.factoryId, mediaId: factoryCertificates.mediaId });
   if (!row) return;
   await dropMedia([row.mediaId]);
   await invalidateTags([factoryTag(row.factoryId)]);
@@ -153,8 +154,9 @@ export async function addCatalogFile(_prev: ContentState, form: FormData): Promi
 export async function deleteCatalogFile(form: FormData): Promise<void> {
   await requireAdmin();
   const id = uuidOf(form, "id");
-  if (!id) return;
-  const [row] = await db.delete(factoryFiles).where(eq(factoryFiles.id, id)).returning({ factoryId: factoryFiles.factoryId, mediaId: factoryFiles.mediaId });
+  const factoryId = uuidOf(form, "factoryId");
+  if (!id || !factoryId) return;
+  const [row] = await db.delete(factoryFiles).where(and(eq(factoryFiles.id, id), eq(factoryFiles.factoryId, factoryId))).returning({ factoryId: factoryFiles.factoryId, mediaId: factoryFiles.mediaId });
   if (!row) return;
   await dropMedia([row.mediaId]);
   await invalidateTags([factoryTag(row.factoryId)]);
@@ -186,9 +188,11 @@ export async function saveProduct(_prev: ContentState, form: FormData): Promise<
     await invalidateTags([factoryTag(factoryId)]);
     redirect(`/admin/factories/${factoryId}/products/${created.id}?saved=1`);
   }
+  const [before] = await db.select({ slug: products.slug }).from(products).where(and(eq(products.id, productId), eq(products.factoryId, factoryId)));
   const updated = await db.update(products).set(row).where(and(eq(products.id, productId), eq(products.factoryId, factoryId))).returning({ id: products.id });
   if (updated.length === 0) return { error: "Məhsul tapılmadı", values };
-  await invalidateTags([factoryTag(factoryId)]);
+  // A new slug makes the proxy's cached "code → slug" answers stale; REDIRECTS_TAG also clears that LRU in the other processes.
+  await invalidateTags([factoryTag(factoryId), ...(before && before.slug !== row.slug ? [REDIRECTS_TAG] : [])]);
   return { ok: true, values: { name: row.name, description: row.description, status: row.status } };
 }
 

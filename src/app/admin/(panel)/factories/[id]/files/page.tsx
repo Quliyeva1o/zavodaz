@@ -28,7 +28,7 @@ export default async function FactoryFilesPage({ params }: PageProps<"/admin/fac
                   {f.title}
                 </a>
                 <span className="text-body-sm text-gray-500">{formatBytes(f.size)}</span>
-                <DeleteForm action={deleteCatalogFile} hidden={{ id: f.id }} label={`Sil: ${f.title}`} />
+                <DeleteForm action={deleteCatalogFile} hidden={{ id: f.id, factoryId: id }} label={`Sil: ${f.title}`} />
               </li>
             ))}
           </ul>

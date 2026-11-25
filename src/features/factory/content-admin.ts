@@ -48,7 +48,8 @@ const multiline = (max: number) =>
     .transform((s) => s.replace(/\r\n/g, "\n").trim())
     .pipe(z.string().max(max, `Ən çox ${max} simvol`));
 
-const webUrl = (message: string) =>
+/** An empty value is fine; otherwise a URL with a dot in the host and one of the allowed protocols (the message must say the same). */
+const webUrl = (message: string, protocols: string[]) =>
   z
     .string()
     .default("")
@@ -61,7 +62,7 @@ const webUrl = (message: string) =>
           if (s === "") return true;
           try {
             const u = new URL(s);
-            return (u.protocol === "https:" || u.protocol === "http:") && u.hostname.includes(".");
+            return protocols.includes(u.protocol) && u.hostname.includes(".");
           } catch {
             return false;
           }
@@ -81,7 +82,7 @@ export const factoryContentShape = {
   capacityText: optionalText(200),
   phone: optionalText(40).refine((s) => s === "" || /^[0-9+()\-.\s]+$/.test(s), "Telefon formatı yanlışdır"),
   email: optionalText(120).refine((s) => s === "" || z.email().safeParse(s).success, "E-poçt formatı yanlışdır"),
-  website: webUrl("https:// ilə başlayan sayt ünvanı yazın"),
+  website: webUrl("http:// və ya https:// ilə başlayan sayt ünvanı yazın", ["https:", "http:"]),
   address: optionalText(200),
   youtubeUrl: z
     .string()
@@ -97,7 +98,7 @@ export const factoryContentShape = {
       return youtubeWatchUrl(id);
     }),
   socials: z
-    .object(Object.fromEntries(SOCIALS.map((k) => [k, webUrl("https:// ilə başlayan link yazın")])) as Record<SocialKey, ReturnType<typeof webUrl>>)
+    .object(Object.fromEntries(SOCIALS.map((k) => [k, webUrl("https:// ilə başlayan link yazın", ["https:"])])) as Record<SocialKey, ReturnType<typeof webUrl>>)
     .default(emptySocials)
     .transform((s) => Object.fromEntries(Object.entries(s).filter(([, v]) => v !== "")) as Partial<Record<SocialKey, string>>),
 };

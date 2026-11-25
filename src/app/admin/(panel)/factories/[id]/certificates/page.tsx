@@ -27,7 +27,7 @@ export default async function FactoryCertificatesPage({ params }: PageProps<"/ad
                 {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an already resized variant */}
                 <img src={mediaSrc({ id: c.mediaId, variants: c.variants }, 320)} alt={c.title} className="aspect-[3/4] w-full rounded-[4px] object-cover" />
                 <p className="text-body-md">{c.title}</p>
-                <DeleteForm action={deleteCertificate} hidden={{ id: c.id }} label={`Sil: ${c.title}`} />
+                <DeleteForm action={deleteCertificate} hidden={{ id: c.id, factoryId: id }} label={`Sil: ${c.title}`} />
               </li>
             ))}
           </ul>
