@@ -343,10 +343,16 @@ export const ratings = pgTable(
       .notNull()
       .references(() => factories.id, { onDelete: "cascade" }),
     voterHash: text("voter_hash").notNull(),
+    /** Hashed client IP (IPv6 as /64) at the first vote; null on votes from before the per-IP cap. Counts distinct voters per IP. */
+    ipHash: text("ip_hash"),
     score: smallint("score").notNull(),
     ...timestamps,
   },
-  (t) => [primaryKey({ columns: [t.factoryId, t.voterHash] }), check("ratings_score_check", sql`${t.score} between 1 and 5`)],
+  (t) => [
+    primaryKey({ columns: [t.factoryId, t.voterHash] }),
+    index("ratings_factory_ip_idx").on(t.factoryId, t.ipHash),
+    check("ratings_score_check", sql`${t.score} between 1 and 5`),
+  ],
 );
 
 /**

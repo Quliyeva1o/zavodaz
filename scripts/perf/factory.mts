@@ -55,7 +55,7 @@ const cases: Case[] = [
   { name: "sitemap: məhsul sayı", run: () => countSitemapProducts(adb), allowSeq: "products" },
   { name: "sitemap: məhsul, 1-ci 16 666", run: () => listSitemapProducts(adb, 0), allowSeq: "products" },
   { name: `sitemap: məhsul, son hissə (${lastChunk})`, run: () => listSitemapProducts(adb, lastChunk), allowSeq: "products,factories", budget: 250 },
-  { name: "castVote (zavod ~2000 səs, tranzaksiya)", run: () => castVote(adb, rated.slug, "load-voter-00007", 4) },
+  { name: "castVote (zavod ~2000 səs, tranzaksiya)", run: () => castVote(adb, rated.slug, "load-voter-00007", 4, "load-ip-00007") },
 ];
 
 const median = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];

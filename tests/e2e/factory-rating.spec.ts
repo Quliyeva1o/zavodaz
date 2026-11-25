@@ -147,6 +147,36 @@ test("limit: after 20 votes from one IP in an hour the dialog shows the error in
   await context.close();
 });
 
+test("one IP: the 4th distinct voter is refused in Azerbaijani, a changed vote of an earlier voter still works", async ({ browser }) => {
+  const ip = "203.0.113.88";
+  const contexts = [];
+  for (let i = 0; i < 4; i++) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, extraHTTPHeaders: { "x-forwarded-for": ip } });
+    contexts.push(context);
+    const page = await context.newPage();
+    await gotoHydrated(page, URL);
+    await openButton(page).click();
+    await choose(page, 3);
+    await confirm(page).click();
+    if (i < 3) await expect(thanks(page)).toBeVisible();
+    else {
+      await expect(page.locator("p[role=alert]")).toHaveText("Bu zavod üçün sizin şəbəkənizdən artıq bir neçə səs verilib. Daha səs qəbul edilmir.");
+      await expect(thanks(page)).toHaveCount(0);
+    }
+  }
+  expect(await stored()).toEqual({ avg: 3, count: 3 });
+  expect((await sql`select ip_hash from ratings where factory_id = ${ids[0]}`).every((r) => r.ip_hash)).toBe(true);
+  // The first voter changes the vote: allowed.
+  const first = contexts[0].pages()[0];
+  await first.reload();
+  await openButton(first).click();
+  await choose(first, 5);
+  await confirm(first).click();
+  await expect(thanks(first)).toBeVisible();
+  expect(await stored()).toEqual({ avg: 3.67, count: 3 });
+  for (const c of contexts) await c.close();
+});
+
 test("an unpublished factory cannot be rated", async ({ page }) => {
   await loginAsAdmin(page);
   await gotoHydrated(page, `/fabrik/${DRAFT}?preview=1`);

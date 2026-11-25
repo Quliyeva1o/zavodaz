@@ -78,6 +78,7 @@ export const en: Dictionary = {
       errors: {
         invalid: "The score must be from 1 to 5.",
         rateLimited: "Too many votes. Please try again a little later.",
+        ipLimit: "Several votes for this factory have already come from your network. No more votes are accepted.",
         notFound: "This factory cannot be rated.",
         server: "Something went wrong, please try again.",
         load: "The window could not be opened, please try again.",

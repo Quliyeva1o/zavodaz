@@ -76,6 +76,7 @@ export const az = {
       errors: {
         invalid: "Qiymət 1-dən 5-ə qədər olmalıdır.",
         rateLimited: "Çox səs verildi. Bir az sonra yenidən yoxlayın.",
+        ipLimit: "Bu zavod üçün sizin şəbəkənizdən artıq bir neçə səs verilib. Daha səs qəbul edilmir.",
         notFound: "Bu zavod qiymətləndirilə bilməz.",
         server: "Xəta baş verdi, yenidən cəhd edin.",
         load: "Pəncərəni açmaq mümkün olmadı, yenidən cəhd edin.",

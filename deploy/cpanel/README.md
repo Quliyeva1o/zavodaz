@@ -40,6 +40,13 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    `30 4 * * * cd $HOME/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH UPLOAD_DIR=$HOME/zavod-app/shared/uploads npm run --silent media:sweep >> $HOME/zavod-app/shared/media-sweep.log 2>&1`
    (`UPLOAD_DIR` `.env`-dəkindən fərqlidirsə, burada da eynisini yaz.)
 10. **Yoxla:** https://new.zavod.az — header/footer, dillər, /admin girişi, robots.txt `Disallow: /`.
+11. **İlk deploy-da müştəri IP-sinin yoxlanması (məcburi):** `CLIENT_IP_FROM` və LiteSpeed-in `X-Forwarded-For` başlığı real ziyarətçi IP-sini verməlidir.
+    Səbəb: sorğu limitləri (əlaqə formu, reytinq) və "bir IP-dən bir zavoda ≤ 3 səs" qaydası IP-nin hash-inə bağlıdır; app proksinin öz ünvanını (və ya boş dəyəri) görsə,
+    **bütün istifadəçilər bir bucket paylaşır**: 20 səs/saat bütün sayt üçün bitər, 3 səs limiti bütün ziyarətçilərə ümumi olar.
+    Yoxla: iki fərqli şəbəkədən (məs. ofis Wi-Fi və telefonun mobil interneti) eyni zavoda səs ver, sonra
+    `select distinct ip_hash from ratings where ip_hash is not null;` — **iki fərqli** dəyər çıxmalıdır (bir dəyər = app IP-ni düz oxumur: `.env`-də `CLIENT_IP_FROM`-u və
+    `X-Forwarded-For`-un başlıqlarını yoxla; LiteSpeed klient başlığına öz ünvanını sona əlavə edir, bu halda default "son girişi götür" düzdür). IPv6 /64 prefiksinə endirilir.
+    Test səsləri `delete from ratings where ip_hash is not null;` ilə təmizlənir, sonra zavodun `rating_avg/rating_count`-unu admin-dən və ya yenidən hesablamaqla düzəlt.
 
 ## B. Yeniləmə
 `git push`, sonra serverdə: `bash ~/zavod-src/deploy/cpanel/deploy.sh`. Geri qaytarma: `bash ~/zavod-src/deploy/cpanel/rollback.sh [id]`.

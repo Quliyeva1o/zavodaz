@@ -8,6 +8,9 @@ export const VOTER_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 /** Votes per IP per hour (changing a vote counts too). */
 export const RATING_LIMIT = 20;
 export const RATING_WINDOW_SEC = 60 * 60;
+/** A new voter is refused when this many other voters from the same IP already rated the factory in the last IP_VOTER_DAYS days. */
+export const IP_VOTER_LIMIT = 3;
+export const IP_VOTER_DAYS = 30;
 
 export const scoreSchema = z.number().int().min(1).max(5);
 export const isVoterId = (value: string | undefined): value is string => z.uuid().safeParse(value).success;

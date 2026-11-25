@@ -2,16 +2,18 @@
 import { and, eq, sql } from "drizzle-orm";
 import { factories, ratings } from "@/db/schema";
 import type { AnyPgDb } from "@/lib/cache/tag-store";
-import { ratingStats } from "./rating";
+import { IP_VOTER_DAYS, IP_VOTER_LIMIT, ratingStats } from "./rating";
 
 export type VoteResult = { factoryId: string; avg: number; count: number };
+/** `null` = no such published factory; "ipLimit" = a new voter, but the IP already has IP_VOTER_LIMIT voters for this factory. */
+export type CastResult = VoteResult | null | "ipLimit";
 
 /**
  * Saves (or changes) a voter's score for a published factory and recomputes the factory's average and count from
  * `ratings`, in one transaction. The factory row is locked first, so two votes for the same factory never overwrite
  * each other's aggregate. `null` = no such published factory.
  */
-export async function castVote(db: AnyPgDb, slug: string, hash: string, score: number): Promise<VoteResult | null> {
+export async function castVote(db: AnyPgDb, slug: string, hash: string, score: number, ipHash: string): Promise<CastResult> {
   return db.transaction(async (tx) => {
     const [factory] = await tx
       .select({ id: factories.id })
@@ -19,9 +21,18 @@ export async function castVote(db: AnyPgDb, slug: string, hash: string, score: n
       .where(and(eq(factories.slug, slug), eq(factories.status, "published")))
       .for("update");
     if (!factory) return null;
+    // Per-IP cap, under the factory lock so parallel votes cannot slip past it. An existing voter may always change the vote.
+    const [existing] = await tx.select({ one: sql<number>`1` }).from(ratings).where(and(eq(ratings.factoryId, factory.id), eq(ratings.voterHash, hash)));
+    if (!existing) {
+      const [seen] = await tx
+        .select({ n: sql<number>`count(distinct ${ratings.voterHash})::int` })
+        .from(ratings)
+        .where(and(eq(ratings.factoryId, factory.id), eq(ratings.ipHash, ipHash), sql`${ratings.createdAt} > now() - make_interval(days => ${IP_VOTER_DAYS})`));
+      if (seen.n >= IP_VOTER_LIMIT) return "ipLimit";
+    }
     await tx
       .insert(ratings)
-      .values({ factoryId: factory.id, voterHash: hash, score })
+      .values({ factoryId: factory.id, voterHash: hash, ipHash, score })
       .onConflictDoUpdate({ target: [ratings.factoryId, ratings.voterHash], set: { score, updatedAt: sql`now()` } });
     const [agg] = await tx
       .select({ sum: sql<number>`coalesce(sum(${ratings.score}), 0)::int`, count: sql<number>`count(*)::int` })

@@ -236,24 +236,41 @@ test("a new factory / landing that takes an old slug back releases its redirect 
   });
 });
 
+test("castVote: a 4th new voter from one IP is refused, a changed vote and other IPs still work, old votes fall out of the window", async () => {
+  await inRolledBackTx(async (tx) => {
+    await seed(tx);
+    for (const v of ["a", "b", "c"]) expect(await castVote(tx, "e2e-f-agro", `voter-${v}`, 4, "ip-x")).toMatchObject({ count: expect.any(Number) });
+    expect(await castVote(tx, "e2e-f-agro", "voter-d", 5, "ip-x")).toBe("ipLimit");
+    expect(await findVote(tx, "e2e-f-agro", "voter-d")).toBeNull();
+    // A changed vote of an existing voter is not a new voter.
+    expect(await castVote(tx, "e2e-f-agro", "voter-b", 1, "ip-x")).toMatchObject({ count: 3 });
+    // Another IP, and another factory for the same IP, are separate buckets.
+    expect(await castVote(tx, "e2e-f-agro", "voter-d", 5, "ip-y")).toMatchObject({ count: 4 });
+    expect(await castVote(tx, "e2e-f-other", "voter-d", 5, "ip-x")).toMatchObject({ count: 1 });
+    // A vote older than 30 days no longer counts.
+    await tx.execute(sql`update ratings set created_at = now() - interval '31 days' where voter_hash = 'voter-a'`);
+    expect(await castVote(tx, "e2e-f-agro", "voter-e", 3, "ip-x")).toMatchObject({ count: 5 });
+  });
+});
+
 test("castVote: the same voter twice → count 1 and the average follows; another voter adds; unpublished is refused", async () => {
   await inRolledBackTx(async (tx) => {
     await seed(tx);
-    const one = await castVote(tx, "e2e-f-agro", "voter-a", 2);
+    const one = await castVote(tx, "e2e-f-agro", "voter-a", 2, "ip-1");
     expect(one).toMatchObject({ avg: 2, count: 1 });
-    const changed = await castVote(tx, "e2e-f-agro", "voter-a", 5);
+    const changed = await castVote(tx, "e2e-f-agro", "voter-a", 5, "ip-1");
     expect(changed).toMatchObject({ avg: 5, count: 1 });
     expect(await findVote(tx, "e2e-f-agro", "voter-a")).toBe(5);
     expect(await findVote(tx, "e2e-f-agro", "voter-b")).toBeNull();
-    const two = await castVote(tx, "e2e-f-agro", "voter-b", 4);
+    const two = await castVote(tx, "e2e-f-agro", "voter-b", 4, "ip-1");
     expect(two).toMatchObject({ avg: 4.5, count: 2 });
     const [row] = await tx.select({ avg: factories.ratingAvg, count: factories.ratingCount }).from(factories).where(eq(factories.slug, "e2e-f-agro"));
     expect(row).toEqual({ avg: 4.5, count: 2 });
     // Hidden and unknown factories cannot be rated.
-    expect(await castVote(tx, "e2e-f-hidden", "voter-a", 3)).toBeNull();
-    expect(await castVote(tx, "e2e-f-nope", "voter-a", 3)).toBeNull();
+    expect(await castVote(tx, "e2e-f-hidden", "voter-a", 3, "ip-1")).toBeNull();
+    expect(await castVote(tx, "e2e-f-nope", "voter-a", 3, "ip-1")).toBeNull();
     expect(await findVote(tx, "e2e-f-hidden", "voter-a")).toBeNull();
     // The CHECK constraint is the last line of defence.
-    await expect(castVote(tx, "e2e-f-other", "voter-a", 6)).rejects.toThrow();
+    await expect(castVote(tx, "e2e-f-other", "voter-a", 6, "ip-1")).rejects.toThrow();
   });
 });

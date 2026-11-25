@@ -16,7 +16,7 @@ export type RatingLabels = {
   thanksTitle: string;
   thanksText: string;
   home: string;
-  errors: { invalid: string; rateLimited: string; notFound: string; server: string; load: string };
+  errors: { invalid: string; rateLimited: string; ipLimit: string; notFound: string; server: string; load: string };
 };
 export type RatingDialogProps = { slug: string; labels: RatingLabels; homeHref: string; onClose: () => void };
 

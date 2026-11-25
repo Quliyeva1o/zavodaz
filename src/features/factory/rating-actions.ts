@@ -9,10 +9,10 @@ import { consumeAttempt } from "@/lib/rate-limit";
 import { RATING_LIMIT, RATING_WINDOW_SEC, VOTER_COOKIE, VOTER_COOKIE_MAX_AGE, isVoterId, scoreSchema, voterHash } from "./rating";
 import { castVote, findVote } from "./rating-sql";
 
-export type RateResult = { ok: true } | { ok: false; error: "invalid" | "rateLimited" | "notFound" | "server" };
+export type RateResult = { ok: true } | { ok: false; error: "invalid" | "rateLimited" | "ipLimit" | "notFound" | "server" };
 
 /**
- * Anonymous vote for a published factory: one per voter (cookie id + hashed IP), changeable (upsert). 20 per IP per hour.
+ * Anonymous vote for a published factory: one per voter (cookie id + hashed IP), changeable (upsert). 20 per IP per hour; at most 3 distinct voters per IP per factory in 30 days.
  * The factory page's tag is refreshed at once; catalog cards may lag up to an hour (decision).
  */
 export async function rateFactory(slug: string, score: number): Promise<RateResult> {
@@ -27,7 +27,8 @@ export async function rateFactory(slug: string, score: number): Promise<RateResu
       voterId = randomUUID();
       store.set(VOTER_COOKIE, voterId, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: VOTER_COOKIE_MAX_AGE });
     }
-    const result = await castVote(db, slug, voterHash(voterId, ipHash), parsed.data);
+    const result = await castVote(db, slug, voterHash(voterId, ipHash), parsed.data, ipHash);
+    if (result === "ipLimit") return { ok: false, error: "ipLimit" };
     if (!result) return { ok: false, error: "notFound" };
     await invalidateTags([factoryTag(result.factoryId)]);
     return { ok: true };
