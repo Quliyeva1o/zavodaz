@@ -2,17 +2,18 @@
 
 import { useRef, useState, type ComponentType } from "react";
 import { Icon } from "@/components/ui/icon";
+import { useLazy } from "@/components/ui/use-lazy";
 import type { MobileMenuProps } from "./mobile-menu-dialog";
 
 type Dialog = ComponentType<MobileMenuProps & { open: number; onClosed: () => void }>;
 
 /**
  * Header menu button (Figma 40×40, brand-50); opens MobileMenuDialog. R13 (JS budget): the dialog's chunk is requested
- * on the first click only — a plain `import()`, not next/dynamic, whose loader runtime would be in every page's JS.
+ * on the first click only (useLazy, a plain `import()`; next/dynamic's loader runtime would be in every page's JS).
  */
 export function MobileMenu(props: MobileMenuProps) {
   const [open, setOpen] = useState(0);
-  const [MobileMenuDialog, setDialog] = useState<{ C: Dialog } | null>(null);
+  const [MobileMenuDialog, load] = useLazy((): Promise<Dialog> => import("./mobile-menu-dialog").then((m) => m.default));
   const button = useRef<HTMLButtonElement>(null);
   return (
     <>
@@ -21,11 +22,8 @@ export function MobileMenu(props: MobileMenuProps) {
         type="button"
         onClick={() => {
           if (matchMedia("(min-width: 1024px)").matches) return;
-          import("./mobile-menu-dialog")
-            .then((m) => {
-              setDialog({ C: m.default });
-              setOpen((n) => n + 1);
-            })
+          load()
+            .then(() => setOpen((n) => n + 1))
             // The chunk failed to load: log, and jump to the footer links (the page has no other no-JS menu).
             .catch((error) => {
               console.error("menu dialog chunk failed to load", error);
@@ -38,7 +36,7 @@ export function MobileMenu(props: MobileMenuProps) {
       >
         <Icon name="list" size={20} />
       </button>
-      {open > 0 && MobileMenuDialog && <MobileMenuDialog.C {...props} open={open} onClosed={() => button.current?.focus()} />}
+      {open > 0 && MobileMenuDialog && <MobileMenuDialog {...props} open={open} onClosed={() => button.current?.focus()} />}
     </>
   );
 }

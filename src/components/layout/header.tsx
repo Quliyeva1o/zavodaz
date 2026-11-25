@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { href, type RouteKey } from "@/i18n/routes";
@@ -42,9 +41,9 @@ export async function Header({ lang }: { lang: Locale }) {
     <header data-figma="header" className="bg-white lg:border-b lg:border-gray-200">
       {/* Desktop >= 1024: 128px + 1px bottom border = Figma 129 */}
       <div className="mx-auto hidden h-[128px] max-w-[1440px] items-end justify-between px-[60px] pt-5 pb-[19px] lg:flex">
-        <Link href={href("home", lang)} aria-label="Zavod.az">
+        <a href={href("home", lang)} aria-label="Zavod.az">
           <Logo variant="header" priority />
-        </Link>
+        </a>
         <div className="flex flex-col items-end gap-[25px]">
           <div className="flex h-10 items-center gap-5">
             <a href={telHref(s.phone)} className="flex items-center gap-1.5 text-body-md text-brand-950">
@@ -53,17 +52,17 @@ export async function Header({ lang }: { lang: Locale }) {
             </a>
             <WhatsAppLink number={s.whatsapp} label={t.header.whatsapp} className="w-[240px] px-[9px]" />
             <LangSwitcher lang={lang} labels={t.languages} languageLabel={t.header.language} />
-            <Link
+            <a
               href={href("login", lang)}
               className="flex h-10 items-center gap-1.5 rounded-[4px] bg-brand-950 px-4 text-body-md text-white"
             >
               <Icon name="user-white" size={20} />
               {t.header.login}
-            </Link>
+            </a>
           </div>
           <nav aria-label={t.header.mainMenu} className="flex h-6 items-center gap-10">
             {links.map((l) => (
-              <Link
+              <a
                 key={l.href}
                 href={l.href}
                 style={l.box}
@@ -71,7 +70,7 @@ export async function Header({ lang }: { lang: Locale }) {
                 className="relative before:absolute before:inset-x-0 before:-inset-y-[11px] shrink-0 whitespace-nowrap text-subtitle-3-medium text-brand-950"
               >
                 {l.label}
-              </Link>
+              </a>
             ))}
           </nav>
         </div>
@@ -79,17 +78,17 @@ export async function Header({ lang }: { lang: Locale }) {
 
       {/* Mobile < 1024: Figma 320x62 */}
       <div className="flex h-[62px] items-end justify-between px-4 pt-4 lg:hidden">
-        <Link href={href("home", lang)} aria-label="Zavod.az">
+        <a href={href("home", lang)} aria-label="Zavod.az">
           <Logo variant="header-mobile" priority />
-        </Link>
+        </a>
         <div className="flex items-center gap-2.5">
-          <Link
+          <a
             href={href("login", lang)}
             aria-label={t.header.login}
             className="flex size-10 items-center justify-center rounded-[4px] bg-brand-950"
           >
             <Icon name="user-white" size={20} />
-          </Link>
+          </a>
           <MobileMenu
             lang={lang}
             links={links}

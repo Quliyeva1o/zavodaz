@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
@@ -56,9 +55,9 @@ export function AboutTab({ lang, factory: f, dicts }: { lang: Locale; factory: F
       {hasMedia && (
         <section aria-labelledby="factory-media" className={`flex flex-col gap-2.5 lg:gap-4 ${card}`}>
           <Title id="factory-media">
-            <Link href={factoryHref(f.slug, lang, "media")} prefetch={false} className="hover:underline">
+            <a href={factoryHref(f.slug, lang, "media")} className="hover:underline">
               {t.media}
-            </Link>
+            </a>
           </Title>
           <div className={`flex flex-col gap-6 ${video && f.images.length ? "lg:grid lg:grid-cols-[462fr_367fr]" : ""}`}>
             {video && (
@@ -151,13 +150,12 @@ export function VacanciesTab({
         ))}
       </div>
       {page < list.pageCount && (
-        <Link
+        <a
           href={`${factoryHref(f.slug, lang, "vacancies")}?page=${page + 1}`}
-          scroll={false}
           className="relative flex h-10 items-center justify-center rounded-[4px] border border-gray-200 px-2.5 text-body-md text-brand-950 after:absolute after:inset-x-0 after:-inset-y-1"
         >
           {t.more}
-        </Link>
+        </a>
       )}
     </section>
   );

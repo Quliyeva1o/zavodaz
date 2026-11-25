@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { factoryHref, productHref } from "@/i18n/routes";
@@ -41,9 +40,9 @@ export function ProductCard({ lang, factorySlug, product: p, priority = false }:
       <div className="flex flex-col gap-0.5 lg:gap-1.5">
         <p className="text-caption-tight text-brand-500">{p.id}</p>
         <h3 className="line-clamp-2 text-body-sm text-brand-950 [overflow-wrap:anywhere] lg:text-subtitle-3-medium">
-          <Link href={productHref(factorySlug, p, lang)} prefetch={false} className="after:absolute after:inset-0">
+          <a href={productHref(factorySlug, p, lang)} className="after:absolute after:inset-0">
             {p.name}
-          </Link>
+          </a>
         </h3>
         {p.description && <p className="line-clamp-1 text-caption-tight text-gray-700 [overflow-wrap:anywhere] lg:text-body-sm">{p.description}</p>}
       </div>
@@ -139,13 +138,13 @@ export function ProductView({ lang, factory: f, product: p, similar }: { lang: L
     <div className="flex flex-col gap-8 lg:gap-[60px]">
       <article className="flex flex-col gap-4 lg:gap-8">
         <div className="hidden items-center gap-2.5 lg:flex">
-          <Link
+          <a
             href={factoryHref(f.slug, lang, "products")}
             aria-label={t.productsBack}
             className="flex size-10 items-center justify-center rounded-full bg-gray-50 hover:bg-brand-50"
           >
             <Icon name="caret-left" size={20} />
-          </Link>
+          </a>
           <p aria-hidden className="text-h4 text-brand-950">
             {t.products}
           </p>

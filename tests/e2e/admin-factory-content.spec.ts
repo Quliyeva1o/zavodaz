@@ -268,7 +268,7 @@ test("PDF catalogues: a PDF is added and opens inline; a non-PDF is refused; del
   await expect(link).toHaveAttribute("href", `/media/${file.media_id}/file.pdf`);
   const served = await request.get(`/media/${file.media_id}/file.pdf`);
   expect(served.status()).toBe(200);
-  expect(served.headers()["content-disposition"]).toBe("inline");
+  expect(served.headers()["content-disposition"]).toBe("inline; filename=katalog.pdf");
 
   await page.getByRole("button", { name: "Sil: Kataloq 2026" }).click();
   await expect(page.getByText("PDF kataloq yoxdur.")).toBeVisible();

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 
 export type Crumb = { label: string; href?: string };
@@ -14,9 +13,9 @@ export function Breadcrumb({ items, label }: { items: Crumb[]; label: string }) 
         <span key={i} className={`flex items-center gap-2.5${i === 0 ? " max-lg:sr-only" : ""}`}>
           {i > 0 && <Icon name="caret-right" size={18} />}
           {c.href ? (
-            <Link href={c.href} className="relative text-gray-500 before:absolute before:inset-x-0 before:-inset-y-3">
+            <a href={c.href} className="relative text-gray-500 before:absolute before:inset-x-0 before:-inset-y-3">
               {c.label}
-            </Link>
+            </a>
           ) : (
             <span aria-current="page" className="text-brand-950">
               {c.label}

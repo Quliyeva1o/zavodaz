@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ComponentType } from "react";
 import { Icon } from "@/components/ui/icon";
+import { useLazy } from "@/components/ui/use-lazy";
 import type { MobileFilterProps } from "./mobile-filter";
 
 /**
@@ -11,8 +12,8 @@ import type { MobileFilterProps } from "./mobile-filter";
  * to the sidebar instead (catalog-view.tsx).
  */
 export function MobileFilterButton({ label, ...dialog }: { label: string } & Omit<MobileFilterProps, "open" | "onClose" | "title">) {
-  // The dialog is not in the page's JS: its chunk is requested on the first click (plain import(), no next/dynamic runtime).
-  const [MobileFilter, setDialog] = useState<{ C: ComponentType<MobileFilterProps> } | null>(null);
+  // The dialog is not in the page's JS: its chunk is requested on the first click (useLazy).
+  const [MobileFilter, load] = useLazy((): Promise<ComponentType<MobileFilterProps>> => import("./mobile-filter").then((m) => m.default));
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   return (
@@ -22,11 +23,8 @@ export function MobileFilterButton({ label, ...dialog }: { label: string } & Omi
         type="button"
         aria-haspopup="dialog"
         onClick={() =>
-          import("./mobile-filter")
-            .then((m) => {
-              setDialog({ C: m.default });
-              setOpen(true);
-            })
+          load()
+            .then(() => setOpen(true))
             // The chunk failed to load: log, and fall back to the no-JS anchor (the sidebar, shown with :target).
             .catch((error) => {
               console.error("filter dialog chunk failed to load", error);
@@ -39,7 +37,7 @@ export function MobileFilterButton({ label, ...dialog }: { label: string } & Omi
         {label}
       </button>
       {MobileFilter && (
-        <MobileFilter.C
+        <MobileFilter
           {...dialog}
           title={label}
           open={open}

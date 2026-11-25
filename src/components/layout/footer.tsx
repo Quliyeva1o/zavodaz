@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { href } from "@/i18n/routes";
@@ -44,18 +43,18 @@ export async function Footer({ lang }: { lang: Locale }) {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 lg:gap-[37px]">
         {/* Logo + links */}
         <div className="flex flex-col gap-8 px-4 lg:flex-row lg:items-start lg:justify-between lg:px-[60px]">
-          <Link href={href("home", lang)} aria-label="Zavod.az">
+          <a href={href("home", lang)} aria-label="Zavod.az">
             <span className="lg:hidden"><Logo variant="footer-mobile" /></span>
             <span className="hidden lg:block"><Logo variant="footer" /></span>
-          </Link>
+          </a>
           {/* Mobile: 2 columns x 3 links; desktop: 3 columns x 2 links, vertically centred on the logo */}
           <nav className="grid grid-cols-2 gap-x-0 gap-y-4 lg:hidden">
             {mobileColumns.map((col, i) => (
               <div key={i} className="flex flex-col gap-4">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="min-h-5 text-mob-subtitle-2 leading-5">
+                  <a key={l.label} href={l.href} className="min-h-5 text-mob-subtitle-2 leading-5">
                     {l.label}
-                  </Link>
+                  </a>
                 ))}
               </div>
             ))}
@@ -64,9 +63,9 @@ export async function Footer({ lang }: { lang: Locale }) {
             {columns.map((col, i) => (
               <div key={i} className="flex flex-col gap-6">
                 {col.map((l) => (
-                  <Link key={l.label} href={l.href} className="min-h-6 text-subtitle-3 leading-6">
+                  <a key={l.label} href={l.href} className="min-h-6 text-subtitle-3 leading-6">
                     {l.label}
-                  </Link>
+                  </a>
                 ))}
               </div>
             ))}
@@ -114,9 +113,9 @@ export async function Footer({ lang }: { lang: Locale }) {
                 <Fragment key={l.label}>
                   {i > 0 && <li aria-hidden className="-mr-px h-[9px] w-px bg-white lg:h-[11.659px]" />}
                   <li>
-                    <Link href={l.href} className="whitespace-nowrap">
+                    <a href={l.href} className="whitespace-nowrap">
                       {l.label}
-                    </Link>
+                    </a>
                   </li>
                 </Fragment>
               ))}

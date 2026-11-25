@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { FACTORY_TABS, factoryHref, type FactoryTab } from "@/i18n/routes";
@@ -31,16 +30,15 @@ export function TabNav({
           const active = tab === current;
           return (
             <li key={tab}>
-              <Link
+              <a
                 href={factoryHref(slug, lang, tab) + (preview ? "?preview=1" : "")}
-                prefetch={false}
                 aria-current={active ? "page" : undefined}
                 className={`flex h-9 items-center whitespace-nowrap rounded-full border px-4 text-body-sm text-brand-950 lg:h-[58px] lg:rounded-none lg:border-0 lg:border-b-2 lg:bg-transparent lg:px-5 lg:pb-3.5 lg:pt-4 lg:text-subtitle-2 ${
                   active ? "border-transparent bg-brand-200 lg:border-brand-500" : "border-gray-200 bg-gray-50 lg:border-transparent lg:text-gray-500"
                 }`}
               >
                 {t.tabs[tab]}
-              </Link>
+              </a>
             </li>
           );
         })}

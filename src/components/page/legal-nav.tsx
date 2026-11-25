@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { href } from "@/i18n/routes";
@@ -21,7 +20,7 @@ export function LegalNav({ lang, active, gap }: { lang: Locale; active: LegalKey
       className={`flex w-full flex-col rounded-[10px] border border-gray-200 bg-gray-50 p-[15px] lg:p-[19px] ${gap === 20 ? "gap-5" : "gap-4"}`}
     >
       {ITEMS.map((k) => (
-        <Link
+        <a
           key={k}
           href={href(k, lang)}
           aria-current={k === active ? "page" : undefined}
@@ -29,7 +28,7 @@ export function LegalNav({ lang, active, gap }: { lang: Locale; active: LegalKey
         >
           <span className="flex-1">{t.pages[k]}</span>
           <Icon name="caret-right" size={24} />
-        </Link>
+        </a>
       ))}
     </nav>
   );
