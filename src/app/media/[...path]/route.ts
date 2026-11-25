@@ -21,7 +21,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ path: string[]
         "Content-Type": type,
         "Cache-Control": "public, max-age=31536000, immutable",
         "X-Content-Type-Options": "nosniff",
-        ...(type === "application/pdf" ? { "Content-Disposition": "inline" } : {}),
+        ...(type === "application/pdf" ? { "Content-Disposition": "inline; filename=katalog.pdf", "Content-Security-Policy": "sandbox" } : {}),
       },
     });
   } catch {

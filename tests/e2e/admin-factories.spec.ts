@@ -190,7 +190,9 @@ test("upload route ?kind=pdf: a PDF → 201 { id, kind, size }, served inline; n
   const served = await request.get(`/media/${body.id}/file.pdf`);
   expect(served.status()).toBe(200);
   expect(served.headers()["content-type"]).toBe("application/pdf");
-  expect(served.headers()["content-disposition"]).toBe("inline");
+  expect(served.headers()["content-disposition"]).toBe("inline; filename=katalog.pdf");
+  expect(served.headers()["content-security-policy"]).toBe("sandbox");
+  expect(served.headers()["x-content-type-options"]).toBe("nosniff");
   expect(Buffer.from(await served.body()).equals(pdf)).toBe(true);
   // The route only serves the file shape of the kind on disk: no image variant of a PDF.
   expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(404);
