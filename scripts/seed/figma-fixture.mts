@@ -204,7 +204,8 @@ await db.execute(sql`delete from rate_limits where key like 'rate:%'`);
 
 // 6) işləyən server keşi: teq-lər cache_tags-da köhnəlir, server növbəti sinxronda (≤ 3 s) tətbiq edir
 const now = Date.now();
-for (const tag of ["factories", ...agroIds.map((id) => `factory:${id}`)]) {
+// Silinən köhnə zavodların teqləri də: slug sorğusu tapılan zavodun öz teqi ilə keşlənir (köhnə media id-ləri qalmasın).
+for (const tag of ["factories", ...[...oldIds, ...agroIds].map((id) => `factory:${id}`)]) {
   await db.execute(sql`
     insert into cache_tags (tag, expired_at) values (${tag}, ${now}) on conflict (tag) do update set expired_at = excluded.expired_at`);
 }
