@@ -5,8 +5,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import { findNode, getNodes } from "../../scripts/figma/api.mts";
-import { cropHeight, cropSizeError, runOpen, loadTargets, textsInCrop } from "./target-lib.mjs";
-import { WS_SOURCE, relayout, findBlocks, isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveText } from "./geometry-lib.mjs";
+import { cropHeight, cropSizeError, runOpen, loadTargets, setCookies, targetNodes, textsInCrop } from "./target-lib.mjs";
+import { WS_SOURCE, relayout, findBlocks, isIgnored, isMultiParagraph, minTextsError, normalizeText, pickMatch, resolveMatcher, unionRoot } from "./geometry-lib.mjs";
 
 const TOLERANCE = 1;
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
@@ -16,13 +16,13 @@ const targets = loadTargets(JSON.parse(await readFile("tests/visual/targets.json
 // Figma nodes: live /nodes API first, the local file copy (design/.cache/file.json) as fallback.
 let figma, source;
 try {
-  const nodes = await getNodes(targets.map((t) => t.node));
+  const nodes = await getNodes([...new Set(targets.flatMap(targetNodes))]);
   figma = Object.fromEntries(Object.entries(nodes).map(([id, n]) => [id, n.document]));
   source = "Figma /nodes API";
 } catch (error) {
   console.warn(`Figma API failed (${error.message.split("\n")[0]}), using design/.cache/file.json`);
   const file = JSON.parse(await readFile("design/.cache/file.json", "utf8"));
-  figma = Object.fromEntries(targets.map((t) => [t.node, findNode(file.document, t.node)]));
+  figma = Object.fromEntries(targets.flatMap(targetNodes).map((id) => [id, findNode(file.document, id)]));
   source = `design/.cache/file.json (Figma version ${file.lastModified})`;
 }
 console.log(`Figma source: ${source}\n`);
@@ -90,10 +90,13 @@ const browser = await chromium.launch({ channel: "chrome" });
 const report = { source, tolerance: TOLERANCE, targets: [] };
 let failed = false;
 for (const t of targets) {
+  // union: several Figma nodes → one synthetic root over their common box.
   // relayout: Figma's stored boxes of instance children can be stale; its render lays them out again (geometry-lib).
-  const root = t.relayout ? relayout(figma[t.node]) : figma[t.node];
+  const node = unionRoot(targetNodes(t).map((id) => figma[id]));
+  const root = t.relayout ? relayout(node) : node;
   const fb = root.absoluteBoundingBox;
   const page = await browser.newPage({ viewport: VIEWPORTS[t.bp], deviceScaleFactor: 1 });
+  await setCookies(page, t.cookies, base);
   await page.goto(base + t.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   await runOpen(page, t.open);
@@ -105,7 +108,8 @@ for (const t of targets) {
   const fTexts = allTexts.filter((f) => !isIgnored(f.raw, t.ignore));
   const ignored = allTexts.length - fTexts.length;
   const aliases = t.aliases ?? {};
-  const multi = fTexts.filter((f) => isMultiParagraph(f.raw)).map((f) => resolveText(f.raw, aliases).text);
+  const patterns = t.patterns ?? {};
+  const multi = fTexts.filter((f) => isMultiParagraph(f.raw)).map((f) => resolveMatcher(f.raw, aliases, patterns).text);
   const blocks = multi.length ? await page.evaluate(findBlocks, [t.selector, multi, WS_SOURCE]) : {};
   await page.close();
 
@@ -124,13 +128,14 @@ for (const t of targets) {
 
   const used = new Set();
   const rows = fTexts.map((f) => {
-    const { text: want, aliased } = resolveText(f.raw, aliases);
-    const label = (aliased ? "(alias) " : "") + f.text.slice(0, 32);
+    const m = resolveMatcher(f.raw, aliases, patterns);
+    const want = m.text;
+    const label = (m.kind === "text" ? "" : `(${m.kind}) `) + f.text.slice(0, 32);
     let s;
     if (isMultiParagraph(f.raw)) {
       s = blocks[want];
     } else {
-      const i = pickMatch(f, site.texts, used, want);
+      const i = pickMatch(f, site.texts, used, m.test);
       if (i >= 0) used.add(i);
       s = site.texts[i];
     }
@@ -155,6 +160,8 @@ for (const t of targets) {
   if (t.crop !== undefined) console.log(`  crop (${t.cropReason})`);
   if (t.relayout) console.log(`  relayout (${t.relayoutReason})`);
   for (const [from, to] of Object.entries(aliases)) console.log(`  alias: "${from}" -> "${to}"${t.aliasReason ? ` (${t.aliasReason})` : ""}`);
+  for (const [from, re] of Object.entries(patterns)) console.log(`  pattern: "${from}" -> /${re}/ (${t.patternReason})`);
+  if (t.union) console.log(`  union ${targetNodes(t).join(" + ")} (${t.unionReason})`);
   if (ignored) console.log(`  ignored ${ignored} Figma text(s): ${t.ignore.map((s) => `"${s}"`).join(", ")}${t.ignoreReason ? ` (${t.ignoreReason})` : ""}`);
   console.table(rows, ["text", "figma", "site", "delta", "ok"]);
   report.targets.push({ target: `${t.bp}/${t.name}`, node: t.node, ok, size, maxDelta, countError, aliases, ignored: t.ignore ?? [], texts: rows });

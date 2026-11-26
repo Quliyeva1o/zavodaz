@@ -21,6 +21,20 @@ export function resolveText(figmaText, aliases = {}) {
 }
 
 /**
+ * What a Figma text must be on the site: an alias, a pattern (regex over the normalised site text: a sample value Figma
+ * repeats where the site shows unique ones) or the text itself. `test` checks a normalised site text.
+ */
+export function resolveMatcher(figmaText, aliases = {}, patterns = {}) {
+  const key = normalizeText(figmaText);
+  if (Object.hasOwn(patterns, key)) {
+    const re = new RegExp(patterns[key]);
+    return { text: key, kind: "pattern", test: (s) => re.test(s) };
+  }
+  const { text, aliased } = resolveText(figmaText, aliases);
+  return { text, kind: aliased ? "alias" : "text", test: (s) => s === text };
+}
+
+/**
  * Figma texts the site draws without a DOM text node (input placeholders live in ::placeholder, R11):
  * `ignore` is a list of Figma texts; matched after whitespace normalisation. Every ignore needs `ignoreReason`.
  */
@@ -31,18 +45,30 @@ export function isIgnored(figmaText, ignore = []) {
 
 /**
  * Index of the site text box for a Figma text: among the not yet used site texts with the wanted text,
- * the nearest one (|Δx| + |Δy|). Figma tree order and DOM order differ when the layout reorders blocks
+ * the nearest one (|Δx| + |Δy|). `want` is the text or a predicate (a pattern). Figma tree order and DOM order differ when the layout reorders blocks
  * (e.g. Əlaqə: "E-mail" in the info column and in the form). -1 when none.
  */
 export function pickMatch(f, siteTexts, used, want) {
+  const ok = typeof want === "function" ? want : (s) => s === want;
   let best = -1;
   let bestD = Infinity;
   siteTexts.forEach((q, k) => {
-    if (used.has(k) || q.text !== want) return;
+    if (used.has(k) || !ok(q.text)) return;
     const d = Math.abs(q.x - f.x) + Math.abs(q.y - f.y);
     if (d < bestD) [best, bestD] = [k, d];
   });
   return best;
+}
+
+/** A target of several Figma nodes (`union`): one synthetic root over them, its box their common box. */
+export function unionRoot(nodes) {
+  if (nodes.length === 1) return nodes[0];
+  const boxes = nodes.map((n) => n.absoluteBoundingBox);
+  const x = Math.min(...boxes.map((b) => b.x));
+  const y = Math.min(...boxes.map((b) => b.y));
+  const width = Math.max(...boxes.map((b) => b.x + b.width)) - x;
+  const height = Math.max(...boxes.map((b) => b.y + b.height)) - y;
+  return { id: nodes.map((n) => n.id).join("+"), type: "UNION", absoluteBoundingBox: { x, y, width, height }, children: nodes };
 }
 
 /** Error text when the target has fewer Figma texts than `minTexts` (default 1); else null. */

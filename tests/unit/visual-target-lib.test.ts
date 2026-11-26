@@ -121,3 +121,55 @@ test("cropSizeError: element crop-dan qısadırsa xəta, əks halda null", async
   assert.equal(cropSizeError(422, 422), null);
   assert.match(cropSizeError(422, 300) ?? "", /300px high, shorter than crop 422px/);
 });
+
+test("validateTarget: union/patterns/cookies — səbəb və forma yoxlanılır", async () => {
+  const { validateTarget } = await import("../visual/target-lib.mjs");
+  const base = { bp: "desktop", name: "x", node: "1:1" };
+  assert.throws(() => validateTarget({ ...base, union: ["1:2"] }), /union requires unionReason/);
+  assert.throws(() => validateTarget({ ...base, union: [], unionReason: "r" }), /union must be/);
+  assert.throws(() => validateTarget({ ...base, union: ["1:1"], unionReason: "r" }), /union must be/);
+  assert.throws(() => validateTarget({ ...base, patterns: { "1519494": "^\\d{7}$" } }), /patterns requires patternReason/);
+  assert.throws(() => validateTarget({ ...base, patterns: { a: "(" }, patternReason: "r" }), /patterns/);
+  assert.throws(() => validateTarget({ ...base, cookies: { a: 1 } }), /cookies must be/);
+  assert.doesNotThrow(() =>
+    validateTarget({ ...base, union: ["1:2", "1:3"], unionReason: "r", patterns: { "1519494": "^\\d{7}$" }, patternReason: "r", cookies: { zv: "abc" } }),
+  );
+});
+
+test("targetNodes: node + union sırası ilə", async () => {
+  const { targetNodes } = await import("../visual/target-lib.mjs");
+  assert.deepEqual(targetNodes({ node: "1:1" }), ["1:1"]);
+  assert.deepEqual(targetNodes({ node: "1:1", union: ["1:3", "1:2"] }), ["1:1", "1:3", "1:2"]);
+});
+
+test("unionBox: qutuların ortaq sərhədi", async () => {
+  const { unionBox } = await import("../visual/target-lib.mjs");
+  assert.deepEqual(unionBox([{ x: 60, y: 473, width: 893, height: 104 }]), { x: 60, y: 473, width: 893, height: 104 });
+  assert.deepEqual(
+    unionBox([
+      { x: 60, y: 473, width: 893, height: 104 },
+      { x: 60, y: 601, width: 893, height: 1402 },
+      { x: 10, y: 700, width: 10, height: 10 },
+    ]),
+    { x: 10, y: 473, width: 943, height: 1530 },
+  );
+});
+
+test("referenceRect: kadr daxilində node qutusu — mövqe yuvarlaq, ölçü Figma export kimi yuxarı", async () => {
+  const { referenceRect } = await import("../visual/target-lib.mjs");
+  const frame = { x: 1000, y: 2000, width: 1440, height: 900 };
+  assert.deepEqual(referenceRect(frame, { x: 1393, y: 2300, width: 656, height: 299 }), { x: 393, y: 300, width: 656, height: 299 });
+  assert.deepEqual(referenceRect(frame, { x: 1060.4, y: 2210.6, width: 893.2, height: 20.01 }), { x: 60, y: 211, width: 894, height: 21 });
+});
+
+test("cropRegion: kənara çıxan hissə şəffaf piksellə doldurulur", async () => {
+  const { cropRegion } = await import("../visual/target-lib.mjs");
+  // 2×2 şəkil, R kanalı = indeks + 1, alfa 255
+  const img = { width: 2, height: 2, data: Buffer.from(Array.from({ length: 4 }, (_, i) => [i + 1, 0, 0, 255]).flat()) };
+  const part = cropRegion(img, { x: 1, y: 0, width: 2, height: 2 });
+  assert.equal(part.width, 2);
+  assert.equal(part.height, 2);
+  assert.deepEqual([0, 1, 2, 3].map((p) => [part.data[p * 4], part.data[p * 4 + 3]]), [[2, 255], [0, 0], [4, 255], [0, 0]]);
+  const inside = cropRegion(img, { x: 0, y: 1, width: 2, height: 1 });
+  assert.deepEqual([inside.data[0], inside.data[4]], [3, 4]);
+});

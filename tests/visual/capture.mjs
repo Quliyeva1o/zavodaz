@@ -2,7 +2,7 @@
 // Usage: npm run visual:capture   (production server on E2E_BASE_URL, default http://localhost:3100)
 import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
-import { cropHeight, runOpen, loadTargets } from "./target-lib.mjs";
+import { cropHeight, runOpen, loadTargets, setCookies } from "./target-lib.mjs";
 
 const base = process.env.E2E_BASE_URL ?? "http://localhost:3100";
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, mobile: { width: 320, height: 568 } };
@@ -13,6 +13,7 @@ const targets = loadTargets(JSON.parse(await readFile("tests/visual/targets.json
 const browser = await chromium.launch({ channel: "chrome", args: ["--disable-lcd-text"] });
 for (const t of targets) {
   const page = await browser.newPage({ viewport: VIEWPORTS[t.bp], deviceScaleFactor: 1 });
+  await setCookies(page, t.cookies, base);
   await page.goto(base + t.path, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   await runOpen(page, t.open);
