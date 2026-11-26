@@ -173,11 +173,11 @@ test("5 tabs × 3 languages: 200, h1 = legal name, the current tab marked, own c
   await expect(page).toHaveTitle(`${NAME} — Media | Zavod.az`);
 });
 
-test("about: text with its line break, six facts ('-' when empty), header, contacts, socials, JSON-LD", async ({ page }) => {
+test("about: one paragraph per line, six facts ('-' when empty), header, contacts, socials, JSON-LD", async ({ page }) => {
   await page.goto(TABS.az.base);
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "Birinci abzas haqqında mətn. İkinci sətir.");
   const about = page.getByRole("region", { name: "Haqqında məlumat" });
-  expect(await about.locator("p").innerText()).toBe("Birinci abzas haqqında mətn.\nİkinci sətir.");
+  await expect(about.locator("p")).toHaveText(["Birinci abzas haqqında mətn.", "İkinci sətir."]);
   const facts = await page.locator("dl > div").evaluateAll((els) => els.map((e) => [e.querySelector("dt")!.textContent, e.querySelector("dd")!.textContent]));
   expect(facts).toEqual([
     ["İstehsal sahəsi", "E2E qida sənayesi"],
@@ -296,10 +296,10 @@ test("without JavaScript a photo link opens the image file itself", async ({ bro
   await context.close();
 });
 
-test("capabilities: equipment text keeps its line breaks; certificates open in the lightbox", async ({ page }) => {
+test("capabilities: equipment text is one paragraph per line; certificates open in the lightbox", async ({ page }) => {
   await gotoHydrated(page, TABS.az.base + "/texniki-imkanlar");
   const equipment = page.getByRole("region", { name: "Texniki avadanlıqların siyahısı" });
-  expect(await equipment.locator("p").innerText()).toBe("Xətt 1: qablaşdırma\nXətt 2: soyuducu");
+  await expect(equipment.locator("p")).toHaveText(["Xətt 1: qablaşdırma", "Xətt 2: soyuducu"]);
   const certs = page.getByRole("region", { name: "Sertifikatlar" }).getByRole("link");
   await expect(certs).toHaveCount(3);
   await certs.nth(1).click();
