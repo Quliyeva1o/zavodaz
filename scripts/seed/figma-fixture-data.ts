@@ -41,8 +41,11 @@ export const FIGMA_CARDS: readonly { type: FactoryType; photo: string }[] = [
 /** Bütün fərqli şəkillər (export üçün). */
 export const FIGMA_PHOTOS: readonly string[] = [...new Set(FIGMA_CARDS.map((c) => c.photo))];
 
-/** Doldurucu sayı: cəmi 150 → səhifələmə "1 2 3 … 10" (kataloq, Zavodlar və tövsiyə edilənlərdə). */
-export const FILLER_COUNT = 135;
+/**
+ * Doldurucu sayı: zavod səhifəsinin 2 "Agro Trade Supply" zavodu (figma-factory-data.ts, standart tarif) ilə cəmi 150 →
+ * səhifələmə "1 2 3 … 10" (kataloq, Zavodlar və tövsiyə edilənlərdə).
+ */
+export const FILLER_COUNT = 133;
 /** Zavodlar 1-ci səhifəsi: 3 Figma "Zavod" kartı + 12 VIP zavod doldurucu. */
 const ZAVOD_PAGE_FILLERS = 12;
 
@@ -64,8 +67,8 @@ export type FixtureRow = {
  * - 1–15: Figma kartları (VIP, təsdiqlənib, ən yeni: 2099-01-01-dən geri — qalıq VIP sətirlər onları qabaqlaya bilməz)
  *   — kataloq və tövsiyə edilənlərin 1-ci səhifəsi;
  * - 16–27: VIP zavod doldurucular (Figma kartı kimi) — Zavodlar 1-ci səhifəsi (3 Figma zavodundan sonra);
- * - 28–150: Premium zavod doldurucular (şəkilsiz, köhnə tarix).
- * Hamısı Premium/VIP və ən azı 136-sı zavoddur: üç siyahının hər birində 10 səhifə olur.
+ * - 28–148: Premium zavod doldurucular (şəkilsiz, köhnə tarix).
+ * Hamısı Premium/VIP və 136-sı zavoddur; 2 agro zavodu (standart, fabrik) ilə üç siyahının hər birində 10 səhifə olur.
  */
 export function figmaFixtureRows(newest = new Date(Date.UTC(2099, 0, 1))): FixtureRow[] {
   const at = (i: number) => new Date(newest.getTime() - i * 60_000);

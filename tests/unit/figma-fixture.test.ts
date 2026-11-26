@@ -17,7 +17,7 @@ test("figma fixture: kataloqun 1-ci səhifəsi Figma 281:7097-dəki 15 kartdır,
 });
 
 test("figma fixture: kataloq, tövsiyə edilənlər və Zavodlar 10 səhifədir (1 2 3 … 10)", () => {
-  const rows = figmaFixtureRows();
+  const rows = [...figmaFixtureRows(), ...AGRO_FACTORIES];
   assert.equal(pages(rows.length), 10);
   assert.equal(pages(rows.filter((r) => r.tariffRank > 0).length), 10);
   assert.equal(pages(rows.filter((r) => r.type === "zavod").length), 10);
@@ -55,3 +55,68 @@ test("assertLocalDb: cPanel prod-u da @localhost-dur — NODE_ENV=production və
   assert.doesNotThrow(() => assertLocalDb(prodLike, { FIGMA_FIXTURE_DB_OK: "1" }));
   assert.throws(() => assertLocalDb(prodLike, { FIGMA_FIXTURE_DB_OK: "0" }), /baza adı/);
 });
+
+// ---- Zavod səhifəsi fixture-u (Tapşırıq 6b): "Agro Trade Supply", Figma 312:11599 və tabları ----
+import {
+  AGRO,
+  AGRO_FACTORIES,
+  AGRO_PRODUCT_CODE,
+  agroProducts,
+  agroVacancies,
+  CERTIFICATES,
+  GALLERY_ABOUT,
+  GALLERY_MEDIA,
+} from "../../scripts/seed/figma-factory-data.ts";
+import { PRODUCTS_PAGE_SIZE, SIMILAR_PRODUCTS, VACANCIES_PAGE_SIZE } from "../../src/features/factory/types.ts";
+
+test("agro fixture: slug-lar figma- prefiksli və sabitdir (köhnə fixture təmizləməsi onları da silir)", () => {
+  assert.deepEqual(
+    AGRO_FACTORIES.map((f) => f.slug),
+    ["figma-agro-trade-supply", "figma-agro-trade-supply-media"],
+  );
+  assert.ok(AGRO_FACTORIES.every((f) => f.slug.startsWith("figma-") && f.status === "published" && f.tariffRank === 0));
+  assert.equal(AGRO.name, "Agro Trade Supply");
+  assert.equal(AGRO.legalName, "Agro Trade Supply MMC");
+  assert.equal(AGRO.ratingAvg, 3.5);
+});
+
+test("agro fixture: kataloq, tövsiyə edilənlər və Zavodlar yenə 10 səhifədir (agro zavodları ilə birlikdə)", () => {
+  const rows = [...figmaFixtureRows(), ...AGRO_FACTORIES];
+  assert.equal(pages(rows.length), 10);
+  assert.equal(pages(rows.filter((r) => r.tariffRank > 0).length), 10);
+  assert.equal(pages(rows.filter((r) => r.type === "zavod").length), 10);
+  // Agro zavodları standart tarifdədir: kataloqun 1-ci səhifəsinə düşmür
+  assert.ok(byDefault(rows).slice(0, PAGE_SIZE).every((r) => /^figma-\d{3}$/.test(r.slug)));
+});
+
+test("agro fixture: qalereyalar Figma sırası ilədir (Haqqında 312:11599 / Media 368:12413)", () => {
+  assert.equal(GALLERY_ABOUT.length, 6);
+  assert.equal(GALLERY_MEDIA.length, 6);
+  assert.equal(GALLERY_ABOUT[0], "f0f28082c30df5a5ded42b748a44afead0f44751");
+  assert.equal(GALLERY_MEDIA[0], "62fcfd5a8c1efecff83606df295b9fc97028b6de");
+  assert.equal(CERTIFICATES.length, 8);
+});
+
+test("agro fixture: Məhsullar tabı — 1-ci səhifə 12 Figma kartı, cəmi 10 səhifə (1 2 3 … 10)", () => {
+  const list = agroProducts();
+  const newest = [...list].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  assert.equal(pages10(list.length), 10);
+  const first = newest.slice(0, PRODUCTS_PAGE_SIZE);
+  assert.ok(first.every((p) => p.name === "Məhsulun adı" && p.description === "Lorem ipsum dolor" && p.images.length === 1));
+  // Məhsul səhifəsinin məhsulu (Figma 382:11083, kod 1519494) 1-ci səhifədə deyil, oxşarlar 6 Figma kartıdır
+  const page = list.find((p) => p.id === AGRO_PRODUCT_CODE)!;
+  assert.ok(page && !first.includes(page));
+  assert.equal(page.images.length, 6);
+  assert.ok(page.description.startsWith("Sed ut perspiciatis"));
+  assert.ok(newest.filter((p) => p !== page).slice(0, SIMILAR_PRODUCTS).every((p) => p.description === "Lorem ipsum dolor"));
+  assert.equal(new Set(list.map((p) => p.slug)).size, 1);
+});
+
+test("agro fixture: vakansiyalar 8-dən çoxdur (\"Daha çox göstər\" görünür), slug-lar unikal və figma- prefiksli", () => {
+  const list = agroVacancies();
+  assert.ok(list.length > VACANCIES_PAGE_SIZE);
+  assert.equal(new Set(list.map((v) => v.slug)).size, list.length);
+  assert.ok(list.every((v) => v.slug.startsWith("figma-") && v.title === "Middle UX/UI Designer" && v.salary === 1200));
+});
+
+const pages10 = (n: number) => Math.ceil(n / PRODUCTS_PAGE_SIZE);
