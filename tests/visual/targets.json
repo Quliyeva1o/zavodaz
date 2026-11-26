@@ -485,5 +485,376 @@
     ],
     "relayout": true,
     "relayoutReason": "Mob/Filtr 761:22772: köhnə \"Dropdown Item\" instance-larında (761:22781…761:22783) mətn çərçivəsi Frame 7 hələ köhnə 12/10 padding-dədir, instance-ın padding-i 0-dır; relayout 3 seçim mətni −12/−10px yerinə qoyur (1056:* instance-ları artıq düzgündür)"
+  },
+  {
+    "name": "factory-crumbs",
+    "bp": "desktop",
+    "node": "312:11603",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-crumbs]",
+    "ignore": [
+      "Agro Trade Supply"
+    ],
+    "ignoreReason": "Figma avto-en mətn qutuları tam pikselə yuvarlaqlaşdırılır (\"Fabrik\" 41, saytda 40.00; \"Haqqında\" 88 / 87.53 …), sonrakı mətnin x-i bu yuvarlaqlaşmaların cəmi qədər (1.02–1.09px) sürüşür — şrift metrikası, tərtibat fərqi yox; \"Ana səhifə\" və \"Fabrik\" ciddi yoxlanılır, son element vizual müqayisədədir"
+  },
+  {
+    "name": "factory-header",
+    "bp": "desktop",
+    "node": "331:10178",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-header]"
+  },
+  {
+    "name": "factory-tabs",
+    "bp": "desktop",
+    "node": "331:10207",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-tabs]",
+    "ignore": [
+      "Texniki imkanlar"
+    ],
+    "ignoreReason": "Figma avto-en mətn qutuları tam pikselə yuvarlaqlaşdırılır (\"Fabrik\" 41, saytda 40.00; \"Haqqında\" 88 / 87.53 …), sonrakı mətnin x-i bu yuvarlaqlaşmaların cəmi qədər (1.02–1.09px) sürüşür — şrift metrikası, tərtibat fərqi yox (SPACE_BETWEEN sırası); qalan 4 tab ciddi yoxlanılır"
+  },
+  {
+    "name": "factory-contacts",
+    "bp": "desktop",
+    "node": "331:10233",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-contacts]"
+  },
+  {
+    "name": "factory-about",
+    "bp": "desktop",
+    "node": "331:10208",
+    "union": [
+      "368:12053"
+    ],
+    "unionReason": "Figma-da tab məzmunu tab panelinin altında ayrı-ayrı qardaş çərçivələrdir (ortaq çərçivə yoxdur); saytda hamısı bir [data-figma=factory-content] elementidir — hədəf onların ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-content]",
+    "aliases": {
+      "Tərəfdaş axtarılır": "Tərəfdaş axtarır"
+    },
+    "aliasReason": "Əməkdaşlıq dəyəri saytda filtrdəki lüğət sözüdür (\"Tərəfdaş axtarır\", 1–2-ci addımlarda razılaşdırılıb); Figma bu kartda \"axtarılır\" yazır",
+    "videoStill": "design/manual-export/factory/f981aae93d12a92a17de791528c9ac1b297502fa",
+    "videoStillReason": "Saytın video önizləməsi YouTube-un öz şəklidir (i.ytimg.com, facade); Figma öz kadrını (f981aae9) göstərir. Yoxlamada önizləmə sorğusu Figma kadrı ilə cavablanır (object-cover + 125%-ə uyğun yerləşdirilib) — qaralma qatı, Play ikonu və ölçülər həqiqi saytdakı kimi yoxlanılır",
+    "maxDiff": 5.2,
+    "maxDiffReason": "Uzun lorem mətni (mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px); Figma \"ab illo  natus\"-dakı ikiqat boşluğu saxlayır, sayt (HTML) birləşdirir — sətrin qalanı sürüşür; fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px)"
+  },
+  {
+    "name": "factory-media",
+    "bp": "desktop",
+    "node": "368:12677",
+    "union": [
+      "368:12658"
+    ],
+    "unionReason": "Figma-da tab məzmunu tab panelinin altında ayrı-ayrı qardaş çərçivələrdir (ortaq çərçivə yoxdur); saytda hamısı bir [data-figma=factory-content] elementidir — hədəf onların ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply-media/media",
+    "selector": "[data-figma=factory-content]",
+    "videoStill": "design/manual-export/factory/f981aae93d12a92a17de791528c9ac1b297502fa",
+    "videoStillReason": "Saytın video önizləməsi YouTube-un öz şəklidir (i.ytimg.com, facade); Figma öz kadrını (f981aae9) göstərir. Yoxlamada önizləmə sorğusu Figma kadrı ilə cavablanır (object-cover + 125%-ə uyğun yerləşdirilib) — qaralma qatı, Play ikonu və ölçülər həqiqi saytdakı kimi yoxlanılır",
+    "maxDiff": 4.6,
+    "maxDiffReason": "Video kadrı və 893×500 foto: fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px); Play üçbucağı ikon export-udur (controller, R6)"
+  },
+  {
+    "name": "factory-products",
+    "bp": "desktop",
+    "node": "381:10821",
+    "union": [
+      "382:10955"
+    ],
+    "unionReason": "Figma-da tab məzmunu tab panelinin altında ayrı-ayrı qardaş çərçivələrdir (ortaq çərçivə yoxdur); saytda hamısı bir [data-figma=factory-content] elementidir — hədəf onların ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply/mehsullar",
+    "selector": "[data-figma=factory-content]",
+    "patterns": {
+      "1519494": "^1\\d{6}$"
+    },
+    "patternReason": "Figma bütün kartlarda bir nümunə kodu (1519494) yazır; məhsul kodu unikal avtomatik nömrədir (1 000 000-dan), saytda hər kartın öz 7 rəqəmli kodu var",
+    "aliases": {
+      "100Mb": "0,1 MB",
+      "240Mb": "0,1 MB"
+    },
+    "aliasReason": "Figma ölçüləri (100Mb/240Mb) nümunədir, PDF limiti 20 MB-dır (controller qərarı); fixture-un kiçik sintetik PDF-ləri Intl ilə \"0,1 MB\" göstərilir"
+  },
+  {
+    "name": "factory-capabilities",
+    "bp": "desktop",
+    "node": "361:10752",
+    "union": [
+      "361:10785"
+    ],
+    "unionReason": "Figma-da tab məzmunu tab panelinin altında ayrı-ayrı qardaş çərçivələrdir (ortaq çərçivə yoxdur); saytda hamısı bir [data-figma=factory-content] elementidir — hədəf onların ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply/texniki-imkanlar",
+    "selector": "[data-figma=factory-content]",
+    "maxDiff": 4.5,
+    "maxDiffReason": "Sıx avadanlıq mətni (mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; Figma ikiqat boşluğu saxlayır); sertifikat şəkilləri kiçik ölçüdə yenidən seçilir"
+  },
+  {
+    "name": "factory-vacancies",
+    "bp": "desktop",
+    "node": "357:10612",
+    "union": [
+      "357:10667",
+      "357:10640",
+      "357:10613",
+      "368:11002"
+    ],
+    "unionReason": "Figma-da tab məzmunu tab panelinin altında ayrı-ayrı qardaş çərçivələrdir (ortaq çərçivə yoxdur); saytda hamısı bir [data-figma=factory-content] elementidir — hədəf onların ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply/vakansiyalar",
+    "selector": "[data-figma=factory-content]",
+    "ignore": [
+      "1200₼"
+    ],
+    "ignoreReason": "\"1200₼\": Figma-dakı Inter-in ₼ işarəsi Chrome-un Google Inter-indən enlidir (40px-də mətn 120 vs 116.44), sağa düzlənmiş sırada x 3–4px sürüşür; \"/Ay\", tarix, başlıq, şirkət adı ciddi yoxlanılır"
+  },
+  {
+    "name": "product",
+    "bp": "desktop",
+    "node": "388:11510",
+    "path": "/fabrik/figma-agro-trade-supply/mehsullar/1519494-mehsulun-adi",
+    "selector": "[data-figma=factory-content]",
+    "patterns": {
+      "1519494": "^1\\d{6}$"
+    },
+    "patternReason": "Figma bütün kartlarda bir nümunə kodu (1519494) yazır; məhsul kodu unikal avtomatik nömrədir (1 000 000-dan), saytda hər kartın öz 7 rəqəmli kodu var"
+  },
+  {
+    "name": "rating-choose",
+    "bp": "desktop",
+    "node": "368:11391",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]"
+    ],
+    "aliases": {
+      "Təsdqilə": "Təsdiqlə"
+    },
+    "aliasReason": "Figma düymə mətnində yazı xətası \"Təsdqilə\" → \"Təsdiqlə\""
+  },
+  {
+    "name": "rating-active",
+    "bp": "desktop",
+    "node": "368:11640",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]",
+      "dialog[open] label:has(input[value=\"3\"])"
+    ],
+    "aliases": {
+      "Təsdqilə": "Təsdiqlə"
+    },
+    "aliasReason": "Figma düymə mətnində yazı xətası \"Təsdqilə\" → \"Təsdiqlə\""
+  },
+  {
+    "name": "rating-thanks",
+    "bp": "desktop",
+    "node": "368:11913",
+    "path": "/fabrik/figma-agro-trade-supply-media",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]",
+      "dialog[open] label:has(input[value=\"3\"])",
+      "dialog[open] button:has-text(\"Təsdiqlə\")"
+    ],
+    "waitFor": "dialog[open] a[href=\"/\"]",
+    "cookies": {
+      "zv_voter": "6b000000-0000-4000-8000-000000000001"
+    },
+    "maxDiff": 5,
+    "maxDiffReason": "Kiçik dialoqda mətn payı böyükdür: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; ağ-tünd düymə mətni Chrome-da qalın görünür (grayscale AA)"
+  },
+  {
+    "name": "factory-crumbs",
+    "bp": "mobile",
+    "node": "762:22821",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-crumbs]",
+    "maxDiff": 3.8,
+    "maxDiffReason": "320×21 tək sətir: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px"
+  },
+  {
+    "name": "factory-header",
+    "bp": "mobile",
+    "node": "762:23093",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-header]",
+    "maxDiff": 6,
+    "maxDiffReason": "Örtük şəkli 288×120 (fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px)); tarif nişanı (DiamondsFour) 5-ci addımdadır — saytda yoxdur; qalanı mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px"
+  },
+  {
+    "name": "factory-contacts",
+    "bp": "mobile",
+    "node": "767:23254",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-contacts]"
+  },
+  {
+    "name": "factory-tabs",
+    "bp": "mobile",
+    "node": "767:23295",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-tabs]",
+    "ignore": [
+      "Məhsullar"
+    ],
+    "ignoreReason": "Mobil Figma-da 1-ci sıranın son pili (\"Məhsullar\", 767:23300) FILL-dir — sıranın qalan enini doldurur (101 vs HUG 95) və mətn ortadadır; digər pillər HUG-dur. Dizayn uyğunsuzluğu: saytda bütün pillər HUG (mətn eninə görə)",
+    "maxDiff": 5.7,
+    "maxDiffReason": "Kiçik hədəf (288×82), mətn payı böyükdür: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; \"Məhsullar\" pili Figma-da FILL (101), saytda HUG (95) — bax ignoreReason"
+  },
+  {
+    "name": "factory-about",
+    "bp": "mobile",
+    "node": "764:23144",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "[data-figma=factory-content]",
+    "aliases": {
+      "Tərəfdaş axtarılır": "Tərəfdaş axtarır"
+    },
+    "aliasReason": "Əməkdaşlıq dəyəri saytda filtrdəki lüğət sözüdür (\"Tərəfdaş axtarır\", 1–2-ci addımlarda razılaşdırılıb); Figma bu kartda \"axtarılır\" yazır",
+    "videoStill": "design/manual-export/factory/f981aae93d12a92a17de791528c9ac1b297502fa",
+    "videoStillReason": "Saytın video önizləməsi YouTube-un öz şəklidir (i.ytimg.com, facade); Figma öz kadrını (f981aae9) göstərir. Yoxlamada önizləmə sorğusu Figma kadrı ilə cavablanır (object-cover + 125%-ə uyğun yerləşdirilib) — qaralma qatı, Play ikonu və ölçülər həqiqi saytdakı kimi yoxlanılır",
+    "maxDiff": 5.1,
+    "maxDiffReason": "Uzun lorem mətni (mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; Figma ikiqat boşluğu saxlayır); fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px)"
+  },
+  {
+    "name": "factory-media",
+    "bp": "mobile",
+    "node": "773:24866",
+    "path": "/fabrik/figma-agro-trade-supply/media",
+    "selector": "[data-figma=factory-content]",
+    "videoStill": "design/manual-export/factory/f981aae93d12a92a17de791528c9ac1b297502fa",
+    "videoStillReason": "Saytın video önizləməsi YouTube-un öz şəklidir (i.ytimg.com, facade); Figma öz kadrını (f981aae9) göstərir. Yoxlamada önizləmə sorğusu Figma kadrı ilə cavablanır (object-cover + 125%-ə uyğun yerləşdirilib) — qaralma qatı, Play ikonu və ölçülər həqiqi saytdakı kimi yoxlanılır"
+  },
+  {
+    "name": "factory-products",
+    "bp": "mobile",
+    "node": "775:23017",
+    "union": [
+      "775:23103"
+    ],
+    "unionReason": "Figma-da \"Məhsul kataloqu\" və \"Məhsullar\" ayrı qardaş çərçivələrdir; saytda ikisi bir [data-figma=factory-products] elementidir",
+    "path": "/fabrik/figma-agro-trade-supply/mehsullar",
+    "selector": "[data-figma=factory-products]",
+    "crop": 1284,
+    "cropReason": "Mobil Figma 18 kart (9 sıra) göstərir, sayt səhifədə 12 kart verir (eyni URL desktop ilə, PRODUCTS_PAGE_SIZE 12): kataloq kartları + ilk 6 sıra müqayisə olunur",
+    "patterns": {
+      "1519494": "^1\\d{6}$"
+    },
+    "patternReason": "Figma bütün kartlarda bir nümunə kodu (1519494) yazır; məhsul kodu unikal avtomatik nömrədir (1 000 000-dan), saytda hər kartın öz 7 rəqəmli kodu var",
+    "aliases": {
+      "100Mb": "0,1 MB",
+      "240Mb": "0,1 MB"
+    },
+    "aliasReason": "Figma ölçüləri (100Mb/240Mb) nümunədir, PDF limiti 20 MB-dır (controller qərarı); fixture-un kiçik sintetik PDF-ləri Intl ilə \"0,1 MB\" göstərilir",
+    "maxDiff": 3.9,
+    "maxDiffReason": "Kiçik kartlar: kod sahəsi unikal kodlardır (patterns), mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; məhsul fotoları fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px)"
+  },
+  {
+    "name": "factory-products-pagination",
+    "bp": "mobile",
+    "node": "775:23247",
+    "union": [
+      "775:23249",
+      "775:23250",
+      "775:23251",
+      "775:23252",
+      "775:23253"
+    ],
+    "unionReason": "Figma səhifələmə çərçivəsi 775:23246 320 enindədir (16 padding daxilində); saytın səhifələməsi məzmun sütunundadır (288) — hədəf onun düymələrinin ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply/mehsullar",
+    "selector": "[data-figma=factory-content] [data-figma=catalog-pagination]",
+    "crop": 40,
+    "cropReason": "Saytda səhifələmə kəsrli y-də başlayır (yuxarıdakı 17.05/64.1 qutuları), ekran görüntüsü 41 sətrə toxunur; Figma node-u 40 — yuxarı 40px müqayisə olunur"
+  },
+  {
+    "name": "factory-capabilities",
+    "bp": "mobile",
+    "node": "773:24643",
+    "union": [
+      "773:24710"
+    ],
+    "unionReason": "Figma-da avadanlıq və sertifikat blokları ayrı çərçivələrdir; sertifikat blokunun altındakı nöqtə indikatoru (773:24764) saytda yoxdur (sıra toxunuşla sürüşür, JS-siz) — hədəf avadanlıq + sertifikat kartının ortaq qutusudur",
+    "path": "/fabrik/figma-agro-trade-supply/texniki-imkanlar",
+    "selector": "[data-figma=factory-content]",
+    "crop": 916,
+    "cropReason": "Figma sertifikat sırasında son qutu 124.18-dir (digərləri 124, 773:24761) — 0.18px kəsr export-u 1px hündür edir (917); yuxarı 916px (hamısı) müqayisə olunur",
+    "maxDiff": 7,
+    "maxDiffReason": "Sıx avadanlıq mətni 288 endə: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; Figma \"ab illo  natus\" ikiqat boşluğu saxlayır, sayt birləşdirir — sonrakı sözlər sürüşür; sertifikat şəkilləri yenidən seçilir"
+  },
+  {
+    "name": "factory-vacancies",
+    "bp": "mobile",
+    "node": "770:24132",
+    "path": "/fabrik/figma-agro-trade-supply/vakansiyalar",
+    "selector": "[data-figma=factory-content]",
+    "crop": 1094,
+    "cropReason": "Mobil Figma 6 kart + \"Daha çox göstər\" göstərir, sayt səhifədə 8 kart verir (VACANCIES_PAGE_SIZE 8, desktop ilə eyni): ilk 6 kart müqayisə olunur, düymə desktop hədəfində yoxlanılır",
+    "ignore": [
+      "1200₼",
+      "/Ay"
+    ],
+    "ignoreReason": "\"1200₼\": Figma-dakı Inter-in ₼ işarəsi Chrome-un Google Inter-indən enlidir (40px-də mətn 120 vs 116.44), sağa düzlənmiş sırada x 3–4px sürüşür; mobil \"/Ay\" da sağdan Figma-nın yuvarlaqlaşdırılmış mətn eni ilə yerləşir (Δx 1.13); tarix, başlıq, şirkət adı ciddi yoxlanılır",
+    "maxDiff": 3.2,
+    "maxDiffReason": "Kartlarda mətn payı böyükdür: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px; \"1200₼\" işarəsinin eni fərqlidir (bax ignoreReason)"
+  },
+  {
+    "name": "product",
+    "bp": "mobile",
+    "node": "775:23613",
+    "union": [
+      "775:23402"
+    ],
+    "unionReason": "Figma-da məhsul bloku və \"Oxşar məhsullar\" ayrı qardaş çərçivələrdir; saytda ikisi bir [data-figma=factory-content] elementidir",
+    "path": "/fabrik/figma-agro-trade-supply/mehsullar/1519494-mehsulun-adi",
+    "selector": "[data-figma=factory-content]",
+    "patterns": {
+      "1519494": "^1\\d{6}$"
+    },
+    "patternReason": "Figma bütün kartlarda bir nümunə kodu (1519494) yazır; məhsul kodu unikal avtomatik nömrədir (1 000 000-dan), saytda hər kartın öz 7 rəqəmli kodu var",
+    "crop": 1326,
+    "cropReason": "Figma qovşağı 1326.048 hündürdür (17.05-lik mətn qutularının kəsri) → export 1327; saytda 1326.0 — yuxarı 1326px (hamısı) müqayisə olunur",
+    "maxDiff": 6.9,
+    "maxDiffReason": "Uzun təsvir mətni 288 endə (mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px); böyük foto 320 en variantından 389-a böyüdülür (object-cover) — fotoşəkillər fərqli yenidən seçmə ilə çəkilir (saytın WebP variantları srcset ilə, Figma öz renderi) — incə detallı şəkillərdə (qığılcımlar, fasad zolaqları) piksel fərqi; yerləşmə yoxlanılıb (sürüşmə 0px)"
+  },
+  {
+    "name": "rating-choose",
+    "bp": "mobile",
+    "node": "767:23522",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]"
+    ]
+  },
+  {
+    "name": "rating-active",
+    "bp": "mobile",
+    "node": "767:23698",
+    "path": "/fabrik/figma-agro-trade-supply",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]",
+      "dialog[open] label:has(input[value=\"3\"])"
+    ]
+  },
+  {
+    "name": "rating-thanks",
+    "bp": "mobile",
+    "node": "767:23946",
+    "path": "/fabrik/figma-agro-trade-supply-media",
+    "selector": "dialog[open]",
+    "open": [
+      "[data-figma=factory-header] button[aria-haspopup=dialog]",
+      "dialog[open] label:has(input[value=\"3\"])",
+      "dialog[open] button:has-text(\"Təsdiqlə\")"
+    ],
+    "waitFor": "dialog[open] a[href=\"/\"]",
+    "cookies": {
+      "zv_voter": "6b000000-0000-4000-8000-000000000001"
+    },
+    "maxDiff": 5.7,
+    "maxDiffReason": "Kiçik dialoqda mətn payı böyükdür: mətn rasterizasiyası (Figma vs Chrome, subpiksel qlif mövqeyi); mətn yerləri visual:geometry ilə ±1px"
   }
 ]

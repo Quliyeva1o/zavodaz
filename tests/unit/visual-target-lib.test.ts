@@ -173,3 +173,24 @@ test("cropRegion: kənara çıxan hissə şəffaf piksellə doldurulur", async (
   const inside = cropRegion(img, { x: 0, y: 1, width: 2, height: 1 });
   assert.deepEqual([inside.data[0], inside.data[4]], [3, 4]);
 });
+
+test("videoStillLayout: Figma FILL şəkli YouTube hqdefault (480×360, object-cover + 125%) içində elə qoyulur ki, görünən hissə eyni olsun", async () => {
+  const { videoStillLayout } = await import("../visual/target-lib.mjs");
+  // 893×510 qutu: görünən kətan hissəsi 384×219.33 (mərkəz); 3:2 şəkil eni ilə örtür
+  const wide = videoStillLayout({ width: 893, height: 510 }, { width: 1740, height: 1160 });
+  assert.equal(wide.width, 384);
+  assert.equal(wide.height, 256);
+  assert.equal(wide.left, 48);
+  assert.equal(wide.top, 52);
+  // 462×323 qutu (1.43 < 1.5): hündürlüklə örtür
+  const tall = videoStillLayout({ width: 462, height: 323 }, { width: 1740, height: 1160 });
+  assert.ok(Math.abs(tall.height - 268.36) < 0.5);
+  assert.ok(Math.abs(tall.left + tall.width / 2 - 240) <= 1 && Math.abs(tall.top + tall.height / 2 - 180) <= 1);
+  assert.throws(() => videoStillLayout({ width: 0, height: 10 }, { width: 1, height: 1 }), /box/);
+});
+
+test("validateTarget: videoStill səbəb tələb edir", async () => {
+  const { validateTarget } = await import("../visual/target-lib.mjs");
+  assert.throws(() => validateTarget({ bp: "desktop", name: "x", node: "1:1", videoStill: "a.jpg" }), /videoStill requires videoStillReason/);
+  assert.doesNotThrow(() => validateTarget({ bp: "desktop", name: "x", node: "1:1", videoStill: "a.jpg", videoStillReason: "r" }));
+});

@@ -8,7 +8,8 @@
 //         counterpart is several sibling frames, e.g. the factory tab content under the tab bar);
 //   patterns: { figmaText: regex } — the site text must match the regex instead (a sample value Figma repeats
 //         where the site shows unique ones, e.g. the 7-digit product code);
-//   cookies: { name: value } set before the page loads (a fixed rating voter, so re-runs update one vote).
+//   cookies: { name: value } set before the page loads (a fixed rating voter, so re-runs update one vote);
+//   videoStill: an image file answering the YouTube preview request (videoStillLayout), as Figma's own video still.
 
 /** `open` as a list of selectors (undefined → none). */
 export function openSteps(open) {
@@ -132,6 +133,7 @@ export function validateTarget(t) {
       }
     }
   }
+  if (t.videoStill !== undefined && !t.videoStillReason) throw new Error(`${id}: videoStill requires videoStillReason`);
   if (t.cookies !== undefined) {
     const ok = t.cookies && typeof t.cookies === "object" && !Array.isArray(t.cookies) && Object.values(t.cookies).every((v) => typeof v === "string");
     if (!ok) throw new Error(`${id}: cookies must be { name: "value" }, got ${JSON.stringify(t.cookies)}`);
@@ -171,4 +173,23 @@ export function cropSizeError(crop, siteHeight) {
 export async function setCookies(page, cookies, base) {
   if (!cookies) return;
   await page.context().addCookies(Object.entries(cookies).map(([name, value]) => ({ name, value, url: base })));
+}
+
+/** YouTube's hqdefault preview: 480×360. VideoFacade shows it object-cover in its box, scaled 125% (VideoFacade). */
+export const YT_STILL = { width: 480, height: 360, scale: 1.25 };
+
+/**
+ * `videoStill`: the site's video preview is YouTube's own image (i.ytimg.com), Figma shows a still of its own (FILL).
+ * For the check the preview request is answered with that still drawn into a 480×360 canvas so that the part the site
+ * shows (object-cover into the box, then 125%) is exactly Figma's FILL crop. Returns where the still goes on the canvas.
+ */
+export function videoStillLayout(box, still) {
+  if (!(box.width > 0 && box.height > 0)) throw new Error(`videoStill: bad box ${JSON.stringify(box)}`);
+  const s = Math.max(box.width / YT_STILL.width, box.height / YT_STILL.height);
+  const vw = box.width / s / YT_STILL.scale;
+  const vh = box.height / s / YT_STILL.scale;
+  const k = Math.max(vw / still.width, vh / still.height);
+  const width = Math.round(still.width * k);
+  const height = Math.round(still.height * k);
+  return { left: Math.round((YT_STILL.width - width) / 2), top: Math.round((YT_STILL.height - height) / 2), width, height };
 }

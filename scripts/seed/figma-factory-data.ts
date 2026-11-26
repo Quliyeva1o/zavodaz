@@ -33,11 +33,12 @@ export const GALLERY_ABOUT: readonly string[] = [IMG.aboutMain, IMG.t2, IMG.t3, 
 export const GALLERY_MEDIA: readonly string[] = [IMG.mediaMain, IMG.t2, IMG.t3, IMG.t4, IMG.t5, IMG.t6];
 
 /**
- * 8 sertifikat (361:11001: 2 sıra × 4). Figma şəkli 112×159 çərçivəyə qoyur: 289fea57 STRETCH, 21bc61ca FIT (şəffaf
- * kənarlı) — fixture şəkli elə bu çərçivədə hazırlayır (`fit`), sayt onu 160 hündürlükdə object-contain göstərir.
+ * 8 sertifikat (361:11001: 2 sıra × 4). Figma şəkli 112.44×158.63 çərçivəyə qoyur: 289fea57 STRETCH, şəklin yuxarı
+ * 92.48%-i (imageTransform; altındakı "VectorStock" zolağı görünmür), 21bc61ca FIT (şəffaf kənarlı) — fixture şəkli elə bu
+ * çərçivədə hazırlayır (`fit`, `visibleHeight`), sayt onu 160 hündürlükdə object-contain göstərir.
  */
-export const CERT_FRAME = { width: 112, height: 159 } as const;
-export const CERTIFICATES: readonly { image: string; fit: "fill" | "contain"; title: string }[] = [
+export const CERT_FRAME = { width: 112.44, height: 158.63 } as const;
+export const CERTIFICATES: readonly { image: string; fit: "fill" | "contain"; visibleHeight: number; title: string }[] = [
   IMG.certPortrait,
   IMG.certLandscape,
   IMG.certPortrait,
@@ -46,7 +47,11 @@ export const CERTIFICATES: readonly { image: string; fit: "fill" | "contain"; ti
   IMG.certPortrait,
   IMG.certLandscape,
   IMG.certPortrait,
-].map((image, i) => ({ image, fit: image === IMG.certLandscape ? "contain" : "fill", title: `Sertifikat ${i + 1}` }));
+].map((image, i) =>
+  image === IMG.certLandscape
+    ? { image, fit: "contain", visibleHeight: 1, title: `Sertifikat ${i + 1}` }
+    : { image, fit: "fill", visibleHeight: 0.9248322248458862, title: `Sertifikat ${i + 1}` },
+);
 
 const LOREM_ABOUT =
   "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo  natus error sit voluptatem accusantium doloremqu. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam.\nNeque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.";

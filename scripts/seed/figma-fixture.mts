@@ -120,13 +120,16 @@ const industryId = await dictId(getTableName(dictIndustries), AGRO_DICTS.industr
 const productTypeId = await dictId(getTableName(dictProductTypes), AGRO_DICTS.productType);
 const productionModelIds = await Promise.all(AGRO_DICTS.productionModels.map((n) => dictId(getTableName(dictProductionModels), n)));
 
-// Sertifikatlar Figma çərçivəsində (112×159, 2x): STRETCH → fill, FIT → şəffaf kənarlı contain.
+// Sertifikatlar Figma çərçivəsində (112.44×158.63, 2x): STRETCH → görünən hissə + fill, FIT → şəffaf kənarlı contain.
 const certMedia = new Map<string, string>();
 for (const c of CERTIFICATES) {
   const key = `${c.image}:${c.fit}`;
   if (certMedia.has(key)) continue;
-  const png = await sharp(await photo(c.image))
-    .resize(CERT_FRAME.width * 2, CERT_FRAME.height * 2, { fit: c.fit, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  const src = await photo(c.image);
+  const meta = await sharp(src).metadata();
+  const png = await sharp(src)
+    .extract({ left: 0, top: 0, width: meta.width!, height: Math.round(meta.height! * c.visibleHeight) })
+    .resize(Math.round(CERT_FRAME.width * 2), Math.round(CERT_FRAME.height * 2), { fit: c.fit, background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer();
   certMedia.set(key, await upload(png, `${c.image}.png`));
