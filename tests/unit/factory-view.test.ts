@@ -159,3 +159,22 @@ test("productJsonLd: Product with name, image, description and the factory as br
   assert.equal(bare.image, undefined);
   assert.equal(bare.description, undefined);
 });
+
+test("proseBlocks: hər sətir paraqrafdır, \"- \" / \"• \" ilə başlayan ardıcıl sətirlər bir siyahıdır, boş sətirlər atılır", async () => {
+  const { proseBlocks } = await import("../../src/features/factory/view.ts");
+  assert.deepEqual(proseBlocks("Bir\n\nİki"), [
+    { type: "p", text: "Bir" },
+    { type: "p", text: "İki" },
+  ]);
+  assert.deepEqual(proseBlocks("Giriş:\n- Torna \n• Freze\n-Pres\nSon"), [
+    { type: "p", text: "Giriş:" },
+    { type: "ul", items: ["Torna", "Freze"] },
+    { type: "p", text: "-Pres" },
+    { type: "p", text: "Son" },
+  ]);
+  assert.deepEqual(proseBlocks("  \n"), []);
+  assert.deepEqual(proseBlocks("a\r\nb"), [
+    { type: "p", text: "a" },
+    { type: "p", text: "b" },
+  ]);
+});

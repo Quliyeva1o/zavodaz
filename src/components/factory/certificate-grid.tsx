@@ -12,7 +12,7 @@ export function CertificateGrid({ certificates, labels }: { certificates: Factor
   const full = lightboxImages(certificates.map((c) => ({ image: c.image, alt: c.title })));
   return (
     <GalleryLightbox images={full} labels={labels}>
-      <ul className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:px-0">
+      <ul className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:grid lg:grid-cols-[repeat(4,200px)] lg:gap-4 lg:overflow-visible lg:px-0">
         {certificates.map((c, i) => (
           <li key={c.id} className="shrink-0 snap-start">
             <a

@@ -7,7 +7,7 @@ import { SOCIAL_LABELS, SOCIALS, telHref } from "@/features/settings/links";
 import { Icon, type IconName, SocialIcon } from "@/components/ui/icon";
 
 /**
- * "Əlaqə məlumatları", Figma 331:10233 (desktop 397 wide, pad 24, r10) / 767:23254 (mobile pad 14, r6): title
+ * "Əlaqə məlumatları", Figma 331:10233 (desktop 397 wide, pad 24, r10) / 767:23254 (mobile pad 14, r6); the pads include the 1px stroke (Figma draws it inside): title
  * (Subtitle 1 Medium / Mob Subtitle 2), rows 24 apart — icon 24 + 12 + body-md gray-700 (the address wraps), a line,
  * then the factory's social links as 44 circles (desktop one row 17 apart; mobile wrapping 12 / 10 apart).
  * Only the filled rows show; the website is user content: `rel="nofollow noopener"`, new tab.
@@ -34,9 +34,9 @@ export function ContactCard({ lang, factory: f, className = "" }: { lang: Locale
     <section
       aria-labelledby="factory-contacts"
       data-figma="factory-contacts"
-      className={`flex flex-col gap-6 rounded-md border border-gray-200 bg-white p-3.5 lg:rounded-[10px] lg:p-6 ${className}`}
+      className={`flex flex-col gap-6 rounded-md border border-gray-200 bg-white p-[13px] lg:rounded-[10px] lg:p-[23px] ${className}`}
     >
-      <h2 id="factory-contacts" className="text-mob-subtitle-2 text-brand-950 lg:text-subtitle-1-medium">
+      <h2 id="factory-contacts" className="text-mob-subtitle-2 leading-5 text-brand-950 lg:text-subtitle-1-medium lg:leading-7">
         {t.contacts}
       </h2>
       <div className="flex flex-col gap-6">

@@ -45,7 +45,7 @@ export function FactoryShell({
   return (
     <main data-figma="factory" className="container-site mt-5 mb-[60px] flex flex-col gap-8 lg:mt-[30px] lg:mb-[120px] lg:gap-[30px]">
       <JsonLd data={breadcrumbJsonLd(structured.map((c) => ({ name: c.label, url: c.href })))} />
-      <div data-figma="factory-crumbs">
+      <div data-figma="factory-crumbs" className="-mx-4 px-4 lg:mx-0 lg:px-0">
         <Breadcrumb items={visible} label={t.breadcrumb} />
       </div>
       <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,893fr)_minmax(0,397fr)] lg:items-start lg:gap-x-[30px] lg:gap-y-0">

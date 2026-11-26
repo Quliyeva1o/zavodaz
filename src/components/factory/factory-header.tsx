@@ -12,7 +12,8 @@ import { RateButton } from "./rate-button";
  * from its top-right corner (mobile 10); the row under it starts 60 above the cover's bottom (mobile 40): logo 120
  * (mobile 60) with a 4px (2px) white ring drawn outside, then the name (H4 / Mob Subtitle 2) and type (Subtitle 1 /
  * Caption) 8 (4) apart. Desktop: rating (H5 + 24 stars) and "Qiymətləndir" (180×40) in a 180 column at the right,
- * bottom-aligned; mobile: both centred under the name, the button full width.
+ * bottom-aligned (the rating number in Figma's 36 wide box, so the row fills the column); mobile: both centred under the name, the button full width.
+ * Text line heights are Figma's whole-pixel text boxes (20.48 → 20, 34.72 → 35 …), so the rows add up as in Figma.
  * Figma's DiamondsFour badge (tariff) is not shown: the tariff badge belongs to step 5.
  * The heading is the legal name when there is one ("Agro Trade Supply MMC"; the breadcrumb shows the short name).
  */
@@ -66,18 +67,18 @@ export function FactoryHeader({ lang, factory, heading = true, className = "" }:
             )}
           </div>
           <div className="flex flex-col gap-1 lg:gap-2">
-            <Name id="factory-name" className="text-mob-subtitle-2 text-brand-950 [overflow-wrap:anywhere] lg:text-h4">
+            <Name id="factory-name" className="text-mob-subtitle-2 leading-5 text-brand-950 [overflow-wrap:anywhere] lg:text-h4 lg:leading-[35px]">
               {factory.legalName || factory.name}
             </Name>
-            <p className="text-caption-tight text-gray-700 lg:text-subtitle-1">{t.factoryType[factory.type]}</p>
+            <p className="text-caption-tight leading-[17px] text-gray-700 lg:text-subtitle-1 lg:leading-7">{t.factoryType[factory.type]}</p>
           </div>
         </div>
         <div className="flex flex-col items-center gap-2.5 lg:w-[180px] lg:shrink-0 lg:items-end lg:gap-4">
           <div className="flex items-center gap-2">
-            <span aria-hidden className="text-mob-subtitle text-gray-700 lg:text-h5">
+            <span aria-hidden className="text-mob-subtitle leading-[23px] text-gray-700 lg:w-9 lg:text-h5 lg:leading-[25px]">
               {rating}
             </span>
-            <Stars rating={factory.ratingAvg} label={t.catalog.rating.replace("{r}", rating)} />
+            <Stars rating={factory.ratingAvg} label={t.catalog.rating.replace("{r}", rating)} empty="outline" />
           </div>
           <RateButton label={t.factory.rate} slug={factory.slug} labels={t.factory.rating} homeHref={href("home", lang)} />
         </div>

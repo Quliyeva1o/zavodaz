@@ -111,3 +111,26 @@ export function productJsonLd(p: ProductPage, factory: { name: string }, opts: {
     brand: { "@type": "Brand", name: factory.name },
   };
 }
+
+export type ProseBlock = { type: "p"; text: string } | { type: "ul"; items: string[] };
+
+const BULLET = /^[-•]\s+/;
+
+/**
+ * Admin plain text (about, equipment) as Figma lays it out: every line is a paragraph (16 apart), consecutive lines
+ * starting with "- " or "• " are one bulleted list (Figma 361:10756). Empty lines are dropped (the spacing separates).
+ */
+export function proseBlocks(text: string): ProseBlock[] {
+  const out: ProseBlock[] = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (BULLET.test(line)) {
+      const item = line.replace(BULLET, "");
+      const last = out.at(-1);
+      if (last?.type === "ul") last.items.push(item);
+      else out.push({ type: "ul", items: [item] });
+    } else out.push({ type: "p", text: line });
+  }
+  return out;
+}

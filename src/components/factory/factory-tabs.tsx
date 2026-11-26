@@ -5,32 +5,46 @@ import { factoryHref } from "@/i18n/routes";
 import type { Dictionaries } from "@/features/catalog/types";
 import { youtubeVideoId } from "@/features/factory/content-admin";
 import type { FactoryPage, Paged, VacancyCard as Vacancy } from "@/features/factory/types";
-import { factoryFeatures } from "@/features/factory/view";
+import { factoryFeatures, proseBlocks } from "@/features/factory/view";
 import { CertificateGrid } from "./certificate-grid";
 import { FeatureCards } from "./feature-cards";
 import { MediaGallery } from "./media-gallery";
 import { VacancyCard } from "./vacancy-card";
 import { VideoFacade } from "./video-facade";
 
-/** Section title: Subtitle 3 Medium (desktop and mobile alike). */
+/** Section title: Subtitle 3 Medium (desktop and mobile alike) in Figma's 24px text box (line height 24.3). */
 export function Title({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="text-subtitle-3-medium text-brand-950">
+    <h2 id={id} className="text-subtitle-3-medium leading-6 text-brand-950">
       {children}
     </h2>
   );
 }
 
-/** Desktop card (pad 20, r10, gray-200 stroke); on mobile Figma draws the same blocks without a frame. */
-const card = "lg:rounded-[10px] lg:border lg:border-gray-200 lg:p-5";
+/** Desktop card (pad 20 inside a 1px gray-200 stroke drawn inside: 19 + 1, r10); on mobile Figma draws the same blocks without a frame. */
+const card = "lg:rounded-[10px] lg:border lg:border-gray-200 lg:p-[19px]";
 
 function lightboxLabels(lang: Locale) {
   return dict(lang).factory.lightbox;
 }
 
-/** Plain text with the admin's line breaks (about, equipment). */
+/** Admin plain text (about, equipment): one paragraph per line, 16 apart; "- " lines are a bulleted list (proseBlocks). */
 function Prose({ text }: { text: string }) {
-  return <p className="whitespace-pre-line text-body-md text-gray-700 [overflow-wrap:anywhere]">{text}</p>;
+  return (
+    <div className="flex flex-col gap-4 text-body-md text-gray-700 [overflow-wrap:anywhere]">
+      {proseBlocks(text).map((b, i) =>
+        b.type === "p" ? (
+          <p key={i}>{b.text}</p>
+        ) : (
+          <ul key={i} className="flex list-disc flex-col gap-4 pl-6">
+            {b.items.map((item, k) => (
+              <li key={k}>{item}</li>
+            ))}
+          </ul>
+        ),
+      )}
+    </div>
+  );
 }
 
 /**
@@ -76,19 +90,19 @@ export function AboutTab({ lang, factory: f, dicts }: { lang: Locale; factory: F
   );
 }
 
-/** Media, Figma 368:12677 / 773:24897: "Video" (893×510, Play 90; mobile 288×186, Play 38), then "Şəkillər" 24 below. */
+/** Media, Figma 368:12677 / 773:24897: "Video" (893×509.58, Play 90; mobile 288×186, Play 38), then "Şəkillər" 24 below. */
 export function MediaTab({ lang, factory: f }: { lang: Locale; factory: FactoryPage }) {
   const t = dict(lang).factory;
   const video = youtubeVideoId(f.youtubeUrl);
   return (
-    <div className="flex flex-col gap-6 lg:gap-[23px]">
+    <div className="flex flex-col gap-6">
       {video && (
         <section aria-labelledby="factory-video" className="flex flex-col gap-2.5 lg:gap-4">
           <Title id="factory-video">{t.video}</Title>
           <VideoFacade
             id={video}
             label={t.play.replace("{name}", f.name)}
-            className="aspect-[288/186] lg:aspect-[893/510]"
+            className="aspect-[288/186] lg:aspect-[893/509.58]"
             playClass="size-[38px] lg:size-[90px]"
           />
         </section>
@@ -124,7 +138,7 @@ export function CapabilitiesTab({ lang, factory: f }: { lang: Locale; factory: F
 }
 
 /**
- * Vakansiyalar, Figma 357:10612 / 770:24132: cards in 2 columns 24 apart (mobile one column 16 apart), 8 per page.
+ * Vakansiyalar, Figma 357:10612 / 770:24132: cards in 2 columns 24 apart (mobile one column 16 apart), 8 per page; the button 24 below (mobile 32).
  * "Daha çox göstər" (Figma 368:11002, 893×40 outline button, 24 below) is a `?page=N+1` link: page N shows the
  * first N×8, so it works without JavaScript and the next page keeps the ones already seen.
  */
@@ -142,7 +156,7 @@ export function VacanciesTab({
   const t = dict(lang).factory;
   if (list.items.length === 0) return <Empty>{t.noVacancies}</Empty>;
   return (
-    <section aria-label={t.tabs.vacancies} className="flex flex-col gap-6">
+    <section aria-label={t.tabs.vacancies} className="flex flex-col gap-8 lg:gap-6">
       <h2 className="sr-only">{t.tabs.vacancies}</h2>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         {list.items.map((v) => (
