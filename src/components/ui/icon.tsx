@@ -24,13 +24,14 @@ export type IconName =
   | "star-half"
   | "funnel"
   | "caret-left"
-  // Factory page (step 3). The Figma API was rate-limited (export-icons needs it): globe-simple, map-pin and
-  // star-outline are the Phosphor "regular" icons the Figma file uses, play is the Figma "Play" circle redrawn.
+  // Factory page (step 3), exported as SVG from the Figma UI on 2026-11-25/26 (the API was rate-limited):
+  // GlobeSimple 331:10244, MapPin 331:10247, FilePdf 381:10826, DownloadSimple 381:10830, Play 368:12057
+  // (backdrop blur dropped from the file, done in CSS). star-outline = Star component 368:11019 with the
+  // "Qiymətləndir" button instance's size and colour (I368:11008;12:481: 20px, #494C5B).
   | "globe-simple"
   | "map-pin"
   | "star-outline"
   | "play"
-  // Products tab: Phosphor "regular" FilePdf / DownloadSimple (hand-placed like the icons above; replace by exports in Task 6).
   | "file-pdf"
   | "download-simple";
 export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube" | "tiktok";
