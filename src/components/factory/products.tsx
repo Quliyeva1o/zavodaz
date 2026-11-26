@@ -47,7 +47,7 @@ export function ProductCard({ lang, factorySlug, product: p, priority = false }:
       <div className="flex flex-col gap-0.5 lg:gap-1.5">
         <p className={`h-[17.05px] text-caption-tight text-brand-500 ${LINE}`}>{p.id}</p>
         <h3 className="text-body-sm text-brand-950 lg:text-subtitle-3-medium">
-          <a href={productHref(factorySlug, p, lang)} className={`block h-[23.05px] leading-[23.05px] after:absolute after:inset-0 ${LINE}`}>
+          <a href={productHref(factorySlug, p, lang)} title={p.name} className={`block h-[23.05px] leading-[23.05px] after:absolute after:inset-0 ${LINE}`}>
             {p.name}
           </a>
         </h3>
