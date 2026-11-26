@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
@@ -104,9 +103,9 @@ async function CatalogResults({ lang, scope, searchParams, basePath }: Omit<Prop
           <div className="flex flex-col items-center gap-6 py-[60px] text-center">
             <p className="text-subtitle-3 text-gray-500 lg:text-subtitle-1">{c.empty}</p>
             {filtered && (
-              <Link href={basePath} className="text-body-md text-brand-500 hover:underline">
+              <a href={basePath} className="text-body-md text-brand-500 hover:underline">
                 {c.reset}
-              </Link>
+              </a>
             )}
           </div>
         )}

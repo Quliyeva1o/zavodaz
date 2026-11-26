@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { typeHref } from "@/i18n/routes";
 import { normalizeCatalogFilter, parseCatalogParams, resolveLanding } from "@/features/catalog/filter";
 import { getCatalogPage, getDictionaries } from "@/features/catalog/queries";
+import { resolveRedirect } from "@/features/factory/queries";
 import { isFactoryType, type CatalogScope } from "@/features/catalog/types";
 import { catalogMetadata, landingDescription, landingTitle, localizedPaths } from "@/lib/catalog-seo";
 import { CatalogView } from "@/components/catalog/catalog-view";
@@ -46,8 +47,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function LandingPage({ params, searchParams }: Props) {
   const { lang: l, type: typeParam, landing: slug } = await params;
   const found = await resolve(typeParam, slug);
-  if (!found) notFound();
   const lang = l as Locale;
+  if (!found) {
+    // A renamed city / industry: its old landing redirects (recorded by the dictionary admin).
+    const to = isFactoryType(typeParam) ? await resolveRedirect(typeHref(typeParam, lang, slug)) : null;
+    if (to) permanentRedirect(to);
+    notFound();
+  }
   const { type, landing } = found;
   const t = dict(lang);
   return (

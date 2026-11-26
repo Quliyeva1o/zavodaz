@@ -1,8 +1,13 @@
 // Guards for the admin upload route (POST /api/admin/media). No server-only imports: unit-tested.
-import { MAX_UPLOAD_BYTES } from "./url";
+import { MAX_PDF_BYTES, MAX_UPLOAD_BYTES, type MediaKind } from "./url";
+
+const MULTIPART_OVERHEAD = 64 * 1024;
 
 /** One 8 MB image plus the multipart boundary and part headers (Next.js docs: 10–20 KB; we allow 64 KB). */
-export const UPLOAD_BODY_LIMIT = MAX_UPLOAD_BYTES + 64 * 1024;
+export const UPLOAD_BODY_LIMIT = MAX_UPLOAD_BYTES + MULTIPART_OVERHEAD;
+
+/** Body cap per upload kind: an image upload keeps the 8 MB cap, a PDF catalogue gets 20 MB. */
+export const uploadBodyLimit = (kind: MediaKind): number => (kind === "pdf" ? MAX_PDF_BYTES : MAX_UPLOAD_BYTES) + MULTIPART_OVERHEAD;
 
 export class BodyTooLargeError extends Error {}
 

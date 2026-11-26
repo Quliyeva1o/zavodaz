@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ComponentProps } from "react";
 
 // `after:` extends the hit area to >= 44px (36 -> 44, 40 -> 48) without changing the drawn size.
@@ -21,6 +20,6 @@ export function Button({ variant = "primary", size = "md", className, ...rest }:
 }
 
 /** Same look as a link (no prefetch: targets are redirects or dynamic). */
-export function ButtonLink({ variant = "primary", size = "md", className, ...rest }: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
-  return <Link prefetch={false} {...rest} className={buttonClass(variant, size, className)} />;
+export function ButtonLink({ variant = "primary", size = "md", className, ...rest }: ComponentProps<"a"> & { variant?: Variant; size?: Size }) {
+  return <a {...rest} className={buttonClass(variant, size, className)} />;
 }

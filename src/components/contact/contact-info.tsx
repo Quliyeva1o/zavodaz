@@ -2,10 +2,8 @@ import type { ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { getSiteSettings } from "@/features/settings/queries";
-import { SOCIALS, telHref, whatsappHref } from "@/features/settings/links";
+import { SOCIAL_LABELS, SOCIALS, telHref, whatsappHref } from "@/features/settings/links";
 import { Icon, type IconName, SocialIcon } from "@/components/ui/icon";
-
-const SOCIAL_LABELS = { facebook: "Facebook", instagram: "Instagram", linkedin: "LinkedIn", x: "X", youtube: "YouTube", tiktok: "TikTok" };
 
 /**
  * Figma 153:4622 (desktop) / 692:19346 (mobile). Blocks: desktop padding 16/0, gap 14 around the 1px

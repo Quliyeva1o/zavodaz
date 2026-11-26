@@ -81,6 +81,8 @@ export function buildThemeCss(colors: Record<string, string>, texts: TextToken[]
   lines.push("");
   lines.push("  /* Figma DROP_SHADOW 0,16,40,0 #8289AE @0.15 — factory card (281:7099) */");
   lines.push("  --shadow-card: 0 16px 40px 0 rgba(130, 137, 174, 0.15);");
+  lines.push("  /* Figma DROP_SHADOW 0,10,30,0 #7983AD @0.15 — vacancy card (357:10585) */");
+  lines.push("  --shadow-vacancy: 0 10px 30px 0 rgba(121, 131, 173, 0.15);");
   lines.push("");
   for (const t of texts) {
     lines.push(`  /* ${t.figma} */`);

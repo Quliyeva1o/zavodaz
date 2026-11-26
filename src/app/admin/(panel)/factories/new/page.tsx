@@ -11,7 +11,7 @@ export default async function NewFactoryPage() {
     <>
       <Link href="/admin/factories" className="text-body-sm text-gray-500 underline">← Zavodlar</Link>
       <h1 className="mt-2 mb-6 text-h4">Yeni zavod</h1>
-      <FactoryForm id={null} initial={EMPTY_FACTORY} cover={null} options={options} saved={false} />
+      <FactoryForm id={null} initial={EMPTY_FACTORY} cover={null} logo={null} options={options} saved={false} />
     </>
   );
 }

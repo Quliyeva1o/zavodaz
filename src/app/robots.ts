@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getFactorySitemapFiles, getProductSitemapFiles } from "@/features/factory/sitemap-queries";
 import { locales } from "@/i18n/config";
 import { href } from "@/i18n/routes";
 import { siteNoindex, siteUrl } from "@/lib/seo";
@@ -6,7 +7,14 @@ import { siteNoindex, siteUrl } from "@/lib/seo";
 // Spec 7.3: cabinet, admin and auth pages are closed to crawlers.
 const closed = ["cabinet", "login", "register"] as const;
 
-export default function robots(): MetadataRoute.Robots {
+/** The split files (factories, products): /sitemaps/<kind>/sitemap/<n>.xml, one file per 16 666 factories (id boundaries) or per 16 666 product ids (id range), see sitemap-sql.ts. */
+async function splitSitemaps(): Promise<string[]> {
+  const [factories, products] = await Promise.all([getFactorySitemapFiles(), getProductSitemapFiles()]);
+  const urls = (kind: string, n: number) => Array.from({ length: n }, (_, i) => `${siteUrl}/sitemaps/${kind}/sitemap/${i}.xml`);
+  return [...urls("factories", factories), ...urls("products", products)];
+}
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
   if (siteNoindex) return { rules: { userAgent: "*", disallow: "/" } };
   return {
     rules: {
@@ -15,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ["/admin", "/api", ...locales.flatMap((l) => closed.map((r) => href(r, l)))],
     },
     host: siteUrl,
-    sitemap: `${siteUrl}/sitemap.xml`,
+    sitemap: [`${siteUrl}/sitemap.xml`, ...(await splitSitemaps())],
   };
 }

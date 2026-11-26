@@ -26,10 +26,14 @@ export async function getDictionaries(): Promise<Dictionaries> {
   return { cities, industries, productTypes, productionModels };
 }
 
-/** `f` must be a plain object (it is the cache key); build it with parseCatalogParams. */
+/**
+ * `f` must be a plain object (it is the cache key); build it with parseCatalogParams.
+ * `hours`, not `max`: rating votes refresh only their factory page (factoryTag), so card ratings may lag up to an hour
+ * (controller decision, step 3). Admin writes still drop it at once through FACTORIES_TAG.
+ */
 export async function getCatalogPage(f: CatalogFilter): Promise<CatalogPage> {
   "use cache";
-  cacheLife("max");
+  cacheLife("hours");
   cacheTag(FACTORIES_TAG, DICTIONARIES_TAG);
   const ids = resolveCatalogIds(f, await getDictionaries());
   if (!ids) return { items: [], total: 0, pageCount: 0 }; // unknown slug: no results, no query

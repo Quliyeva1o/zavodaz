@@ -25,9 +25,10 @@ async function cleanup() {
     await rm(path.join(uploadDir, id), { recursive: true, force: true });
   }
   await sql`delete from dict_cities where slug like 'e2e-adm%'`;
+  await sql`delete from redirects where from_path like '%/e2e-adm%'`;
   // The server applies these on its next tag sync (tag-sync.ts, every 3 s).
   const now = Date.now();
-  await sql`insert into cache_tags (tag, expired_at) values ('dictionaries', ${now}), ('factories', ${now})
+  await sql`insert into cache_tags (tag, expired_at) values ('dictionaries', ${now}), ('factories', ${now}), ('redirects', ${now})
     on conflict (tag) do update set expired_at = excluded.expired_at`;
   await new Promise((r) => setTimeout(r, 3_500));
 }
@@ -174,6 +175,40 @@ test("upload route: signed out → 401; foreign or missing Origin → 403; too l
   expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(200);
 });
 
+test("upload route ?kind=pdf: a PDF → 201 { id, kind, size }, served inline; non-PDF content → 415; unknown kind → 415", async ({ page, request, baseURL }) => {
+  await loginAsAdmin(page);
+  const post = (file: { name: string; mimeType: string; buffer: Buffer }, kind = "pdf") =>
+    page.request.post(`/api/admin/media?kind=${kind}`, { multipart: { file }, headers: { origin: baseURL! } });
+  const pdf = Buffer.from("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n");
+
+  const ok = await post({ name: "kataloq.pdf", mimeType: "application/pdf", buffer: pdf });
+  expect(ok.status()).toBe(201);
+  const body = (await ok.json()) as { id: string; kind: string; size: number };
+  expect(body.id).toMatch(UUID);
+  seenMedia.add(body.id);
+  expect(body).toEqual({ id: body.id, kind: "pdf", size: pdf.length });
+  const served = await request.get(`/media/${body.id}/file.pdf`);
+  expect(served.status()).toBe(200);
+  expect(served.headers()["content-type"]).toBe("application/pdf");
+  expect(served.headers()["content-disposition"]).toBe("inline; filename=katalog.pdf");
+  expect(served.headers()["content-security-policy"]).toBe("sandbox");
+  expect(served.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(Buffer.from(await served.body()).equals(pdf)).toBe(true);
+  // The route only serves the file shape of the kind on disk: no image variant of a PDF.
+  expect((await request.get(`/media/${body.id}/640.webp`)).status()).toBe(404);
+
+  // Content decides, not the MIME type or the name.
+  const fake = await post({ name: "fake.pdf", mimeType: "application/pdf", buffer: await readFile(SAMPLE) });
+  expect(fake.status()).toBe(415);
+  expect(await fake.json()).toEqual({ error: "type" });
+  // An image field does not take a PDF (sharp cannot decode it: 422), and an unknown kind is refused.
+  expect((await post({ name: "kataloq.pdf", mimeType: "image/jpeg", buffer: pdf }, "image")).status()).toBe(422);
+  expect((await post({ name: "kataloq.pdf", mimeType: "application/pdf", buffer: pdf }, "cv")).status()).toBe(415);
+  // 20 MB cap for PDFs (Content-Length check before the body is read).
+  const huge = { name: "big.pdf", mimeType: "application/pdf", buffer: Buffer.concat([Buffer.from("%PDF-"), Buffer.alloc(20 * 1024 * 1024 + 100 * 1024)]) };
+  expect((await post(huge)).status()).toBe(413);
+});
+
 test("factory list: name search treats % and _ literally; type and status filters", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto(`/admin/factories?q=${encodeURIComponent("E2E Admin")}&status=hidden`);
@@ -194,4 +229,37 @@ test("a city used by a factory cannot be deleted", async ({ page }) => {
   // (Next.js adds its own route announcer, also role="alert".)
   await expect(page.getByRole("alert").filter({ hasText: "zavodda" })).toHaveText("Bu dəyər 1 zavodda istifadə olunur");
   expect(await sql`select 1 from dict_cities where slug = ${CITY.slug}`).toHaveLength(1);
+});
+
+test("dictionary: a renamed city slug makes its old landings redirect, under every type and language (R19)", async ({ page, request }) => {
+  await loginAsAdmin(page);
+  await gotoHydrated(page, "/admin/dictionaries/cities");
+  await page.getByRole("button", { name: "Yeni dəyər" }).click();
+  await page.getByLabel("Ad (AZ)").fill("E2E köhnə şəhər");
+  await page.getByLabel(/^Slug/).fill("e2e-adm-old");
+  await page.getByRole("button", { name: "Yadda saxla" }).click();
+  await expect(page.getByRole("status")).toHaveText("Yadda saxlanıldı");
+  expect((await request.get("/fabrikler/e2e-adm-old")).status()).toBe(200);
+
+  await page.getByRole("button", { name: "Redaktə: E2E köhnə şəhər" }).click();
+  await page.getByLabel(/^Slug/).fill("e2e-adm-new");
+  await page.getByRole("button", { name: "Yadda saxla" }).click();
+  await expect(page.getByRole("row", { name: /E2E köhnə şəhər/ })).toContainText("e2e-adm-new");
+
+  // R2: the proxy answers from its redirect map with a real 301 (refreshed when the redirects tag changes), the query kept.
+  for (const [from, to] of [
+    ["/fabrikler/e2e-adm-old", "/fabrikler/e2e-adm-new"],
+    ["/en/plants/e2e-adm-old", "/en/plants/e2e-adm-new"],
+    ["/ru/agroparki/e2e-adm-old", "/ru/agroparki/e2e-adm-new"],
+  ]) {
+    // Stale-while-revalidate (R8): the first lookup after the change may still use the old map while it refreshes.
+    await expect.poll(async () => (await request.get(`${from}?page=2`, { maxRedirects: 0 })).status(), { message: from, timeout: 15_000 }).toBe(301);
+    const res = await request.get(`${from}?page=2`, { maxRedirects: 0 });
+    const location = new URL(res.headers().location, "http://localhost");
+    expect(location.pathname + location.search, from).toBe(`${to}?page=2`);
+    await page.goto(from);
+    await expect(page, from).toHaveURL((url) => url.pathname === to);
+  }
+  await page.goto("/fabrikler/e2e-adm-new");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

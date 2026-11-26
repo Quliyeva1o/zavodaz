@@ -80,8 +80,54 @@ export function recommendedHref(lang: Locale): string {
   return href("catalog", lang, CATALOG_RECOMMENDED[lang]);
 }
 
-export function factoryHref(slug: string, lang: Locale): string {
-  return href("factory", lang, slug);
+/** Factory page tabs; the key is the internal segment (`/[lang]/factory/<slug>/<key>`). "about" is the factory URL itself. */
+export const FACTORY_TABS = ["about", "media", "products", "capabilities", "vacancies"] as const;
+export type FactoryTab = (typeof FACTORY_TABS)[number];
+type SubTab = Exclude<FactoryTab, "about">;
+
+/** Public tab segment per language (controller URL table, step 3). */
+export const factoryTabSegments: Record<SubTab, Localized> = {
+  media: { az: "media", en: "media", ru: "media" },
+  products: { az: "mehsullar", en: "products", ru: "produkciya" },
+  capabilities: { az: "texniki-imkanlar", en: "capabilities", ru: "vozmozhnosti" },
+  vacancies: { az: "vakansiyalar", en: "vacancies", ru: "vakansii" },
+};
+
+const tabByLocale = Object.fromEntries(
+  locales.map((l) => [l, new Map((Object.keys(factoryTabSegments) as SubTab[]).map((t) => [factoryTabSegments[t][l], t]))]),
+) as Record<Locale, Map<string, SubTab>>;
+
+/** Factory page, or one of its tabs. Without `tab` (or "about") it is the URL the catalog cards link to. */
+export function factoryHref(slug: string, lang: Locale, tab?: FactoryTab): string {
+  return tab && tab !== "about" ? href("factory", lang, slug, factoryTabSegments[tab][lang]) : href("factory", lang, slug);
+}
+
+/** `<code>-<slug>`: the 7-digit code (products.id) is the key, the slug part is cosmetic. */
+export const productSegment = (product: { id: number; slug: string }): string => (product.slug ? `${product.id}-${product.slug}` : String(product.id));
+
+export function productHref(factorySlug: string, product: { id: number; slug: string }, lang: Locale): string {
+  return factoryHref(factorySlug, lang, "products") + "/" + productSegment(product);
+}
+
+const PRODUCT_SEGMENT = /^([1-9][0-9]{0,14})(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?$/;
+
+/** Product code from a `<code>-<slug>` URL segment; null when the segment has no valid code. */
+export function productKey(segment: string): number | null {
+  const m = PRODUCT_SEGMENT.exec(segment);
+  if (!m) return null;
+  const code = Number(m[1]);
+  return Number.isSafeInteger(code) ? code : null;
+}
+
+/** `<slug>[/<tab>[/<code-slug>]]` after the factory segment → internal rest, or null (404). */
+function resolveFactoryRest(locale: Locale, rest: string[]): string[] | null {
+  const [slug, tabSegment, product, ...extra] = rest;
+  if (!slug || extra.length > 0) return null;
+  if (tabSegment === undefined) return [slug];
+  const tab = tabByLocale[locale].get(tabSegment);
+  if (!tab) return null;
+  if (product === undefined) return [slug, tab];
+  return tab === "products" && productKey(product) !== null ? [slug, tab, product] : null;
 }
 
 /** One page in every language — for hreflang. */
@@ -124,6 +170,10 @@ export function resolvePublicPath(pathname: string): ResolvedPath {
     }
     return { kind: "notFound", locale };
   }
+  if (route === "factory") {
+    const internal = resolveFactoryRest(locale, rest);
+    return internal ? { kind: "rewrite", internal: ["", locale, "factory", ...internal].join("/") } : { kind: "notFound", locale };
+  }
   return { kind: "rewrite", internal: ["", locale, route, ...rest].join("/") };
 }
 
@@ -136,6 +186,11 @@ export function switchLocalePath(pathname: string, target: Locale): string {
   if (route === "catalog") {
     if (rest[0] === "recommended") return recommendedHref(target);
     if (rest[0] === "type" && rest[1]) return typeHref(rest[1] as FactoryType, target, rest[2]);
+  }
+  if (route === "factory") {
+    const [slug, tab, product] = rest as [string, FactoryTab | undefined, string | undefined];
+    const page = factoryHref(slug, target, tab);
+    return product ? `${page}/${product}` : page;
   }
   return href(route as RouteKey, target, ...rest);
 }

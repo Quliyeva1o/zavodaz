@@ -1,5 +1,4 @@
 import Form from "next/form";
-import Link from "next/link";
 import { pick, type Locale } from "@/i18n/config";
 import { dict } from "@/i18n/dictionaries";
 import { href } from "@/i18n/routes";
@@ -58,9 +57,9 @@ export function FilterSidebar({ lang, scope, filter, dicts, filtered, basePath }
           {c.filter}
         </h2>
         {filtered && (
-          <Link href={basePath} className="relative text-body-sm text-brand-500 before:absolute before:inset-x-0 before:-inset-y-3 hover:underline">
+          <a href={basePath} className="relative text-body-sm text-brand-500 before:absolute before:inset-x-0 before:-inset-y-3 hover:underline">
             {c.reset}
-          </Link>
+          </a>
         )}
       </div>
       <Form action={leaves ? href("catalog", lang) : basePath} scroll={false} className="flex flex-col gap-5">

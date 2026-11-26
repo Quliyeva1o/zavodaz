@@ -40,6 +40,13 @@ Hesabdakı digər saytlara (marketinq.az, podcast.az, …) toxunulmur.
    `30 4 * * * cd $HOME/zavod-src && PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH UPLOAD_DIR=$HOME/zavod-app/shared/uploads npm run --silent media:sweep >> $HOME/zavod-app/shared/media-sweep.log 2>&1`
    (`UPLOAD_DIR` `.env`-dəkindən fərqlidirsə, burada da eynisini yaz.)
 10. **Yoxla:** https://new.zavod.az — header/footer, dillər, /admin girişi, robots.txt `Disallow: /`.
+11. **İlk deploy-da müştəri IP-sinin yoxlanması (məcburi):** `CLIENT_IP_FROM` və LiteSpeed-in `X-Forwarded-For` başlığı real ziyarətçi IP-sini verməlidir.
+    Səbəb: sorğu limitləri (əlaqə formu, reytinq) və "bir IP-dən bir zavoda ≤ 3 səs" qaydası IP-nin hash-inə bağlıdır; app proksinin öz ünvanını (və ya boş dəyəri) görsə,
+    **bütün istifadəçilər bir bucket paylaşır**: 20 səs/saat bütün sayt üçün bitər, 3 səs limiti bütün ziyarətçilərə ümumi olar.
+    Yoxla: iki fərqli şəbəkədən (məs. ofis Wi-Fi və telefonun mobil interneti) eyni zavoda səs ver, sonra
+    `select distinct ip_hash from ratings where ip_hash is not null;` — **iki fərqli** dəyər çıxmalıdır (bir dəyər = app IP-ni düz oxumur: `.env`-də `CLIENT_IP_FROM`-u və
+    `X-Forwarded-For`-un başlıqlarını yoxla; LiteSpeed klient başlığına öz ünvanını sona əlavə edir, bu halda default "son girişi götür" düzdür). IPv6 /64 prefiksinə endirilir.
+    Test səsləri `delete from ratings where ip_hash is not null;` ilə təmizlənir, sonra zavodun `rating_avg/rating_count`-unu admin-dən və ya yenidən hesablamaqla düzəlt.
 
 ## B. Yeniləmə
 `git push`, sonra serverdə: `bash ~/zavod-src/deploy/cpanel/deploy.sh`. Geri qaytarma: `bash ~/zavod-src/deploy/cpanel/rollback.sh [id]`.
@@ -48,7 +55,8 @@ Build 1 CPU-da bir neçə dəqiqə çəkir — yeniləmələri axşam/gecə et.
 ## Bilmək lazım olanlar
 - **Yüklənmiş şəkillər** `UPLOAD_DIR`-dədir (`app.js` default olaraq `~/zavod-app/shared/uploads` verir; başqa yer lazımdırsa app qovluğundan kənarda mütləq yol yaz, məs. `~/zavod-uploads`). Production-da bu dəyişən məcburidir. `deploy.sh` və `rollback.sh` bu qovluğu silmir və əvəz etmir; əl ilə də `releases/` altına qoyma. `deploy.sh`-dakı `~/zavod-public/media` symlink-i və `media.htaccess` `shared/uploads`-a işarə edir: `UPLOAD_DIR` köçürülsə, onlar da (symlink hədəfi və `.htaccess` surəti) birlikdə köçürülməlidir. `backup.sh` yalnız `shared/uploads`-u yedəkləyir, başqa yol seçsən yedəyi də ona uyğunlaşdır.
 - **Lüğət (şəhər, sahə, məhsul tipi, istehsalat modeli) tamamilə boşaldılsa**, növbəti `deploy.sh` seed-i onu yenidən doldurur (R6): boş lüğət səhv deyil, ilkin siyahı qayıdır. Qəsdən boş saxlamaq mümkün deyil; lazımsız yazıları ayrı-ayrı sil.
-- **Host body limiti**: `/api/admin/media` (örtük şəkli yükləmə) 8 MB faylı + multipart başlığını qəbul edir, yəni LiteSpeed/Apache body limiti ≥ 8,1 MB olmalıdır (`LimitRequestBody`, LiteSpeed "Max Request Body Size"). İlk deploy-dan sonra admin paneldən bir real örtük şəkli yükləyib yoxla; 413 gəlirsə limiti qaldır.
+- **Host body limiti**: `/api/admin/media` (örtük şəkli yükləmə) 8 MB faylı + multipart başlığını qəbul edir, və `?kind=pdf` ilə PDF kataloqlar 20 MB-dır; yəni LiteSpeed/Apache body limiti **≥ 20,1 MB** olmalıdır (`LimitRequestBody`, LiteSpeed "Max Request Body Size"; 8,1 MB limit PDF-lərə çatmır və 413 verir). İlk deploy-dan sonra admin paneldən bir real örtük şəkli və ~19 MB-lıq bir PDF kataloq yükləyib yoxla; 413 gəlirsə limiti qaldır.
+- **PDF kataloqlar** `/media/<id>/file.pdf` ünvanındadır: `media.htaccess` onları `application/pdf`, `Content-Disposition: inline; filename=katalog.pdf` və `Content-Security-Policy: sandbox` ilə verir (Node marşrutu da eyni başlıqları qoyur). Yoxla: `curl -sI https://new.zavod.az/media/<id>/file.pdf | grep -iE 'content-type|content-disposition|content-security'`.
 - Yaddaş limiti 768 MB-dır (marketinq 1024): hesabda 4 GB RAM 3+ Node tətbiqi arasında bölünür.
 - Thread limiti 150-dir: `deploy.sh` thread hovuzlarını kiçildir; `check-server.sh` cari istifadəni göstərir.
 

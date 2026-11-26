@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, real, serial, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, serial, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { Localized } from "@/i18n/config";
 import type { RichDoc } from "@/features/pages/types";
+import type { SocialKey } from "@/features/settings/links";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -132,15 +133,19 @@ export const dictIndustries = pgTable("dict_industries", dictColumns());
 export const dictProductTypes = pgTable("dict_product_types", dictColumns());
 export const dictProductionModels = pgTable("dict_production_models", dictColumns());
 
-/** Uploaded images (spec §6.5): WebP variants + blur placeholder, files under UPLOAD_DIR/<id>/. */
+/**
+ * Uploads (spec §6.5), files under UPLOAD_DIR/<id>/.
+ * image: WebP variants + blur placeholder. pdf (catalogues): `<id>/file.pdf`; width/height 0, no variants, blur "".
+ */
 export const media = pgTable("media", {
   id: uuid("id").primaryKey().defaultRandom(),
-  kind: text("kind").notNull(), // image
+  kind: text("kind").$type<"image" | "pdf">().notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   /** Widths that exist as `<id>/<w>.webp`, ascending. */
   variants: jsonb("variants").$type<number[]>().notNull(),
   blur: text("blur").notNull(), // data:image/webp;base64,…
+  /** Bytes on disk (all variants of an image; the PDF file itself). */
   size: integer("size").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -161,6 +166,21 @@ export const factories = pgTable(
     productionModelIds: integer("production_model_ids").array().notNull().default(sql`'{}'::int[]`),
     cooperation: text("cooperation").array().notNull().default(sql`'{}'::text[]`),
     coverId: uuid("cover_id").references(() => media.id, { onDelete: "set null" }),
+    // ---- Factory page (step 3). Single-language content (spec §4): everyone sees the same text. ----
+    /** Figma "Agro Trade Supply MMC" under the name. */
+    legalName: text("legal_name").notNull().default(""),
+    logoId: uuid("logo_id").references(() => media.id, { onDelete: "set null" }),
+    /** "Texniki imkanlar" tab; line breaks are kept. */
+    equipmentText: text("equipment_text").notNull().default(""),
+    employeeCount: integer("employee_count"),
+    capacityText: text("capacity_text").notNull().default(""),
+    phone: text("phone").notNull().default(""),
+    email: text("email").notNull().default(""),
+    website: text("website").notNull().default(""),
+    address: text("address").notNull().default(""),
+    youtubeUrl: text("youtube_url").notNull().default(""),
+    /** Only the networks the factory filled in (the same six as the site footer). */
+    socials: jsonb("socials").$type<Partial<Record<SocialKey, string>>>().notNull().default({}),
     verified: boolean("verified").notNull().default(false),
     status: factoryStatus("status").notNull().default("draft"),
     tariffCode: text("tariff_code").notNull().default("standart"),
@@ -192,5 +212,163 @@ export const factories = pgTable(
     index("factories_product_type_idx").on(t.productTypeId),
     index("factories_models_gin").using("gin", t.productionModelIds),
     index("factories_coop_gin").using("gin", t.cooperation),
+    // The orphan sweep (features/media/sweep.ts) asks "is this media row still referenced?" with NOT EXISTS on both columns.
+    index("factories_cover_idx").on(t.coverId).where(sql`${t.coverId} is not null`),
+    index("factories_logo_idx").on(t.logoId).where(sql`${t.logoId} is not null`),
   ],
+);
+
+// ---------- Factory page: gallery, certificates, PDF catalogues, products, vacancies, ratings (step 3) ----------
+// Every media reference (the `media_id` columns here, plus factories.cover_id / logo_id above) must also be in the reference check of
+// features/media/sweep.ts, and each needs an index on that column for the sweep's NOT EXISTS (factories: partial indexes on the non-null ids).
+
+/** Products and vacancies: only `published` ones are public (and only while their factory is published). */
+export const contentStatus = pgEnum("content_status", ["draft", "published", "hidden"]);
+
+/** "Media" tab photos, at most 6 (checked by the admin action). */
+export const factoryImages = pgTable(
+  "factory_images",
+  {
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.factoryId, t.mediaId] }), index("factory_images_media_idx").on(t.mediaId)],
+);
+
+export const factoryCertificates = pgTable(
+  "factory_certificates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id),
+    title: text("title").notNull().default(""),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [index("factory_certificates_factory_idx").on(t.factoryId, t.sort), index("factory_certificates_media_idx").on(t.mediaId)],
+);
+
+/** PDF catalogues ("Məhsullar" tab); `media.kind` = pdf. */
+export const factoryFiles = pgTable(
+  "factory_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id),
+    title: text("title").notNull(),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [index("factory_files_factory_idx").on(t.factoryId, t.sort), index("factory_files_media_idx").on(t.mediaId)],
+);
+
+export const products = pgTable(
+  "products",
+  {
+    /** Also the public 7-digit product code (`…/mehsullar/1519494-mehsulun-adi`): numbering starts at 1 000 000. */
+    id: bigint("id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity({ startWith: 1_000_000 }),
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    /** Cosmetic part of the URL; a wrong one redirects to the right one (the code is the key). */
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    /** Figma "Təsvir 0/400" (checked by the admin action). */
+    description: text("description").notNull().default(""),
+    status: contentStatus("status").notNull().default("draft"),
+    ...timestamps,
+  },
+  (t) => [
+    // Factory "Məhsullar" tab and "Oxşar məhsullar": newest first. DESC columns NULLS FIRST to match ORDER BY … DESC.
+    index("products_factory_list_idx").on(t.factoryId, t.status, t.createdAt.desc().nullsFirst(), t.id.desc().nullsFirst()),
+  ],
+);
+
+/** At most 6 per product (checked by the admin action); the lowest `sort` is the main image. */
+export const productImages = pgTable(
+  "product_images",
+  {
+    productId: bigint("product_id", { mode: "number" })
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.productId, t.mediaId] }), index("product_images_media_idx").on(t.mediaId)],
+);
+
+/** Spec §4. The factory tab lists them now; CRUD and the public vacancy page arrive in step 8. */
+export const vacancies = pgTable(
+  "vacancies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    /** `/vakansiyalar/<slug>`. */
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    cityId: integer("city_id").references(() => dictCities.id, { onDelete: "set null" }),
+    /** Monthly amount in whole currency units; null = not stated. */
+    salary: integer("salary"),
+    currency: text("currency").notNull().default("AZN"),
+    employmentType: text("employment_type").notNull().default(""),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    /** Figma "Haqqında 0/700". */
+    description: text("description").notNull().default(""),
+    status: contentStatus("status").notNull().default("draft"),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("vacancies_slug_idx").on(t.slug),
+    index("vacancies_factory_list_idx").on(t.factoryId, t.status, t.publishedAt.desc().nullsFirst(), t.id.desc().nullsFirst()),
+  ],
+);
+
+/** One vote per voter and factory, which the voter may change (upsert). `voter_hash` = sha256(cookie id + ip hash). */
+export const ratings = pgTable(
+  "ratings",
+  {
+    factoryId: uuid("factory_id")
+      .notNull()
+      .references(() => factories.id, { onDelete: "cascade" }),
+    voterHash: text("voter_hash").notNull(),
+    /** Hashed client IP (IPv6 as /64) at the first vote; null on votes from before the per-IP cap. Counts distinct voters per IP. */
+    ipHash: text("ip_hash"),
+    score: smallint("score").notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    primaryKey({ columns: [t.factoryId, t.voterHash] }),
+    index("ratings_factory_ip_idx").on(t.factoryId, t.ipHash),
+    check("ratings_score_check", sql`${t.score} between 1 and 5`),
+  ],
+);
+
+/**
+ * Old public paths → current ones (301), written when a factory or dictionary slug changes (features/factory/slug-redirect.ts).
+ * Chains are kept one hop long: every `to_path` is a live path, never another `from_path`.
+ */
+export const redirects = pgTable(
+  "redirects",
+  {
+    fromPath: text("from_path").primaryKey(),
+    toPath: text("to_path").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("redirects_to_idx").on(t.toPath)],
 );
